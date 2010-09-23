@@ -11,7 +11,7 @@ PROJECT(NeuralGas)
 # Project root directory
 GET_FILENAME_COMPONENT(PROJECT_ROOT ../.. ABSOLUTE)
 SET(NEURALGAS_ROOT ${PROJECT_ROOT}/trunk CACHE INTERNAL "Path prefix for NeuralGas package")
-SET(CMAKE_MODULE_PATH ${SMLEARNING_ROOT}/cmake)
+SET(CMAKE_MODULE_PATH ${NEURALGAS_ROOT}/cmake)
 
 
 # Set the path where other thing should be relative to
