@@ -22,6 +22,8 @@
 * \param _size number of elements that can be stored
 *
 */
+#include <cstdlib>
+
 template<typename T> struct Vector_base
 {
  public:
@@ -743,7 +745,7 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
         for (int i=0, j=0; i < (this->_size / 2) ; i++,j+=2)
         {
            (*result)[j]   = *((this->_start_address)+j) - *(to_subtract._start_address+j)  ;
-           (*result)[j+1] = *((this->_start_address)+j+1) - *(to_subtrac._start_address+j+1);
+           (*result)[j+1] = *((this->_start_address)+j+1) - *(to_subtract._start_address+j+1);
         }
      if (this->_size%2==1)
          (*result)[this->_size-1] = *((this->_start_address)+this->_size-1) - *(to_subtract._start_address+this->_size-1);       
@@ -827,7 +829,7 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
         for (int i=0, j=0; i < (this->_size / 2) ; i++,j+=2)
         {
            (*result)[j]   = *((this->_start_address)+j) - *(to_subtract._start_address+j)  ;
-           (*result)[j+1] = *((this->_start_address)+j+1) - *(to_subtrac._start_address+j+1);
+           (*result)[j+1] = *((this->_start_address)+j+1) - *(to_subtract._start_address+j+1);
         }
      if (this->_size%2==1)
          (*result)[this->_size-1] = *((this->_start_address)+this->_size-1) - *(to_subtract._start_address+this->_size-1);       
