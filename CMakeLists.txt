@@ -4,18 +4,15 @@ if(COMMAND cmake_policy)
 endif(COMMAND cmake_policy)
 
 
-# SMLearning
+# NeuralGas
 PROJECT(NeuralGas)
 
-
 # Project root directory
-GET_FILENAME_COMPONENT(PROJECT_ROOT ../.. ABSOLUTE)
+GET_FILENAME_COMPONENT(PROJECT_ROOT .. ABSOLUTE)
 SET(NEURALGAS_ROOT ${PROJECT_ROOT}/trunk CACHE INTERNAL "Path prefix for NeuralGas package")
 
 # Look for Boost libraries
-SET(CMAKE_MODULE_PATH ${NEURALGAS_ROOT}/cmake)
-INCLUDE(${NEURALGAS_ROOT}/cmake/FindBoost.cmake)
-
+SET(CMAKE_MODULE_PATH ${NEURALGAS_ROOT})
 
 # Set the path where other thing should be relative to
 GET_FILENAME_COMPONENT(CMAKE_SOURCE_DIR . ABSOLUTE CACHE INTERNAL "")
@@ -41,13 +38,13 @@ SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Path prefix for NeuralGas instal
 # SET(ICE_BIN /usr/bin CACHE PATH "Path prefix for ZeroC Ice binaries")
 
 ADD_DEFINITIONS(-DLINUX -fpermissive)
-LINK_LIBRARIES(NeuralGas
+# LINK_LIBRARIES(NeuralGas
   # pthread rt GL glut GLU ${QT_LIBRARIES} qwt-qt4 Ice IceUtil
-)
+# )
 
 
 INCLUDE_DIRECTORIES(
-  ${NEURALGAS_ROOT}
+        ${NEURALGAS_ROOT}
 #	${QT_INCLUDE_DIR}
 #	${QWT_INCLUDE}
 #	${ICE_INCLUDE}
@@ -59,24 +56,58 @@ LINK_DIRECTORIES(
 )
 
 
+SET(GNG_HEADERS
+	${NEURALGAS_ROOT}/GrowingNeuralGas/GNGAlgorithm.h
+	${NEURALGAS_ROOT}/GrowingNeuralGas/GNGGraph.h
+	${NEURALGAS_ROOT}/GrowingNeuralGas/GNGModul.h
+	${NEURALGAS_ROOT}/GrowingNeuralGas/GNGModulGraph.h
+)
+INSTALL(FILES ${GNG_HEADERS} DESTINATION include/NeuralGas/GrowingNeuralGas/)
 
-ADD_SUBDIRECTORY(${NEURALGAS_ROOT}/DataGenerator)
-ADD_SUBDIRECTORY(${NEURALGAS_ROOT}/Graphs)
-ADD_SUBDIRECTORY(${NEURALGAS_ROOT}/GrowingNeuralGas)
-ADD_SUBDIRECTORY(${NEURALGAS_ROOT}/GrowingNeuralGas/MergeGrowingNeuralGas)
-ADD_SUBDIRECTORY(${NEURALGAS_ROOT}/GrowingNeuralGas/Testing)
+SET(ERRORGNG_HEADERS
+	${NEURALGAS_ROOT}/GrowingNeuralGas/ErrorBasedGNGAlgorithm/EBGNGAlgorithm.h
+)
+INSTALL(FILES ${ERRORGNG_HEADERS} DESTINATION include/NeuralGas/GrowingNeuralGas/ErrorBasedGNGAlgorithm)
 
+SET(MGNG_HEADERS
+	${NEURALGAS_ROOT}/GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h
+	${NEURALGAS_ROOT}/GrowingNeuralGas/MergeGrowingNeuralGas/MGNGGraph.h
+	${NEURALGAS_ROOT}/GrowingNeuralGas/MergeGrowingNeuralGas/CDNAlgorithm.h
+)
+INSTALL(FILES ${MGNG_HEADERS} DESTINATION include/NeuralGas/GrowingNeuralGas/MergeGrowingNeuralGas)
 
-SET(MAIN_NGSUITE
-  ${NEURALGAS_ROOT}/main_NGSuite.cpp
+SET(GRAPH_HEADERS
+	${NEURALGAS_ROOT}/Graphs/Base_Graph.h
+	${NEURALGAS_ROOT}/Graphs/DGraph.h
+	${NEURALGAS_ROOT}/Graphs/TGraph.h
+	${NEURALGAS_ROOT}/Graphs/UGraph.h
+	${NEURALGAS_ROOT}/Graphs/Vector.h
+	${NEURALGAS_ROOT}/Graphs/Vector_temp.h
+	${NEURALGAS_ROOT}/Graphs/Vector_temp_easy.h
+)
+INSTALL(FILES ${GRAPH_HEADERS} DESTINATION include/NeuralGas/Graphs)
+
+SET(DATAGENERATOR_HEADERS
+	${NEURALGAS_ROOT}/DataGenerator/DataGenerator.h
+	${NEURALGAS_ROOT}/DataGenerator/MackeyGlass.h
+)
+INSTALL(FILES ${DATAGENERATOR_HEADERS} DESTINATION include/NeuralGas/DataGenerator)
+
+SET(MAINGNG
+        ${NEURALGAS_ROOT}/GrowingNeuralGas/mainGNG.cpp
+)
+
+SET(MAINNGSUITE
+        ${NEURALGAS_ROOT}/mainNGSuite.cpp
 )
 
 # NeuralGas library
-ADD_LIBRARY(${PROJECT_NAME} SHARED ${GNG_SOURCES})
-INSTALL(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+# ADD_LIBRARY(${PROJECT_NAME} SHARED ${GNG_SOURCES})
+# SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
+# INSTALL(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
 
-ADD_EXECUTABLE(mainGNG ${MAIN_GNG})
-ADD_EXECUTABLE(mainNGSuite ${MAIN_NGSUITE})
+ADD_EXECUTABLE(mainGNG ${MAINGNG})
+ADD_EXECUTABLE(mainNGSuite ${MAINNGSUITE})
 
 INSTALL(TARGETS mainGNG RUNTIME DESTINATION bin/NeuralGas)
-INSTALL(TARGETS main_NGSuite RUNTIME DESTINATION bin/NeuralGas)
+INSTALL(TARGETS mainNGSuite RUNTIME DESTINATION bin/NeuralGas)

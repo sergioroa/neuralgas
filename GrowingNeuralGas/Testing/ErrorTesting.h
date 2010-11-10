@@ -13,7 +13,7 @@
 #define ERRORTESTING_H
 
 #include <vector>
-#include "..\GNGModul.h"
+#include <GrowingNeuralGas/GNGModul.h>
 
 /** \brief This class allows to compute the quantization error of NeuralGas Algorithms.
 *

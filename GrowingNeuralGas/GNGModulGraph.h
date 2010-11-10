@@ -10,8 +10,8 @@
 #ifndef GNGMODULGRAPH_H
 #define GNGMODULGRAPH_H
 
-#include "..\Graphs\UGraph.h"
-#include "..\Graphs\TGraph.h"
+#include <Graphs/UGraph.h>
+#include <Graphs/TGraph.h>
 
 
 /** \brief GNGModulGraph provides the basic graph structure for MergeGrowingNeuralGas

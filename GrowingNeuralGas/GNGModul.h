@@ -10,9 +10,9 @@
 #ifndef GNGMODUL_H
 #define GNGMODUL_H
 
-
+#include <limits>
 #include <vector>
-#include "..\NeuralGas.h"
+#include <NeuralGas.h>
 #include "GNGModulGraph.h"
 
 template<typename T,typename S> class ErrorTesting;

@@ -18,7 +18,7 @@
 
 #include <math.h>
 #include <vector>
-#include "Graphs\Base_Graph.h"
+#include <Graphs/Base_Graph.h>
 
 /** \brief Class declares the basic operations for the Neural Gas Algorithm and is intended as a super class for inheritance.
 *

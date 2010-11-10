@@ -13,8 +13,8 @@
 #define MGNGALGORITHM_H
 
 #include "MGNGGraph.h"
-#include "..\..\NeuralGas.h"
-#include "..\GNGModul.h"
+#include <NeuralGas.h>
+#include <GrowingNeuralGas/GNGModul.h>
 #include <limits>
 #include <fstream>
 #include <iostream>
@@ -125,7 +125,7 @@ template<typename T,typename S> class MGNGAlgorithm : public GNGModul<T,S>
 *
 * \param dim is the dimension of the node weights
 */
-template<typename T,typename S> MGNGAlgorithm<T,S>::MGNGAlgorithm<T,S>(const int& dim): GNGModul<T,S>(dim)
+template<typename T,typename S> MGNGAlgorithm<T,S>::MGNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
 {_graphptr=NULL;_funcUpdateCounter=updateCounter;}
 
 /** \brief std dto

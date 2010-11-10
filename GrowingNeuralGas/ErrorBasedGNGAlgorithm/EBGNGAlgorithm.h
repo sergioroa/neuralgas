@@ -1,5 +1,5 @@
 /** 
-* \class GNGAlgorithm
+* \class EBGNGAlgorithm
 * \author Manuel Noll
 * 
 *  Copyright(c) 20010 Manuel Noll - All rights reserved
@@ -7,77 +7,25 @@
 *  \date    2010
 */
 
+#ifndef EBGNGALGORITHM_H
+#define EBGNGALGORITHM_H
 
-#ifndef GNGALGORITHM_H
-#define GNGALGORITHM_H
+#include <GrowingNeuralGas/GNGModul.h>
+#include <GrowingNeuralGas/GNGGraph.h>
 
-#include "GNGGraph.h"
-#include <NeuralGas.h>
-#include "GNGModul.h"
-#include <limits>
-#include <fstream>
-#include <iostream>
-
-
-/** \brief Class implements the algorithm proposed in 
-*   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
-*
-* The class is a flexible (not yet as flexible as it is intented to be) implemention of
-* the algorithm proposed by the above mentionend authors.
-* Since the class is derived from the abstract class NeuralGas it is necessary to define
-* the precompiler macro NUM_PARAM reflecting the number of needed parameter params within the
-* algorithm.
-* Recap : the values are set via the super class func setFuncArray taking a func ptr of the
-*  float (*)(const int&) and an index of the parameter to set. The setting is
-* params[0] alpha, params[1] beta, params[2] gamma, params[3] delta, params[4] epsilon_b, 
-* params[5] epsilon_n, params[6] theta params[7] eta params[8] lambda
-* In order to change the number of parameters the precompile definition NUM_PARAM in file 
-* NeuralGas.h has to be changed accordingly.
-* The int parameter in float (*)(const int&) is the given time step allowing to define
-* time / step dependend parameters.
-*
-* IMPORTANT : USAGE
-*
-* setFuncArray(index) has to be called for each parameter(#NUM_PARAM)
-*
-* setData 
-*
-* maximal random value has to be determined
-*
-* setRefVectors(num,max_random) inits graph with num ref vectors, their random init weight
-*                               and context values are within max_random.
-*                               Is the data updated by assigning new data by the setData func
-*                               the call of setRefVectors erases the learned graph structure.
-*                               Therefore the call is equal to a new init of the algorithm.
-*
-* run()                         Starts the learning algorithm.
-*                               Is some new data assigned by the setData func without calling
-*                               setRefVectors then another call
-*                               of run() refines, adjusts respectively the graph to this newly
-*                               added data.
-*
-* OPTIONAL:
-* setMetric(T (*)(const Vector<T>& a,const Vector<T>& b)) Sets a new metric for distance measurement.
-*                                                         Default is L2 euclidean metric.
-*                                                         Called with NULL sets the default metric.
-* 
-*
-*   \param _graphptr is a Base_Graph casted pointer to the thereof derived class GNGGraph
-*/
-
-template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
+template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
 {
  public:          // cto initializing the class 
-                         GNGAlgorithm(const int& dim);
+                         EBGNGAlgorithm(const int& dim);
                   // std dto
-                         ~GNGAlgorithm();
+                         ~EBGNGAlgorithm();
                          
                  // runs the proposed algorithm 
                  void    run();
            
                  // sets the number of inital reference vectors
          virtual void    setRefVectors(const int&,const int&);
-                
+  
                  void    showGraph(){_graphptr->showGraph();}
                  // algorithmic dependent distance function
                  T       getDistance(const int&,const int&);
@@ -88,6 +36,8 @@ template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
                  void updateNeighbor(const int&,const int&);
                  //defines the update rule for the winner
                  void updateWinner(const int&,const int&);
+                 // the average error
+                 float average_error;
                     
 };
 
@@ -95,17 +45,18 @@ template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
 *
 * \param dim is the dimension of the node weights
 */
-template<typename T,typename S> GNGAlgorithm<T,S>::GNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
+template<typename T,typename S> EBGNGAlgorithm<T,S>::EBGNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
 {_graphptr=NULL;}
 
 /** \brief std dto
 */
-template<typename T,typename S> GNGAlgorithm<T,S>::~GNGAlgorithm()
+template<typename T,typename S> EBGNGAlgorithm<T,S>::~EBGNGAlgorithm()
 {
 //if (_graphptr!=NULL) 
   //    delete _graphptr;
    _graphptr=NULL;                          
 }
+
 
 /** \brief Sets the number of initial reference vectors.
 *
@@ -114,12 +65,14 @@ template<typename T,typename S> GNGAlgorithm<T,S>::~GNGAlgorithm()
 * \param num_of_ref_vec is the number of initial reference vectors
 * \param max_value is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const int& num_of_ref_vec,const int& max_value)
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const int& num_of_ref_vec,const int& max_value)
 {
   if (_graphptr!=NULL)
       delete _graphptr;
   if (this->graphptr!=NULL)
      delete this->graphptr;
+     
+  average_error       = 0.0;
   
   _graphptr           = new GNGGraph<T,S>(this->getDimension());
   // DANGER DownCast is performed via dynamic_cast
@@ -142,12 +95,14 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const int&
 *   \param time current datum
 *   \param node_index is the node where to the distance shall be determined
 */
-template<typename T,typename S> T GNGAlgorithm<T,S>::getDistance(const int& time, const int& node_index)
+template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const int& time, const int& node_index)
 {
     // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
     // since this accelerates the calculation but does not change the result 
     return metric( (*this)[time], (*_graphptr)[node_index].weight);
 }
+
+
 
 /** \brief Defines the update rule for the neighbor given by the second index 
 *
@@ -158,7 +113,7 @@ template<typename T,typename S> T GNGAlgorithm<T,S>::getDistance(const int& time
 *   \param time is the data vector that is used for updating 
 *   \param node_index is the index of topological neighbor that shall be updated
 */
-template<typename T,typename S> void GNGAlgorithm<T,S>::updateNeighbor(const int& time,const int& node_index)
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateNeighbor(const int& time,const int& node_index)
 {
  (*_graphptr)[node_index].weight  += this->params[5] * ( (*this)[time]-(*_graphptr)[node_index].weight);
 }
@@ -172,10 +127,11 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::updateNeighbor(const int
 *   \param time is the data vector that is used for updating 
 *   \param winner is the index of the winner that shall be updated
 */
-template<typename T,typename S> void GNGAlgorithm<T,S>::updateWinner(const int& time,const int& winner)
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateWinner(const int& time,const int& winner)
 {
  (*_graphptr)[winner].weight  += this->params[4] * ( (*this)[time]-(*_graphptr)[winner].weight);
 }
+
 
 
 /** \brief Runs the algorithm as proposed in "Incremental Unsupervised Time Series 
@@ -188,14 +144,14 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::updateWinner(const int& 
 *   the learning rule.
 *
 */
-template<typename T,typename S> void GNGAlgorithm<T,S>::run()
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
 {
  
  if (this->getDimension()>0)
  {
    // number of total steps for the algorithm
    int tsize                       =     this->size();
- 
+   
    for(int t = 0; t < tsize; t++)
    {
     // init
@@ -221,16 +177,17 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::run()
 
     T distance = pow(getDistance(t,first_winner),2);
 
-    if ( _graphptr->size() < this->params[7] &&  distance >= this->params[2] )
+    if ( _graphptr->size() < this->params[7] &&  distance >= average_error )
     {
      _graphptr->addNode();
- 
      int gsize = _graphptr->size()-1;
      //set the position of the new node to be the position of the current data vector
      (*_graphptr)[gsize].weight = (*this)[t];
      _graphptr->setAge(first_winner,gsize,0.0);
+     _graphptr->setAge(second_winner,gsize,0.0);
+     
      //new node's error is set to the error of the winner node 
-     _graphptr->setError(gsize,_graphptr->getError(first_winner) );  
+    // _graphptr->setError(gsize,_graphptr->getError(first_winner) );  
     } 
     else
     {
@@ -245,7 +202,7 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::run()
      }
 
      updateWinner(t,first_winner);      
-     _graphptr->setError(gsize,_graphptr->getError(first_winner) + distance  );         
+     average_error += (distance / gsize);         
    
      if (first_winner != second_winner)
         _graphptr->setAge(first_winner,second_winner,0.0);
@@ -256,54 +213,9 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::run()
     
     this->rmNotConnectedNodes(); 
     
-    if( 0<int(this->params[6]) && (t % int(this->params[6])== 0) && _graphptr->size() < this->params[7])
-    {
-       T max_error                   = this->_zero;
-       int max_error_index           = 0;
- 
-       for (int i=0; i < _graphptr->size(); i++)
-       {
-           if (_graphptr->getError(i) > max_error )
-           {
-            max_error               = _graphptr->getError(i);
-            max_error_index         = i;
-           }
-       }
-       
-       std::vector<int> neighbors   = _graphptr->getNeighbors(max_error_index);
-       T max_error_n                = this->_zero;
-       int max_error_index_n        = 0;
-       
-       for (int i=0; i < neighbors.size(); i++)
-       {
-
-           if (_graphptr->getError(neighbors[i]) > max_error_n )
-           {
-            max_error_n             = _graphptr->getError(neighbors[i]);
-            max_error_index_n       = i;
-           }
-       }
-       
-       _graphptr->addNode();
-
-       int gsize                       = _graphptr->size() - 1;
-       (*_graphptr)[gsize].weight      = (*_graphptr)[max_error_index_n].weight*0.5
-                                         +(*_graphptr)[max_error_index].weight*0.5;
-    
-       _graphptr->addEdge(max_error_index,gsize);
-       _graphptr->addEdge(max_error_index_n,gsize);
-
-       _graphptr->setError(max_error_index,this->params[0]*_graphptr->getError(max_error_index));
-       _graphptr->setError(max_error_index_n,this->params[0]*_graphptr->getError(max_error_index_n));       
-       _graphptr->setError(gsize,_graphptr->getError(max_error_index));
-   }
-
-   for(int i = 0; i < _graphptr->size(); i++)
-   {
-    _graphptr->setError(i, this->params[1] * _graphptr->getError(i));
-   }
   }  
  }
 }
+
 
 #endif

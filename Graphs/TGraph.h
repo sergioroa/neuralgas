@@ -13,7 +13,7 @@
 #define TGRAPH_H
 
 #include "Base_Graph.h"
-
+#include <typeinfo>
 
 /** \brief The derived edge for the time / age graph
 *

@@ -1,12 +1,12 @@
 #include <cstdlib>
 #include <iostream>
 #include "NeuralGasSuite.h"
-#include "GrowingNeuralGas\Testing\ErrorTesting.h"
-#include "GrowingNeuralGas\MergeGrowingNeuralGas\MGNGAlgorithm.h"
-#include "GrowingNeuralGas\MergeGrowingNeuralGas\CDNAlgorithm.h"
-#include "GrowingNeuralGas\GNGAlgorithm.h"
-#include "GrowingNeuralGas\ErrorBasedGNGAlgorithm\EBGNGAlgorithm.h"
-#include "DataGenerator\MackeyGlass.h"
+#include "GrowingNeuralGas/Testing/ErrorTesting.h"
+#include "GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h"
+#include "GrowingNeuralGas/MergeGrowingNeuralGas/CDNAlgorithm.h"
+#include "GrowingNeuralGas/GNGAlgorithm.h"
+#include "GrowingNeuralGas/ErrorBasedGNGAlgorithm/EBGNGAlgorithm.h"
+#include "DataGenerator/MackeyGlass.h"
 #include <math.h>
 
 using namespace std;

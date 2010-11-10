@@ -12,7 +12,7 @@
 #define MGNGGRAPH_H
 
 #include <iostream>
-#include "..\GNGModulGraph.h"
+#include <GrowingNeuralGas/GNGModulGraph.h>
 
 
 /** \brief The derived node for a MGNGGraph

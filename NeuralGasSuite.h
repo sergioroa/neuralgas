@@ -11,10 +11,10 @@
 #define NEURALGASSUITE_H
 
 #include <vector>
-#include "DataGenerator\DataGenerator.h"
-#include "GrowingNeuralGas\GNGModul.h"
-#include "GrowingNeuralGas\Testing\ErrorTesting.h"
-#include "GrowingNeuralGas\MergeGrowingNeuralGas\MGNGAlgorithm.h"
+#include "DataGenerator/DataGenerator.h"
+#include "GrowingNeuralGas/GNGModul.h"
+#include "GrowingNeuralGas/Testing/ErrorTesting.h"
+#include "GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h"
 
 template <typename T,typename S> class NeuralGasSuite
 {

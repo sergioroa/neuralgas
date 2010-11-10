@@ -10,7 +10,7 @@
 #ifndef DATAGENERATOR_H
 #define DATAGENERATOR_H
 
-#include "..\Graphs\Vector.h"
+#include <Graphs/Vector.h>
 
 /** \brief The class is an abstract class that provides the basic operations for data generation
 *   for the NeuralGas algorithms.
