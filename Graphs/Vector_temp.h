@@ -22,8 +22,6 @@
 * \param _size number of elements that can be stored
 *
 */
-#include <cstdlib>
-
 template<typename T> struct Vector_base
 {
  public:
@@ -79,8 +77,6 @@ template<typename T> inline Vector_base<T>::Vector_base(const int& size,const T&
 */
 template<typename T> inline Vector_base<T>::~Vector_base()
 {
- free(_start_address);
- _start_address=NULL;
 }
 
 /** \brief Allocates space for a number of elements
@@ -358,8 +354,9 @@ template<> class Vector<float> : protected Vector_base<float>
  private:
          //dummy variable for operator[] that is returned if given index is out of range
          float _dummy;
-         
+             
 };
+
 
 /** @brief std cto
 */
@@ -393,11 +390,16 @@ inline Vector<float>::Vector(const int& size,const float& value):_base(size,valu
 
 /** @brief std destructor
 */ 
-template<typename T> inline Vector<T>::~Vector(){}
+template<typename T> inline Vector<T>::~Vector()
+{free(this->_start_address);this->_start_address=NULL;}
 
 /** @brief std destructor
 */ 
-inline Vector<float>::~Vector(){}
+inline Vector<float>::~Vector(){
+free(this->_start_address);
+this->_start_address=NULL;
+}
+
 
 /** \brief operator= assigns a vector to the lhs
 *
@@ -1027,22 +1029,14 @@ template<typename S> inline Vector<float> Vector<float>::operator*(const S& fact
          "mov ebx, %2;"
          "mov ecx, %3;"
          "mov edx, %4;"
-         "loopmc:;"
+         "loopmulc:;"
          "fld DWORD PTR [edi];"
          "fmul DWORD PTR [esi];"
          "fstp DWORD PTR [edx];"       
          "add edi, ebx;"
          "add edx, ebx;"
          "dec ecx;"
-         "jz toendmc;"
-         "fld DWORD PTR [edi];"
-         "fmul DWORD PTR [esi];"
-         "fstp DWORD PTR [edx];"       
-         "add edi, ebx;"
-         "add edx, ebx;"
-         "dec ecx;"
-         "jnz loopmc;"
-         "toendmc:;"
+         "jnz loopmulc;"
          "pop ebx;"
          "pop edi;"
          "pop esi;" : : "r"(leftv),"r"(&scalar),"r"(typesize) , "r"(vecsize) , "r"(resultptr)

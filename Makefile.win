@@ -1,0 +1,30 @@
+# Project: NeuralGasSuite
+# Makefile created by Dev-C++ 4.9.9.2
+
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  = 
+OBJ  = mainNGSuite.o $(RES)
+LINKOBJ  = mainNGSuite.o $(RES)
+LIBS =  -L"C:/PL/Dev-Cpp/lib"  
+INCS =  -I"C:/PL/Dev-Cpp/include" 
+CXXINCS =  -I"C:/PL/Dev-Cpp/lib/gcc/mingw32/3.4.2/include"  -I"C:/PL/Dev-Cpp/include/c++/3.4.2/backward"  -I"C:/PL/Dev-Cpp/include/c++/3.4.2/mingw32"  -I"C:/PL/Dev-Cpp/include/c++/3.4.2"  -I"C:/PL/Dev-Cpp/include" 
+BIN  = NeuralGasSuite.exe
+CXXFLAGS = $(CXXINCS)  
+CFLAGS = $(INCS)  
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before NeuralGasSuite.exe all-after
+
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o "NeuralGasSuite.exe" $(LIBS)
+
+mainNGSuite.o: mainNGSuite.cpp
+	$(CPP) -c mainNGSuite.cpp -o mainNGSuite.o $(CXXFLAGS)
