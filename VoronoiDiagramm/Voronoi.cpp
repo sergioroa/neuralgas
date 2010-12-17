@@ -171,10 +171,18 @@ void Voronoi::save(const char* filename)
 {
     QImage image(_width, _height, QImage::Format_RGB32);
 
+    QRgb value;
+    //value = qRgb(255, 255, 255);
+    //image.fill(value);
     image.fill(0);
 
-    QRgb value;
-
+    // data
+    value = qRgb(255, 255, 255); // 0xff7aa327
+    //value = qRgb(0, 0, 255);
+    for(int i=0; i < _data.size();i++)
+    {
+        image.setPixel(_data[i].x, _data[i].y, value);
+    }
     // neurons
     value = qRgb(255, 0, 0); // 0xffbd9527
     for(int i=0; i < _neurons.size();i++)
@@ -188,12 +196,6 @@ void Voronoi::save(const char* filename)
         image.setPixel(_neurons[i].x+1, _neurons[i].y-1, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y+1, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y-1, value);
-    }
-    // data
-    value = qRgb(255, 255, 255); // 0xff7aa327
-    for(int i=0; i < _data.size();i++)
-    {
-        image.setPixel(_data[i].x, _data[i].y, value);
     }
     // voronoi lines
     float x1,y1,x2,y2;

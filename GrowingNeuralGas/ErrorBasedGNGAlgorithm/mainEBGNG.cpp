@@ -74,8 +74,10 @@ int main(int argc, char *argv[])
     eb->setFuncArray(func,4);
     eb->setFuncArray(functheta,7);
     eb->setRefVectors(2,10);
-    
-    int size = 50000;
+   
+    int size = 500;
+    if (argc > 1)
+	    size = atoi(argv[1]);
     // noisy automata testing
     NoisyAutomata na;
     na.generate(size);
