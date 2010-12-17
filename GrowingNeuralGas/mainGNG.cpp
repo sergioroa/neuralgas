@@ -47,8 +47,7 @@ int main(int argc, char *argv[])
     for( int i=0; i < 1500; i++)
          delete (*v)[i];
     
-    delete v;
+    //delete v;
 
-    system("PAUSE");
     return EXIT_SUCCESS;
 }

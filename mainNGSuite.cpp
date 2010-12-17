@@ -7,6 +7,7 @@
 #include "GrowingNeuralGas/GNGAlgorithm.h"
 #include "GrowingNeuralGas/ErrorBasedGNGAlgorithm/EBGNGAlgorithm.h"
 #include "DataGenerator/MackeyGlass.h"
+#include "DataGenerator/NoisyAutomata.h"
 #include <math.h>
 
 using namespace std;
@@ -68,68 +69,75 @@ float functheta(const int& time)
 
 int main(int argc, char *argv[])
 {
-    int sizeofdata=50000;
+    int sizeofdata=1000;
     
     NeuralGasSuite<float,int> ng;
     
-    MackeyGlass* mg = new MackeyGlass;
+    /*MackeyGlass* mg = new MackeyGlass;
     mg->setPastTimeSteps(17);
     mg->setBoundary(0.4);
-    mg->setPower(10);
+    mg->setPower(10);*/
+    NoisyAutomata* na = new NoisyAutomata;
     
     
-    ng.setDataGenerator(mg);
+    //ng.setDataGenerator(mg);
+    ng.setDataGenerator(na);
     
     
-    mg->generate(sizeofdata);
+    //mg->generate(sizeofdata);
+    na->generate(sizeofdata);
+    vector<Vector<float>*>* data = na->getData();
+  
+    for (int i=0; i < data->size(); i++)
+        std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
         
-    MGNGAlgorithm<float,int>* mgng    = new MGNGAlgorithm<float,int>(1);
-    GNGAlgorithm<float,int>* gng      = new GNGAlgorithm<float,int>(1);
-    EBGNGAlgorithm<float,int>* ebgng  = new EBGNGAlgorithm<float,int>(1);
-    CDNAlgorithm<float,int>* cdn      = new CDNAlgorithm<float,int>(1);     
+    //MGNGAlgorithm<float,int>* mgng    = new MGNGAlgorithm<float,int>(1);
+    //GNGAlgorithm<float,int>* gng      = new GNGAlgorithm<float,int>(1);
+    EBGNGAlgorithm<float,int>* ebgng  = new EBGNGAlgorithm<float,int>(2);
+    //CDNAlgorithm<float,int>* cdn      = new CDNAlgorithm<float,int>(1);     
     
     for(int i=0; i < NUM_PARAM; i++)
     {
-            gng->setFuncArray(func,i);
+            //gng->setFuncArray(func,i);
             ebgng->setFuncArray(func,i);
-            cdn->setFuncArray(func,i);
+            //cdn->setFuncArray(func,i);
      }
     
-    mgng->setFuncArray(constalpha,0);
-    mgng->setFuncArray(constbeta,1);
-    mgng->setFuncArray(constgamma,2);
-    mgng->setFuncArray(constdelta,3);
-    mgng->setFuncArray(constepsilonw,4);
-    mgng->setFuncArray(constepsilonn,5);
-    mgng->setFuncArray(consttheta,6);
-    mgng->setFuncArray(consteta,7);
-    mgng->setFuncArray(constlambda,8);
+    // mgng->setFuncArray(constalpha,0);
+    // mgng->setFuncArray(constbeta,1);
+    // mgng->setFuncArray(constgamma,2);
+    // mgng->setFuncArray(constdelta,3);
+    // mgng->setFuncArray(constepsilonw,4);
+    // mgng->setFuncArray(constepsilonn,5);
+    // mgng->setFuncArray(consttheta,6);
+    // mgng->setFuncArray(consteta,7);
+    // mgng->setFuncArray(constlambda,8);
     
         
-    cdn->setFuncArray(constalpha,0);
-    cdn->setFuncArray(constbeta,1);
-    cdn->setFuncArray(constgamma,2);
-    cdn->setFuncArray(constdelta,3);
-    cdn->setFuncArray(constepsilonw,4);
-    cdn->setFuncArray(constepsilonn,5);
-    cdn->setFuncArray(consttheta,6);
-    cdn->setFuncArray(consteta,7);
-    cdn->setFuncArray(constlambda,8);
+    // cdn->setFuncArray(constalpha,0);
+    // cdn->setFuncArray(constbeta,1);
+    // cdn->setFuncArray(constgamma,2);
+    // cdn->setFuncArray(constdelta,3);
+    // cdn->setFuncArray(constepsilonw,4);
+    // cdn->setFuncArray(constepsilonn,5);
+    // cdn->setFuncArray(consttheta,6);
+    // cdn->setFuncArray(consteta,7);
+    // cdn->setFuncArray(constlambda,8);
         
-    gng->setFuncArray(constgamma,3);
-    gng->setFuncArray(functheta,7);
-    gng->setFuncArray(funclambda,6);
+    // gng->setFuncArray(constgamma,3);
+    // gng->setFuncArray(functheta,7);
+    // gng->setFuncArray(funclambda,6);
     ebgng->setFuncArray(constgamma,3);
     ebgng->setFuncArray(functheta,7);
     ebgng->setFuncArray(funclambda,8);
 
 
    
-    ng.add(mgng);
-  //  ng.add(gng);
-    ng.add(cdn);
+    //ng.add(mgng);
+    ng.add(ebgng);
+    //ng.add(cdn);
     ng.setRefVectors(2);
-    (dynamic_cast< CDNAlgorithm<float,int>* > (ng[1]))->setEnergy(0.1);
+    //(dynamic_cast< CDNAlgorithm<float,int>* > (ng[1]))->setEnergy(0.1);
     ng.run(); 
     std::vector<float> errors;
     for (int i=0; i < ng.size(); i++)
@@ -149,8 +157,8 @@ int main(int argc, char *argv[])
     }
 
     std::cout << std::endl;
-    delete mg;
+    //delete mg;
+    delete na;
     
-    system("PAUSE");
     return EXIT_SUCCESS;
 }

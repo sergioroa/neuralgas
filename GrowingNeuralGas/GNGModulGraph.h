@@ -13,6 +13,7 @@
 #include <Graphs/UGraph.h>
 #include <Graphs/TGraph.h>
 
+template<typename T,typename S> class ErrorTesting;
 
 /** \brief GNGModulGraph provides the basic graph structure for MergeGrowingNeuralGas
 *   algorithms and their extensions.
@@ -53,6 +54,9 @@ template<typename T,typename S> class GNGModulGraph : public virtual UGraph<T,S>
  private:
    // maxRandomValue max value for the random initializiation of the context vector
    int                                maxRandomValue;
+   // ErrorTesting is defined as friend in order to not having duplicate anything
+   friend class ErrorTesting<T,S>;
+
 };
 
 #endif

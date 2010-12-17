@@ -37,6 +37,5 @@ int main(int argc, char *argv[])
      std::cout << memory[i]<<" ";
     }
     
-    system("PAUSE");
     return EXIT_SUCCESS;
 }

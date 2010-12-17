@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "ErrorTesting.h"
-#include "..\MergeGrowingNeuralGas\MGNGAlgorithm.h"
+#include <GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h>
 
 using namespace std;
 
@@ -55,9 +55,8 @@ int main(int argc, char *argv[])
     for( int i=0; i < 1500; i++)
          delete (*v)[i];
     
-    delete v;
+    //delete v;
     delete mgng;
     
-    system("PAUSE");
     return EXIT_SUCCESS;
 }

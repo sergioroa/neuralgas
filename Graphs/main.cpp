@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     ugraph.showGraph();
 */
     DGraph<float,int> dgraph(10);
-    dgraph.initRandomGraph(2);
+    dgraph.initRandomGraph(2, 2);
     dgraph.addNode();
     dgraph.getID();
     dgraph.addEdge(0,1);
@@ -56,6 +56,5 @@ int main(int argc, char *argv[])
     std::cout << Tgraph.getAge(0,1)<<std::endl;
 
    // std::cout << dgraph[0].num_in_edges<<std::endl;*/
-    system("PAUSE");
     return EXIT_SUCCESS;
 }

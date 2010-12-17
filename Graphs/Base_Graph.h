@@ -12,6 +12,7 @@
 #define BASE_GRAPH_H
 
 #include <vector>
+#include <fstream>
 #include "Vector.h"
 
 
@@ -142,8 +143,8 @@ template<typename T, typename S> class Base_Graph
              virtual void                        addEdge(const int&,const int&)=0;
              // removes an edge between the nodes given by their indeces if there exists one     
              virtual void                        rmEdge(const int&,const int&)=0;
-             
-             
+             // saves the nodes weight in a file
+             void                                save(const char*);             
              //returns a vector of ints representing the indeces of the neighboring nodes
              std::vector<int>                    getNeighbors(const int&) const;
              //returns whether the node of the given index has neighbors or not
@@ -262,6 +263,46 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
   else
     return _dummy;
 }
+
+
+
+/** \brief Saves the nodes weight to a file
+*
+*   The functions saves the weights of the nodes to a file where
+*   for n nodes Xi with d dimensional weights the format looks as follows
+*   X11 X12 X13 ... X1d
+*   .
+*   .
+*   .
+*   Xn1 Xn2 Xn3 ... Xnd
+*
+* which means that they are separated by spaces.
+*
+* \param filename is the name of the file where to store the data to
+*/
+
+
+template<typename T,typename S> void Base_Graph<T,S>::save(const char* filename)
+{
+    std::ofstream myfile (filename);
+    int size = _nodes.size();
+    
+    if (myfile.is_open())
+    {
+       for(int i = 0; i < size -1; i++)
+       {      
+              for(int j=0; j < _dimNode; j++)
+                      myfile << (_nodes[i])->weight[j] << " ";
+              myfile << std::endl;
+       }
+       
+       for(int j=0; j < _dimNode; j++)
+           myfile << (_nodes[size-1])->weight[j] << " ";       
+       myfile.close();
+    }
+
+}
+
 
 /** \brief Inits the graph with the given number of nodes with random valued weight vectors.
 * If a graph already existed it is going to be erased.
@@ -382,9 +423,11 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const int& index)
       _nodes[ neighbors[i] ]->edges[index]=NULL;   
       _nodes[ neighbors[i] ]->num_connections--;
     }  
-    
+   
    for(int i=0; i < nsize; i++)
+   {
      _nodes[ i ]->edges.erase( _nodes[ i ]->edges.begin() + index ); 
+   }
    
    delete _nodes[index];                                 // delete ptrs to the nodes
    _nodes[index] = NULL;             

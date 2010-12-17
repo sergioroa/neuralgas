@@ -12,6 +12,7 @@
 
 #include <GrowingNeuralGas/GNGModul.h>
 #include <GrowingNeuralGas/GNGGraph.h>
+#include <queue>
 
 template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
 {
@@ -38,6 +39,7 @@ template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
                  void updateWinner(const int&,const int&);
                  // the average error
                  float average_error;
+                 float rate;
                     
 };
 
@@ -46,7 +48,10 @@ template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
 * \param dim is the dimension of the node weights
 */
 template<typename T,typename S> EBGNGAlgorithm<T,S>::EBGNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
-{_graphptr=NULL;}
+{
+ _graphptr=NULL;
+
+}
 
 /** \brief std dto
 */
@@ -73,6 +78,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const in
      delete this->graphptr;
      
   average_error       = 0.0;
+  rate = 0.5;
   
   _graphptr           = new GNGGraph<T,S>(this->getDimension());
   // DANGER DownCast is performed via dynamic_cast
@@ -98,7 +104,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const in
 template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const int& time, const int& node_index)
 {
     // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
-    // since this accelerates the calculation but does not change the result 
+    // since this accelerates the calculation but does not change the result
     return metric( (*this)[time], (*_graphptr)[node_index].weight);
 }
 
@@ -115,7 +121,9 @@ template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const int& ti
 */
 template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateNeighbor(const int& time,const int& node_index)
 {
- (*_graphptr)[node_index].weight  += this->params[5] * ( (*this)[time]-(*_graphptr)[node_index].weight);
+ //(*_graphptr)[node_index].weight  += this->params[5] * ( (*this)[time]-(*_graphptr)[node_index].weight);
+ (*_graphptr)[node_index].weight  += rate * ( (*this)[time]-(*_graphptr)[node_index].weight);
+
 }
 
 /** \brief defines the update rule for the winner
@@ -131,7 +139,6 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateWinner(const int
 {
  (*_graphptr)[winner].weight  += this->params[4] * ( (*this)[time]-(*_graphptr)[winner].weight);
 }
-
 
 
 /** \brief Runs the algorithm as proposed in "Incremental Unsupervised Time Series 
@@ -151,10 +158,23 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
  {
    // number of total steps for the algorithm
    int tsize                       =     this->size();
-   
+/*   for( int j = 0; j < NUM_PARAM; j++)  
+    {
+      this->params[j] =((*this)._funcArray[j])(0);
+     
+    }*/
+   this->params[3] =((*this)._funcArray[3])(0);
+   this->params[4] =((*this)._funcArray[4])(0);
+   this->params[7] =((*this)._funcArray[7])(0);
+
+   std::queue<T> errors; 
+   int num_of_elem=50;
+   for(int i=0; i < num_of_elem; i++)
+           errors.push(0.0);
    for(int t = 0; t < tsize; t++)
    {
     // init
+    
     int first_winner               =     1;
     int second_winner              =     0;
  
@@ -167,17 +187,16 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
    //params[5] epsilon_n weight in neighbor node update
    //params[6] lambda number of iterations after a new node is added
    //params[7] w_max maximal number of reference vectors / maximal size of cookbook
-  
-    for( int j = 0; j < NUM_PARAM; j++)  
-    {
-      this->params[j] =((*this)._funcArray[j])(t);
-    }
-    
+      
     this->getWinner(first_winner,second_winner,t);
 
-    T distance = pow(getDistance(t,first_winner),2);
+ //   T distance = pow(getDistance(t,first_winner),2);
+   T distance = getDistance(t,first_winner);
 
-    if ( _graphptr->size() < this->params[7] &&  distance >= average_error )
+  
+
+    if ( _graphptr->size() < this->params[7] &&  distance >= average_error)
+  
     {
      _graphptr->addNode();
      int gsize = _graphptr->size()-1;
@@ -200,21 +219,28 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
       _graphptr->incAge(first_winner, first_winner_neighbors[j] ); 
       updateNeighbor(t,first_winner_neighbors[j]);
      }
-
+     
      updateWinner(t,first_winner);      
-     average_error += (distance / gsize);         
-   
+     errors.push(distance);
+     float elem=errors.front();
+     float av_error_old = average_error;
+     average_error = average_error + ( (distance - elem) / num_of_elem);    
+    
+     errors.pop();
+     if (average_error !=0.0 )
+        rate =((1.0  - av_error_old  / average_error)>0) ? 1.0  - av_error_old  / average_error : -(1.0  - av_error_old  / average_error) ;
      if (first_winner != second_winner)
         _graphptr->setAge(first_winner,second_winner,0.0);
-
     }
 
     this->rmOldEdges(this->params[3]);  
     
     this->rmNotConnectedNodes(); 
     
-  }  
+  } 
+   std::cout << "Graph size: " << _graphptr->size()<< " " << std::endl; 
  }
+ std::cout << "Average error: " << average_error << " " << std::endl;
 }
 
 

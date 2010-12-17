@@ -54,6 +54,9 @@ template < typename T, typename S > class NeuralGas
     void                    setFuncArray(float (*)(const int&),const int&); 
     //determines the maximal value within the given data set
     const int               maxRandomValue() const; 
+    // saves the nodes weight in a file
+    void                    save(const char*);             
+
     //an abstract run func
     virtual void            run()=0;
 
@@ -150,6 +153,29 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
 
 }
 
+/** \brief Saves the nodes weight to a file
+*
+*   The functions saves the weights of the nodes to a file where
+*   for n nodes Xi with d dimensional weights the format looks as follows
+*   X11 X12 X13 ... X1d
+*   .
+*   .
+*   .
+*   Xn1 Xn2 Xn3 ... Xnd
+*
+* which means that they are separated by spaces.
+*
+*
+* \param filename is the name of the file where to store the data to
+*/
+
+
+template<typename T,typename S> void NeuralGas<T,S>::save(const char* filename)
+{
+ graphptr->save(filename);
+}
+
+
 /** \brief Sets the data that has to be processed in the next algorithmic run.
 *
 * The function sets the data that has to be processed in the next algorithmic run.
@@ -220,6 +246,7 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
          value  = (z[i]*z[i]);
          result+=  value;
      }
+  //   return T(sqrt(result));
      return T(sqrt(result));
  }
  else

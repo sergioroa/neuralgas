@@ -10,8 +10,9 @@
 #ifndef GNGMODUL_H
 #define GNGMODUL_H
 
-#include <limits>
+
 #include <vector>
+#include <limits>
 #include <NeuralGas.h>
 #include "GNGModulGraph.h"
 
@@ -121,7 +122,7 @@ template<typename T,typename S> void GNGModul<T,S>::rmOldEdges(const float& max_
 */
 template<typename T,typename S> void GNGModul<T,S>::rmNotConnectedNodes()
 {
-    for (int j = 0; j < _graphModulptr->size(); j++)
+    for (int j = _graphModulptr->size() - 1 ; j >= 0 ; j--)
        if (!(_graphModulptr->isConnected(j)) ) 
            _graphModulptr->rmNode(j);   
 }

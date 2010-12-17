@@ -11,6 +11,7 @@
 #define DATAGENERATOR_H
 
 #include <Graphs/Vector.h>
+#include <fstream>
 
 /** \brief The class is an abstract class that provides the basic operations for data generation
 *   for the NeuralGas algorithms.
@@ -40,6 +41,8 @@ template<typename T> class DataGenerator
         std::vector< Vector<T>* >*              getData();
         // generates a given number of data
         virtual void                            generate(const int&);
+	// saves dataset to a text file
+	void                                    save(const char* filename);
 
  protected:
         // generates a datum
@@ -133,6 +136,41 @@ template<typename T> void DataGenerator<T>::generate(const int& number)
 *   
 */
 template<typename T> Vector<T>* DataGenerator<T>::generate(){}
+
+/** \brief Saves the dataset to a text file
+*
+*   The functions saves each vector in a dataset to a file where
+*   for n elements Xi of d dimensional vectors the format looks as follows
+*   X11 X12 X13 ... X1d
+*   .
+*   .
+*   .
+*   Xn1 Xn2 Xn3 ... Xnd
+*
+* which means that they are separated by spaces.
+*
+* \param filename is the name of the file where to store the data to
+*/
+template<typename T> void DataGenerator<T>::save(const char* filename)
+{
+    std::ofstream myfile (filename);
+    int size = _data->size();
+    
+    if (myfile.is_open())
+    {
+       for(int i = 0; i < size; i++)
+       {      
+              for(int j=0; j < _dim; j++)
+                      myfile << _data->at(i)->at(j) << " ";
+	      if (i != size-1)
+		      myfile << std::endl;
+       }
+       
+       myfile.close();
+    }
+
+}
+
 
 
 #endif
