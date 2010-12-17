@@ -102,7 +102,7 @@ SET(DATAGENERATOR_HEADERS
 INSTALL(FILES ${DATAGENERATOR_HEADERS} DESTINATION include/NeuralGas/DataGenerator/)
 
 SET(VORONOIDIAGRAMM_HEADERS
-	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiDiagrammGenerator.h
+	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiDiagramGenerator.h
 	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.h)
 INSTALL(FILES ${VORONOIDIAGRAMM_HEADERS} DESTINATION include/NeuralGas/VoronoiDiagramm/)
 
