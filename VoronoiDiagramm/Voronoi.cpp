@@ -91,6 +91,7 @@ void Voronoi::discretize()
 {
     float rangeX = _maxX - _minX;
     float rangeY = _maxY - _minY;
+ 
 
     float factorX = _width / rangeX;
     float factorY = _height / rangeY;
@@ -115,6 +116,28 @@ void Voronoi::setSize(const int& height, const int& width)
 {
     _height = height;
     _width = width;
+}
+
+void Voronoi::setSizefromData(const int& somesideSize)
+{
+    float rangeX = _maxX - _minX;
+    float rangeY = _maxY - _minY;
+
+    if (rangeX > rangeY) {
+	    _width = somesideSize;
+	    float factorX = _width / rangeX;
+	    _height = ceil(factorX * rangeY);
+    }
+    else {
+	    _height = somesideSize;
+	    float factorY = _height / rangeY;
+	    _width = ceil(factorY * rangeX);
+    }
+
+    std::cout << "width: " << _width << std::endl;
+    std::cout << "height: " << _height << std::endl;
+
+
 }
 
 void Voronoi::setNeurons()

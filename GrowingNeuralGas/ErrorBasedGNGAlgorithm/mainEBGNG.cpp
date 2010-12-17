@@ -74,15 +74,24 @@ int main(int argc, char *argv[])
     eb->setFuncArray(func,4);
     eb->setFuncArray(functheta,7);
     eb->setRefVectors(2,10);
-   
-    int size = 500;
-    if (argc > 1)
+
+    int size;
+    float sigma, transProb;
+    if (argc == 4) {
 	    size = atoi(argv[1]);
+	    sigma = atof(argv[2]);
+	    transProb = atof(argv[3]);
+    }
+    else {
+	    cerr << "Usage: " << argv[0] << " size sigma transition_prob" << endl;
+	    return 1;
+    }
+    
     // noisy automata testing
     NoisyAutomata na;
+    na.setSigma(sigma);
+    na.setTransProb(transProb);
     na.generate(size);
-    na.setTransProb(0.5);
-    na.setSigma(0.001);
     na.save("data.txt");
     eb->setData(na.getData());   
     //binary automata testing

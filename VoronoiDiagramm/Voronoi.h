@@ -22,6 +22,7 @@ public:
     void calcVoronoi();
     void save(const char*);
     void setSize(const int&, const int&);
+    void setSizefromData(const int&);
     void showData();
 protected:
     void addNeuron(const std::string&);

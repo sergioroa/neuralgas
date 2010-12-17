@@ -10,7 +10,7 @@
 #ifndef NOISYAUTOMATA_H
 #define NOISYAUTOMATA_H
 
-#define PI 3.1432
+#define PI 3.14159
 
 #include <math.h>
 #include "DataGenerator.h"
@@ -147,14 +147,14 @@ Vector<float>* NoisyAutomata::generate()
       {
       
             _state=1;
-            return normal_distribution(4,0);
+            return normal_distribution(1,0);
       }
    else 
       {
             
             _state=3;
             
-            return normal_distribution(0,4);
+            return normal_distribution(0,1);
       }
  }
  else if( _state==1)
@@ -167,13 +167,13 @@ Vector<float>* NoisyAutomata::generate()
    if (prob <= _transProb)
       {
             _state=3;
-            return normal_distribution(0,4);
+            return normal_distribution(0,1);
       }
    else 
       {
 
             _state=1;
-            return normal_distribution(4,0);
+            return normal_distribution(1,0);
       } 
  }
  else if(_state==3)
