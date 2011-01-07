@@ -12,13 +12,16 @@
 #ifndef NEURALGAS_H
 #define NEURALGAS_H
 
-// is the maximal number of used parameters, has to be changed if a larger number of
-// parameters has to be used in a derived class
-#define NUM_PARAM 9
-
 #include <math.h>
 #include <vector>
 #include <Graphs/Base_Graph.h>
+
+// Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
+namespace neuralgas {
+
+// is the maximal number of used parameters, has to be changed if a larger number of
+// parameters has to be used in a derived class
+#define NUM_PARAM 9
 
 /** \brief Class declares the basic operations for the Neural Gas Algorithm and is intended as a super class for inheritance.
 *
@@ -321,5 +324,6 @@ template <typename T, typename S > Vector<T>& NeuralGas<T,S>::operator[](const i
 template <typename T, typename S > const Vector<T>& NeuralGas<T,S>::operator[](const int& index) const
 {return *(*_data)[index];}
 
+} // namespace neuralgas
 
 #endif

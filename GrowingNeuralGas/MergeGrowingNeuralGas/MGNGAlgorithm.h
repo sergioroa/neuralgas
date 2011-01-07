@@ -19,6 +19,8 @@
 #include <fstream>
 #include <iostream>
 
+namespace neuralgas {
+
 /**  \brief func is the default updating rule for a node's counter
 *
 *    \param n is the node to be updated
@@ -395,5 +397,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::storeGraph(const int& t
  myfile << std::endl;
   myfile.close();
 }
+
+} // namespace neuralgas
 
 #endif

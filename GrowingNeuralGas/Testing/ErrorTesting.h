@@ -15,6 +15,8 @@
 #include <vector>
 #include <GrowingNeuralGas/GNGModul.h>
 
+namespace neuralgas {
+
 /** \brief This class allows to compute the quantization error of NeuralGas Algorithms.
 *
 *   By giving a ptr of type GNGModul or of a thereof derived class to the class constructor
@@ -223,4 +225,7 @@ template < typename T, typename S > void ErrorTesting<T,S>::calcErrors()
           _errors[i]=getShortestDistance(_gngptr->size() - _pastTimeSteps + i - 1);         
  }
 }
+
+} // namespace neuralgas
+
 #endif

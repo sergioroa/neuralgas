@@ -11,7 +11,7 @@
 #include <math.h>
 
 using namespace std;
-
+using namespace neuralgas;
 
 float func(const int& time)
 {return 0.5 ;}

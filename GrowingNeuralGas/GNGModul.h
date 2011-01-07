@@ -16,6 +16,8 @@
 #include <NeuralGas.h>
 #include "GNGModulGraph.h"
 
+namespace neuralgas {
+
 template<typename T,typename S> class ErrorTesting;
 
 /** \brief This class is a modul offering common functions that are used within nearly
@@ -126,5 +128,7 @@ template<typename T,typename S> void GNGModul<T,S>::rmNotConnectedNodes()
        if (!(_graphModulptr->isConnected(j)) ) 
            _graphModulptr->rmNode(j);   
 }
+
+} // namespace neuralgas
 
 #endif

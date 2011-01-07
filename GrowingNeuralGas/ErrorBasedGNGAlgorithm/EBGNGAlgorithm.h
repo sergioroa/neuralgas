@@ -14,6 +14,8 @@
 #include <GrowingNeuralGas/GNGGraph.h>
 #include <queue>
 
+namespace neuralgas {
+
 template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
 {
  public:          // cto initializing the class 
@@ -210,11 +212,11 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
     } 
     else
     {
-     int gsize = _graphptr->size()-1;
+     //int gsize = _graphptr->size()-1;
 
      std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
    
-     for(int j=0; j < first_winner_neighbors.size();j++)
+     for(unsigned int j=0; j < first_winner_neighbors.size();j++)
      {
       _graphptr->incAge(first_winner, first_winner_neighbors[j] ); 
       updateNeighbor(t,first_winner_neighbors[j]);
@@ -243,5 +245,6 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
  std::cout << "Average error: " << average_error << " " << std::endl;
 }
 
+} // namespace neuralgas
 
 #endif

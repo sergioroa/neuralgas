@@ -29,6 +29,8 @@
 
 #include "VoronoiDiagramGenerator.h"
 
+namespace neuralgas {
+
 VoronoiDiagramGenerator::VoronoiDiagramGenerator()
 {
 	siteidx = 0;
@@ -1004,3 +1006,4 @@ struct Site * VoronoiDiagramGenerator::nextone()
 		return( (struct Site *)NULL);
 }
 
+} // namespace neuralgas

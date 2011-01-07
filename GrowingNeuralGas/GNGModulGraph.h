@@ -13,6 +13,8 @@
 #include <Graphs/UGraph.h>
 #include <Graphs/TGraph.h>
 
+namespace neuralgas {
+
 template<typename T,typename S> class ErrorTesting;
 
 /** \brief GNGModulGraph provides the basic graph structure for MergeGrowingNeuralGas
@@ -58,5 +60,7 @@ template<typename T,typename S> class GNGModulGraph : public virtual UGraph<T,S>
    friend class ErrorTesting<T,S>;
 
 };
+
+} // namespace neuralgas
 
 #endif

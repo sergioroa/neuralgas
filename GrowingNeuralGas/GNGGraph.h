@@ -14,6 +14,7 @@
 #include <iostream>
 #include "GNGModulGraph.h"
 
+namespace neuralgas {
 
 /** \brief The derived node for a GNGGraph
 *
@@ -116,5 +117,7 @@ template<typename T,typename S> T inline GNGGraph<T,S>::getError(const int& inde
 // DANGER DownCast is performed via dynamic_cast
 return (dynamic_cast< GNGNode<T,S>* > (this->_nodes[index]))->getError();
 }
+
+} // namespace neuralgas
 
 #endif

@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 
+namespace neuralgas {
 
 /** \brief Class implements the algorithm proposed in 
 *   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
@@ -305,5 +306,7 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::run()
   }  
  }
 }
+
+} // namespace neuralgas
 
 #endif

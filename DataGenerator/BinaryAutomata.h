@@ -13,7 +13,7 @@
 #include <math.h>
 #include "DataGenerator.h"
 
-
+namespace neuralgas {
 
 class BinaryAutomata : public DataGenerator<float>
 {
@@ -71,4 +71,7 @@ Vector<float>* BinaryAutomata::generate()
  return v;
 
 }
+
+} // namespace neuralgas 
+
 #endif

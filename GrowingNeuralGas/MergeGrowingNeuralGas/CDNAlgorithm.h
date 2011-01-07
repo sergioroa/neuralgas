@@ -12,6 +12,8 @@
 
 #include "MGNGAlgorithm.h"
 
+namespace neuralgas {
+
 template<typename T,typename S> class CDNAlgorithm : public MGNGAlgorithm<T,S>
 {
  public:          // cto initializing the class 
@@ -75,5 +77,6 @@ this->_graphptr->setBirthday(winner,time);
 this->_graphptr->context(winner) += rate * ( this->globalContextV - this->_graphptr->context(winner));            
 }
 
+} // namespace neuralgas
 
 #endif

@@ -3,6 +3,7 @@
 #include "MackeyGlass.h"
 
 using namespace std;
+using namespace neuralgas;
 
 static float* memory;
 

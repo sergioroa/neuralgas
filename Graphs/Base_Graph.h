@@ -14,7 +14,8 @@
 #include <vector>
 #include <fstream>
 #include "Vector.h"
-
+#include <iostream>
+#include <cstdlib>
 
 // TODO virtual destructors, check edge deleting
 
@@ -183,9 +184,9 @@ template < typename T , typename S> void Base_Graph<T,S>::showGraph()
 {
  std::cout << "Graphsize " << _nodes.size() << std::endl;
 
- for(int i=0; i < _nodes.size(); i++)
+ for(unsigned int i=0; i < _nodes.size(); i++)
  {        
-          for(int j=0; j < _nodes[i]->edges.size(); j++)
+          for(unsigned int j=0; j < _nodes[i]->edges.size(); j++)
                   std::cout <<( ( _nodes[i]->edges[j]==NULL) ? " " : "*");
           std::cout<<std::endl;
  }
@@ -209,7 +210,7 @@ template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const int& dim)
 { 
  _dimNode = dim;
  _dimEdge = dim;
- srand( (unsigned)time( NULL ) );                    //inits the random function 
+ ::srand( (unsigned)time( NULL ) );                    //inits the random function 
 }
 
 /** \brief cto creating a graph with the given dimension of the node weight vectors where 
@@ -223,7 +224,7 @@ template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const int& dimNode,c
 {
  _dimNode = dimNode;
  _dimEdge = dimEdge; 
- srand( (unsigned)time( NULL ) );                    //inits the random function 
+ ::srand( (unsigned)time( NULL ) );                    //inits the random function 
 }
 
 /** \brief std dto
@@ -327,7 +328,7 @@ template<typename T,typename S> void Base_Graph<T,S>::initRandomGraph(const int&
      
      for(int j = 0; j < _dimNode; j++)          
      {     
-      (_nodes[i])->weight[j] = (T) (rand() % max_value );   //sets the value of the weights to random values
+	     (_nodes[i])->weight[j] = (T) (::rand() % max_value );   //sets the value of the weights to random values
      }
     
   }  
@@ -416,7 +417,7 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const int& index)
  {
    std::vector<int> neighbors = getNeighbors(index);
    
-   for(int i=0; i < neighbors.size(); i++)
+   for(unsigned int i=0; i < neighbors.size(); i++)
     if ( _nodes[ neighbors[i] ]->edges[index]!=NULL ) // edge from i to index
     {
       delete  _nodes[  neighbors[i] ]->edges[index];

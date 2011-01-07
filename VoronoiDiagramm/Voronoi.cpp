@@ -1,5 +1,7 @@
 #include "Voronoi.h"
 
+namespace neuralgas {
+
 void Voronoi::addData(const std::string& line)
 {
     int i=0;
@@ -228,3 +230,5 @@ void Voronoi::save(const char* filename)
     }
     image.save(filename);
 }
+
+} // namespace neuralgas

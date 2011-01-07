@@ -14,6 +14,7 @@
 #include "DataGenerator.h"
 #include "MackeyGlass.h"
 
+namespace neuralgas {
 
 class ProbMackeyGlass : public DataGenerator<float>
 {
@@ -93,4 +94,7 @@ void ProbMackeyGlass::generate(const int& number)
          }
      }
 }
+
+} // namespace neuralgas
+
 #endif

@@ -14,6 +14,7 @@
 #include <iostream>
 #include <GrowingNeuralGas/GNGModulGraph.h>
 
+namespace neuralgas {
 
 /** \brief The derived node for a MGNGGraph
 *
@@ -183,5 +184,7 @@ template<typename T,typename S> Vector<T>& MGNGGraph<T,S>::context(const int& in
 // DANGER DownCast is performed via dynamic_cast
 return (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->context;
 }
+
+} // namespace neuralgas
 
 #endif

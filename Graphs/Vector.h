@@ -112,13 +112,13 @@ template<typename T> template<typename S> inline Vector<T>& Vector<T>::operator/
 */
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add) const
 {
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  Vector<T>* result   =new Vector<T>(tsize);
 
  if ( tsize == to_add.size() )
  {
         if (tsize > 1 )
-          for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+          for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
           {
              (*result)[j]   =  to_add[j] + (*this)[j];
              (*result)[j+1]   =  to_add[j+1] + (*this)[j+1];
@@ -137,13 +137,13 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 */
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add)
 {
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  Vector<T>* result   =new Vector<T>(tsize);
 
  if ( tsize == to_add.size() )
  {
         if (tsize > 1 )
-          for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+          for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
           {
              (*result)[j]   =  to_add[j] + (*this)[j];
              (*result)[j+1]   =  to_add[j+1] + (*this)[j+1];
@@ -162,13 +162,13 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 */
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract) const
 { 
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  Vector<T>* result   =new Vector<T>(tsize);
 
  if ( tsize == to_subtract.size() )
  {
         if (tsize > 1 )
-          for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+          for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
           {
              (*result)[j]     =  (*this)[j] - to_subtract[j];
              (*result)[j+1]   =   (*this)[j+1] - to_subtract[j+1];
@@ -188,13 +188,13 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract)
 { 
  
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  Vector<T>* result   =new Vector<T>(tsize);
 
  if ( tsize == to_subtract.size() )
  {
         if (tsize > 1 )
-          for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+          for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
           {
              (*result)[j]     =  (*this)[j] - to_subtract[j];
              (*result)[j+1]   =   (*this)[j+1] - to_subtract[j+1];
@@ -216,12 +216,12 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
 */
 template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(const S& factor)
 {   
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
  Vector<T>* result   =new Vector<T>(tsize);
 
  if (tsize > 1 )
-  for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+  for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
   {
      (*result)[j]     =  (*this)[j] * scalar;
      (*result)[j+1]   =   (*this)[j+1] * scalar;
@@ -243,13 +243,13 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 */
 template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(const S& factor) const
 {   
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
  Vector<T>* result   =new Vector<T>(tsize);
 
  
  if (tsize > 1 )
-  for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+  for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
   {
      (*result)[j]     =  (*this)[j] * scalar;
      (*result)[j+1]   =   (*this)[j+1] * scalar;
@@ -273,12 +273,12 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(const S& factor) 
 {   
 
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
  Vector<T>* result   =new Vector<T>(tsize);
 
  if (tsize > 1 )
-  for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+  for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
   {
      (*result)[j]     =  (*this)[j] / scalar;
      (*result)[j+1]   =   (*this)[j+1] / scalar;
@@ -302,12 +302,12 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 */
 template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(const S& factor) const
 {   
- int tsize = this->size();  
+ unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
  Vector<T>* result   =new Vector<T>(tsize);
 
  if (tsize > 1 )
-  for (int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
+  for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
   {
      (*result)[j]     =  (*this)[j] / scalar;
      (*result)[j+1]   =   (*this)[j+1] / scalar;

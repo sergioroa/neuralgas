@@ -16,6 +16,8 @@
 #include "GrowingNeuralGas/Testing/ErrorTesting.h"
 #include "GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h"
 
+namespace neuralgas {
+
 template <typename T,typename S> class NeuralGasSuite
 {
  public:
@@ -111,5 +113,7 @@ template <typename T,typename S> void NeuralGasSuite<T,S>::setRefVectors(const i
               _algos[i]->setRefVectors(number,max_value);
          }
 }
-         
+
+} // namespace neuralgas
+
 #endif

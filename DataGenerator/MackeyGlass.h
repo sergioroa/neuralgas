@@ -13,7 +13,7 @@
 #include <math.h>
 #include "DataGenerator.h"
 
-
+namespace neuralgas {
 
 class MackeyGlass : public DataGenerator<float>
 {
@@ -95,5 +95,7 @@ Vector<float>* MackeyGlass::generate()
  (*v)[0] = _memory[frame];
  return v;
 }
+
+} // namespace neuralgas
 
 #endif

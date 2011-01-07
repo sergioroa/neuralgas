@@ -38,7 +38,9 @@ INCLUDE( ${QT_USE_FILE} )
 # SET(ICE_LIBRARY /usr/lib CACHE PATH "Path prefix for ZeroC Ice library")
 # SET(ICE_BIN /usr/bin CACHE PATH "Path prefix for ZeroC Ice binaries")
 
-ADD_DEFINITIONS(-DLINUX -fpermissive)
+# ADD_DEFINITIONS(-DLINUX -fpermissive)
+ADD_DEFINITIONS(-DLINUX)
+
 LINK_LIBRARIES(NeuralGasVoronoiDiagramm ${QT_LIBRARIES}
   # pthread rt GL glut GLU qwt-qt4 Ice IceUtil
 )

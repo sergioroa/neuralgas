@@ -4,6 +4,7 @@
 
 
 using namespace std;
+using namespace neuralgas;
 
 int main(int argc, char *argv[])
 {

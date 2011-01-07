@@ -1,6 +1,8 @@
 #include <QtCore/QCoreApplication>
 #include "Voronoi.h"
 
+using namespace neuralgas;
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);

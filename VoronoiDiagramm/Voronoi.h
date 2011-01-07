@@ -8,6 +8,8 @@
 #include <string>
 #include "VoronoiDiagramGenerator.h"
 
+namespace neuralgas {
+
 struct point
 {
     float x;
@@ -40,5 +42,7 @@ private:
     std::vector< point > _data;
     std::vector< point > _neurons;
 };
+
+} // namespace neuralgas
 
 #endif // VORONOI_H

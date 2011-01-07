@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "EBGNGAlgorithm.h"
+// #include <GrowingNeuralGas/ErrorBasedGNGAlgorithm/EBGNGAlgorithm.h>
 #include <DataGenerator/MackeyGlass.h>
 #include <DataGenerator/BinaryAutomata.h>
 #include <DataGenerator/NoisyAutomata.h>
@@ -9,7 +10,7 @@
 
 
 using namespace std;
-
+using namespace neuralgas;
 
 
 float func(const int& time)

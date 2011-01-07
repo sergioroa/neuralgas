@@ -13,6 +13,8 @@
 #include <Graphs/Vector.h>
 #include <fstream>
 
+namespace neuralgas {
+
 /** \brief The class is an abstract class that provides the basic operations for data generation
 *   for the NeuralGas algorithms.
 *
@@ -171,6 +173,6 @@ template<typename T> void DataGenerator<T>::save(const char* filename)
 
 }
 
-
+} // namespace neuralgas
 
 #endif

@@ -15,6 +15,8 @@
 #include <math.h>
 #include "DataGenerator.h"
 
+namespace neuralgas {
+
 class NoisyAutomata : public DataGenerator<float>
 {
       public:
@@ -183,4 +185,7 @@ Vector<float>* NoisyAutomata::generate()
  }
  
 }
+
+} // namespace neuralgas
+
 #endif

@@ -30,6 +30,8 @@
 #ifndef VORONOI_DIAGRAM_GENERATOR
 #define VORONOI_DIAGRAM_GENERATOR
 
+namespace neuralgas {
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -242,6 +244,7 @@ private:
 
 int scomp(const void *p1,const void *p2);
 
+} // namespace neuralgas
 
 #endif
 
