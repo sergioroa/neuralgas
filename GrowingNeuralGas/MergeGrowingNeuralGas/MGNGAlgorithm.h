@@ -107,7 +107,7 @@ template<typename T,typename S> class MGNGAlgorithm : public GNGModul<T,S>
                  void    showGraph(){_graphptr->showGraph();}
                  // stores the graph in myfile , just for internal use
                  void    storeGraph(const int& );
-                 T       getDistance(const int&,const int&);
+	         T       getDistance(Vector<T>&,const int&);
  protected:
                  virtual void updateNeighbor(const int&,const int&);
                  virtual void updateWinner(const int&,const int&);
@@ -191,14 +191,14 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const int
 *   x_t is the data vector and w_j the node vector, C the global and c_j the local
 *   context vector where the latter one belongs to w_j.
 *   
-*   \param time current datum
+*   \param item datum
 *   \param node_index is the node where to the distance shall be determined
 */
-template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(const int& time, const int& node_index)
+template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(Vector<T>& item, const int& node_index)
 {
     // dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2
     T distance = (1 - this->params[0]);
-    distance*=pow(metric( (*this)[time], (*_graphptr)[node_index].weight),2);
+    distance*=pow(metric( item, (*_graphptr)[node_index].weight),2);
     distance+=this->params[0]*pow(metric(globalContextV,(*_graphptr).context(node_index)) ,2);
 
     return distance;
@@ -281,7 +281,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
     }
 
     // line 6
-    this->getWinner(first_winner,second_winner,t);
+    this->getWinner(first_winner,second_winner,(*this)[t]);
     // line 7
     Vector<T> vec = (*_graphptr).context(first_winner);
     // C_t = (1 - beta) * w_r +beta * c_r

@@ -13,10 +13,14 @@ SET(NEURALGAS_ROOT ${PROJECT_ROOT}/trunk CACHE INTERNAL "Path prefix for NeuralG
 
 ## Look for Boost libraries
 # SET(CMAKE_MODULE_PATH ${NEURALGAS_ROOT})
-# INCLUDE(${SMLEARNING_ROOT}/FindBoost.cmake)
+# INCLUDE(${NEURALGAS_ROOT}/FindBoost.cmake)
 
 # Set the path where other thing should be relative to
 GET_FILENAME_COMPONENT(CMAKE_SOURCE_DIR . ABSOLUTE CACHE INTERNAL "")
+
+# SET(Boost_MAJOR_VERSION 1)
+# SET(Boost_MINOR_VERSION 39)
+# FIND_PACKAGE( Boost 1.39 )
 
 # Single output directory for building all NeuralGas libraries
 SET(LIBRARY_OUTPUT_PATH ${NEURALGAS_ROOT}/lib/linux CACHE PATH "Single output directory for building all NeuralGas libraries")
@@ -49,11 +53,13 @@ LINK_LIBRARIES(NeuralGasVoronoiDiagramm ${QT_LIBRARIES}
 INCLUDE_DIRECTORIES(
         ${NEURALGAS_ROOT}
 	${QT_INCLUDE_DIR}
+#	${Boost_INCLUDE_DIRS}
 #	${QWT_INCLUDE}
 #	${ICE_INCLUDE}
 )
 
 LINK_DIRECTORIES(
+#	${Boost_LIBRARY_DIRS}
 #	${QWT_LIBRARY}
 #	${ICE_LIBRARY}
 )

@@ -42,9 +42,11 @@ template<typename T,typename S> class GNGModul : public NeuralGas<T,S>
            virtual void    showGraph()=0;
  protected:
            // class dependent distance function that is used within the winner function
-           virtual           T      getDistance(const int&,const int&)=0;
+           virtual           T      getDistance(Vector<T>&,const int&)=0;
            // func determines for the current time step / data item the two most similar nodes       
-           virtual           void   getWinner( int&, int&, const int&);
+           virtual           void   getWinner( int&, int&, Vector<T>&);
+           //template <typename F> void   getWinner( int&, int&, F Functor);
+	   //func determines the two most similar nodes
            // removes all edges that have an age greater than the given value
            virtual           void   rmOldEdges(const float&);
            // removes all nodes from the graph that are not connected
@@ -83,7 +85,7 @@ template<typename T,typename S> GNGModul<T,S>::~GNGModul(){}
 *   \param time is the current time step reflecting the current data to be processed
 */
 
-template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,int& second_winner, const int& time) 
+template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,int& second_winner, Vector<T>& item) 
 {
    // init with zero
    T distance      = this->_zero;
@@ -94,8 +96,7 @@ template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,
  
    for (int j = 0; j < _graphModulptr->size(); j++)
    {
-    distance = getDistance(time,j);
-
+    distance = getDistance(item,j);
     if (distance < best_distance)
     {
      second_winner              =       first_winner;
@@ -104,6 +105,7 @@ template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,
     }       
    }
 }
+
 
 /** \brief Removes all edges that have an age greater than the value given by max_age
 * 
