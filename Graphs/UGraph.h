@@ -13,6 +13,7 @@
 
 #include "Base_Graph.h"
 
+namespace neuralgas {
 
 /** \brief UGraph provides a structure for an undirected graph with n-dim weighted nodes and m-dim weighted edges
 *
@@ -105,5 +106,7 @@ template<typename T,typename S> void UGraph<T,S>::rmEdge(const int& x,const int&
     this->_nodes[y]->num_connections--;  
   }  
 }
+
+} // namespace neuralgas
 
 #endif

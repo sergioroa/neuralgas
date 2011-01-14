@@ -15,6 +15,8 @@
 #include "Base_Graph.h"
 #include <typeinfo>
 
+namespace neuralgas {
+
 /** \brief The derived edge for the time / age graph
 *
 *   The edge permits giving each edge a time / age which can be
@@ -182,5 +184,8 @@ template<typename T,typename S> inline void TGraph<T,S>::getID(const int& x, con
 {
   std::cout << typeid( (*this->_nodes[x]->edges[y])).name()<<std::endl;
 }  
+
+} // namespace neuralgas
+
 #endif
 

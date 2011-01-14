@@ -13,6 +13,8 @@
 
 #include "Base_Graph.h"
 
+namespace neuralgas {
+
 //TODO doxygen funcs & mark the dangerous upcast within the code
 
 /** \brief The derived node for directed graph
@@ -162,5 +164,7 @@ template<typename T,typename S> inline void DGraph<T,S>::getID()
 {
   std::cout << typeid((*this)[0]).name()<<std::endl;
 }  
+
+} // namespace neuralgas
 
 #endif

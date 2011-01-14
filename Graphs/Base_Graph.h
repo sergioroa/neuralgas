@@ -17,6 +17,8 @@
 #include <iostream>
 #include <cstdlib>
 
+namespace neuralgas {
+
 // TODO virtual destructors, check edge deleting
 
 template < typename T , typename S > struct Base_Node;
@@ -539,5 +541,6 @@ template<typename T, typename S > inline int Base_Graph<T,S>::size(void) const
  return _nodes.size();
 }
 
+} //namespace neuralgas
 
 #endif

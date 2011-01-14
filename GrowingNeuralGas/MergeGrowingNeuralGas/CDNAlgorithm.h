@@ -39,7 +39,7 @@ template<typename T,typename S> class CDNAlgorithm : public MGNGAlgorithm<T,S>
 */
 template<typename T,typename S> void CDNAlgorithm<T,S>::updateNeighbor(const int& time,const int& index)
 {
-	float distance = pow(this->getDistance((*this)[time],index),2);
+ float distance = pow(this->getDistance((*this)[time],index),2);
  float rate;
 
  if (distance > 0)

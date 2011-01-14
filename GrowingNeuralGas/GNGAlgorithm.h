@@ -81,7 +81,7 @@ template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
                 
                  void    showGraph(){_graphptr->showGraph();}
                  // algorithmic dependent distance function
-                 T getDistance(Vector<T>&,const int&);
+                 T getDistance(const Vector<T>&,const int&) const;
  private:        
                  //is a Base_Graph casted pointer to thereof derived class MGNGGraph
                  GNGGraph<T,S>*           _graphptr;
@@ -143,7 +143,7 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const int&
 *   \param item datum
 *   \param node_index is the node where to the distance shall be determined
 */
-template<typename T,typename S> T GNGAlgorithm<T,S>::getDistance(Vector<T>& item, const int& node_index)
+template<typename T,typename S> T GNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const int& node_index) const
 {
     // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
     // since this accelerates the calculation but does not change the result 

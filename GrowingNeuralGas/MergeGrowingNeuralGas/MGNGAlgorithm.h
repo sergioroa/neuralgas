@@ -107,7 +107,7 @@ template<typename T,typename S> class MGNGAlgorithm : public GNGModul<T,S>
                  void    showGraph(){_graphptr->showGraph();}
                  // stores the graph in myfile , just for internal use
                  void    storeGraph(const int& );
-	         T       getDistance(Vector<T>&,const int&);
+	         T       getDistance(const Vector<T>&,const int&) const;
  protected:
                  virtual void updateNeighbor(const int&,const int&);
                  virtual void updateWinner(const int&,const int&);
@@ -194,7 +194,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const int
 *   \param item datum
 *   \param node_index is the node where to the distance shall be determined
 */
-template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(Vector<T>& item, const int& node_index)
+template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const int& node_index) const
 {
     // dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2
     T distance = (1 - this->params[0]);

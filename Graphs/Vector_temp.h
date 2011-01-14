@@ -12,6 +12,8 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+namespace neuralgas {
+
 /** \brief Vector_base provides the base for the class Vector by taking care of memory allocation
 *
 * The template struct provides the base for Vector class by allocating, reallocating 
@@ -1295,5 +1297,6 @@ inline int Vector<float>::size() const
  return this->_size;
 }
 
+} //namespace neuralgas
 
 #endif

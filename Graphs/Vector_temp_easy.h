@@ -13,6 +13,7 @@
 
 #include <vector>
 
+namespace neuralgas {
 
 template<typename T> class Vector : public std::vector<T>
 {
@@ -318,5 +319,7 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
  return (*result);
 
 }
+
+} // namespace neuralgas
 
 #endif

@@ -40,6 +40,7 @@ namespace neuralgas {
 template < typename T, typename S > class NeuralGas
 {
   public:
+    typedef T (NeuralGas::*Metric)(const Vector<T>&,const Vector<T>&) const;
     //cto with size of dimension as input
                             NeuralGas(const int&);         
     //std dto
@@ -53,7 +54,8 @@ template < typename T, typename S > class NeuralGas
     // sets the number of inital reference vectors
     virtual void            setRefVectors(const int&,const int&)=0;    
     //sets a user defined metric, used as distance of reference and data vector 
-    inline void             setMetric(T (*)(const Vector<T>& a,const Vector<T>& b));  
+    //inline void             setMetric(T (*)(const Vector<T>& a,const Vector<T>& b));
+    inline void             setMetric(Metric); 
     //assigns int depending functions to the parameters 
     void                    setFuncArray(float (*)(const int&),const int&); 
     //determines the maximal value within the given data set
@@ -66,7 +68,7 @@ template < typename T, typename S > class NeuralGas
 
   protected:
     // pre-specified metric is the standard L2 euclidean metric
-    virtual T               metric(const Vector<T>&, const Vector<T>&);    
+    virtual T               metric(const Vector<T>&, const Vector<T>&) const;
     // applies a given function to all neighbors
     inline void             applyFunc2Neighbors(const int&, void (*)(Base_Node<T,S>* n,const float&),const float&); 
     // applies a given function to all nodes
@@ -94,7 +96,8 @@ template < typename T, typename S > class NeuralGas
     // ptr to the input data
     std::vector< Vector<T>* >* _data; 
     //user specified metric
-    T                       (*_metric_to_use)(const Vector<T>&,const Vector<T>&); 
+    //T                       (*_metric_to_use)(const Vector<T>&,const Vector<T>&);
+    Metric _metric_to_use;
     
       
 };  
@@ -226,15 +229,19 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vec
 * \param *metric_to_use is function ptr to an user defined metric
 */
 
-template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(T (*metric_to_use)(const Vector<T>& a,const Vector<T>& b)=NULL )
+//template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(T (*metric_to_use)(const Vector<T>& a,const Vector<T>& b)=NULL )
+//{_metric_to_use=metric_to_use;}  
+
+template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(Metric metric_to_use=NULL )
 {_metric_to_use=metric_to_use;}  
+
 
 /** \brief standard is the pre-specified L2 euclidean metric
 *
 * \param x first vector
 * \param y second vector
 */
-template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, const Vector<T>& y)
+template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, const Vector<T>& y) const
 {
  if (_metric_to_use==NULL) // is a non-standard metric set ?
  {
@@ -254,7 +261,7 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
      return T(sqrt(result));
  }
  else
-     return _metric_to_use(x,y);   // use the non-standard user defined metric
+	 return (this->*_metric_to_use)(x,y);   // use the non-standard user defined metric
 }  
 
 /** \brief Sets the number of initial reference vectors.

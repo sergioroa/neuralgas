@@ -13,6 +13,7 @@
 
 #include <vector>
 
+namespace neuralgas {
 
 template<typename T> class Vector : public std::vector<T>
 {
@@ -21,6 +22,7 @@ template<typename T> class Vector : public std::vector<T>
          inline Vector(){this->resize(1);}
          inline Vector(const int& dim){this->resize(dim);}
          inline Vector(const int& dim,const T& value){this->resize(dim,value);}
+	 inline Vector(const std::vector<T>& v) { (*this) = static_cast<Vector<T> >(v);}
          //operator+= based on the operations = and +
          inline Vector<T>& operator+=(const Vector<T>&);
          //operator-= based on the operations = and -
@@ -318,5 +320,7 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
  return (*result);
 
 }
+
+} // namespace neuralgas
 
 #endif
