@@ -455,7 +455,7 @@ template<typename T,typename S> std::vector<int> Base_Graph<T,S>::getNeighbors(c
   int num_of_neighbors = _nodes[index]->num_connections;
   int found_neighbors = 0;
   
-  for (int i=0; i < nsize, found_neighbors < num_of_neighbors; i++)
+  for (int i=0; i < nsize && found_neighbors < num_of_neighbors; i++)
     if( _nodes[index]->edges[i] !=NULL && index!=i)
     {
         result_v.push_back(i);   

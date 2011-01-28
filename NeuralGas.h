@@ -136,7 +136,7 @@ template<typename T,typename S> const int NeuralGas<T,S>::maxRandomValue() const
 */
 template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const int& dimension)
 {
-  T x;
+  T x = T();
   _zero           = x - x;
   _dimension      = dimension;
   _data           = new std::vector< Vector<T>* >;
