@@ -64,20 +64,63 @@ float funclambda(const int& time)
 
 float functheta(const int& time)
 {
-      return 100;
+      return 75;
 }
+
+enum _algorithm { _gng, _ebgng, _mgng, _cdn };
 
 int main(int argc, char *argv[])
 {
+
+    if (argc < 2) {
+      cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn" << endl;
+      exit(1);
+    }
+
+    GNGModul<float, int> *gng;
+    unsigned int algorithm;
+    //MGNGAlgorithm<float,int>* mgng    = new MGNGAlgorithm<float,int>(1);
+    //GNGAlgorithm<float,int>* gng      = new GNGAlgorithm<float,int>(1);
+    //EBGNGAlgorithm<float,int>* ebgng  = new EBGNGAlgorithm<float,int>(2);
+    //CDNAlgorithm<float,int>* cdn      = new CDNAlgorithm<float,int>(1);
+    if (string(argv[1]) == "gng")
+    {
+        gng = new GNGAlgorithm<float,int>(2);
+        algorithm = _gng;
+    }
+    else if (string(argv[1]) == "ebgng")
+    {
+        gng = new EBGNGAlgorithm<float,int>(2);
+        algorithm = _ebgng;
+    }
+    else if (string(argv[1]) == "mgng")
+    {
+        gng = new MGNGAlgorithm<float,int>(2);
+        algorithm = _mgng;
+    }
+    else if (string(argv[1]) == "cdn")
+    {
+        gng = new CDNAlgorithm<float,int>(2);
+        algorithm = _cdn;
+    }
+    else
+    {
+        cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn" << endl;
+        exit(1);
+    }
+
     int sizeofdata=1000;
     
     NeuralGasSuite<float,int> ng;
+
     
     /*MackeyGlass* mg = new MackeyGlass;
     mg->setPastTimeSteps(17);
     mg->setBoundary(0.4);
     mg->setPower(10);*/
     NoisyAutomata* na = new NoisyAutomata;
+    na->setSigma (0.1);
+    na->setTransProb (0.1);
     
     
     //ng.setDataGenerator(mg);
@@ -90,18 +133,14 @@ int main(int argc, char *argv[])
   
     for (int i=0; i < data->size(); i++)
         std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
-        
-    //MGNGAlgorithm<float,int>* mgng    = new MGNGAlgorithm<float,int>(1);
-    //GNGAlgorithm<float,int>* gng      = new GNGAlgorithm<float,int>(1);
-    EBGNGAlgorithm<float,int>* ebgng  = new EBGNGAlgorithm<float,int>(2);
-    //CDNAlgorithm<float,int>* cdn      = new CDNAlgorithm<float,int>(1);     
-    
+
+   
     for(int i=0; i < NUM_PARAM; i++)
     {
-            //gng->setFuncArray(func,i);
-            ebgng->setFuncArray(func,i);
-            //cdn->setFuncArray(func,i);
-     }
+        gng->setFuncArray(func,i);
+        //ebgng->setFuncArray(func,i);
+        //cdn->setFuncArray(func,i);
+    }
     
     // mgng->setFuncArray(constalpha,0);
     // mgng->setFuncArray(constbeta,1);
@@ -112,7 +151,20 @@ int main(int argc, char *argv[])
     // mgng->setFuncArray(consttheta,6);
     // mgng->setFuncArray(consteta,7);
     // mgng->setFuncArray(constlambda,8);
-    
+    if (algorithm == _mgng)
+    {
+        gng->setFuncArray(constalpha,0);
+        gng->setFuncArray(constbeta,1);
+        gng->setFuncArray(constgamma,2);
+        gng->setFuncArray(constdelta,3);
+        gng->setFuncArray(constepsilonw,4);
+        gng->setFuncArray(constepsilonn,5);
+        gng->setFuncArray(consttheta,6);
+        gng->setFuncArray(consteta,7);
+        gng->setFuncArray(constlambda,8);
+    }
+    else if (algorithm == _cdn)
+    {
         
     // cdn->setFuncArray(constalpha,0);
     // cdn->setFuncArray(constbeta,1);
@@ -123,19 +175,44 @@ int main(int argc, char *argv[])
     // cdn->setFuncArray(consttheta,6);
     // cdn->setFuncArray(consteta,7);
     // cdn->setFuncArray(constlambda,8);
-        
-    // gng->setFuncArray(constgamma,3);
-    // gng->setFuncArray(functheta,7);
-    // gng->setFuncArray(funclambda,6);
-    ebgng->setFuncArray(constgamma,3);
-    ebgng->setFuncArray(functheta,7);
-    ebgng->setFuncArray(funclambda,8);
 
-
+        gng->setFuncArray(constalpha,0);
+        gng->setFuncArray(constbeta,1);
+        gng->setFuncArray(constgamma,2);
+        gng->setFuncArray(constdelta,3);
+        gng->setFuncArray(constepsilonw,4);
+        gng->setFuncArray(constepsilonn,5);
+        gng->setFuncArray(consttheta,6);
+        gng->setFuncArray(consteta,7);
+        gng->setFuncArray(constlambda,8);
+    }
+    else if (algorithm == _gng)
+    {
+        gng->setFuncArray(constgamma,3);
+        gng->setFuncArray(functheta,7);
+        gng->setFuncArray(funclambda,6);
+        //gng->setStoppingCriterion (global_error);
+        //gng->setMaxEpochs (5);
+        //gng->setSamplingMode(randomly);
+        //(dynamic_cast<GNGAlgorithm<float,int>*>(gng))->setMinGlobalError (0.05);
+    }
+    else if (algorithm == _ebgng)
+    {
+    // ebgng->setFuncArray(constgamma,3);
+    // ebgng->setFuncArray(functheta,7);
+    // ebgng->setFuncArray(funclambda,8);
+        gng->setFuncArray(constgamma,3);
+        gng->setFuncArray(functheta,7);
+        gng->setFuncArray(funclambda,8);
+        //gng->setSamplingMode(randomly);
+        //gng->setStoppingCriterion (epochs);
+        //gng->setMaxEpochs (5);
+    }
    
     //ng.add(mgng);
-    ng.add(ebgng);
+    //ng.add(ebgng);
     //ng.add(cdn);
+    ng.add(gng);
     ng.setRefVectors(2);
     //(dynamic_cast< CDNAlgorithm<float,int>* > (ng[1]))->setEnergy(0.1);
     ng.run(); 
@@ -143,7 +220,8 @@ int main(int argc, char *argv[])
     for (int i=0; i < ng.size(); i++)
     {
         std::cout << "Algorithm " << i << std::endl;
-        errors = ng.getErrors(i,500);
+        //errors = ng.getErrors(i,500);
+        errors = ng.getErrors(i,sizeofdata-1);
         float total_error=0.0;
         //ng[i]->showGraph();   
         for(int j=0; j < errors.size(); j++)
@@ -151,7 +229,7 @@ int main(int argc, char *argv[])
          //       std::cout << errors [j] << " ";
                 total_error+=errors[j];
         }
-        std::cout << "Gesamtfehler "<< total_error<<std::endl;
+        std::cout << "Gesamtfehler "<< total_error / sizeofdata <<std::endl;
     
         std::cout << std::endl;
     }

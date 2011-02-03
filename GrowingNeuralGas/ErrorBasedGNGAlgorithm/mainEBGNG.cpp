@@ -39,7 +39,7 @@ float consteta(const int& time)
 {return 0.99995;}
 
 float consttheta(const int& time)
-{return 100;}
+{return 75;}
 
 float constlambda(const int& time)
 {return 600 ;}
@@ -64,7 +64,7 @@ float funclambda(const int& time)
 
 float functheta(const int& time)
 {
-      return 75;
+      return 3;
 }
 
 int main(int argc, char *argv[])
@@ -121,6 +121,10 @@ int main(int argc, char *argv[])
     
     std::cout << total_error <<std::endl;
    */
+    //eb->setSamplingMode(randomly);
+    //eb->setStoppingCriterion (epochs);
+    //eb->setMaxEpochs (5);
+
     eb->run(); 
     eb->save("nodes.txt");
     return EXIT_SUCCESS;

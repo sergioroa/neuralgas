@@ -68,27 +68,37 @@ namespace neuralgas {
 
 template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
 {
- public:          // cto initializing the class 
-                         GNGAlgorithm(const int& dim);
-                  // std dto
-                         ~GNGAlgorithm();
+public:
+	// cto initializing the class 
+	GNGAlgorithm(const int& dim);
+	// std dto
+	~GNGAlgorithm();
                          
-                 // runs the proposed algorithm 
-                 void    run();
+	// runs the proposed algorithm 
+	void    run();
            
-                 // sets the number of inital reference vectors
-         virtual void    setRefVectors(const int&,const int&);
+	// sets the number of inital reference vectors
+	virtual void    setRefVectors(const int&,const int&);
+        // get global error
+        virtual T getGlobalError ();
+        // set stopping value (minimum global error)
+        void setMinGlobalError (T);
+        
                 
-                 void    showGraph(){_graphptr->showGraph();}
-                 // algorithmic dependent distance function
-                 T getDistance(const Vector<T>&,const int&) const;
- private:        
-                 //is a Base_Graph casted pointer to thereof derived class MGNGGraph
-                 GNGGraph<T,S>*           _graphptr;
-                 //defines the update rule for the in the second index given neighbor by using a given datum
-                 void updateNeighbor(const int&,const int&);
-                 //defines the update rule for the winner
-                 void updateWinner(const int&,const int&);
+	void    showGraph(){_graphptr->showGraph();}
+	// algorithmic dependent distance function
+	T getDistance(const Vector<T>&,const int&) const;
+private:        
+	//is a Base_Graph casted pointer to thereof derived class MGNGGraph
+	GNGGraph<T,S>*           _graphptr;
+	//defines the update rule for the in the second index given neighbor by using a given datum
+	void updateNeighbor(const int&,const int&);
+	//defines the update rule for the winner
+	void updateWinner(const int&,const int&);
+        //a learning cycle for instance t
+        void learning_loop ( unsigned int );
+        //global minimal error (used as stopping criterion)
+        T min_global_error;
                     
 };
 
@@ -97,7 +107,10 @@ template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
 * \param dim is the dimension of the node weights
 */
 template<typename T,typename S> GNGAlgorithm<T,S>::GNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
-{_graphptr=NULL;}
+{
+  _graphptr=NULL;
+  min_global_error = this->_zero;
+}
 
 /** \brief std dto
 */
@@ -131,6 +144,14 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const int&
   _graphptr->initRandomGraph(num_of_ref_vec,max_value); // creates a Graph object with given size of the 
                                                 // vectors and number of ref vectors initilized with 
                                                 // random values
+}
+
+/** \brief set stopping value (minimal global error)
+ *  \param value for minimum error
+ */
+template<typename T,typename S> void GNGAlgorithm<T,S>::setMinGlobalError (T value)
+{
+  min_global_error = value;
 }
 
 /** \brief Algorithmic dependent distance function
@@ -192,120 +213,175 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::updateWinner(const int& 
 template<typename T,typename S> void GNGAlgorithm<T,S>::run()
 {
  
- if (this->getDimension()>0)
- {
-   // number of total steps for the algorithm
-   int tsize                       =     this->size();
- 
-   for(int t = 0; t < tsize; t++)
-   {
-    // init
-    int first_winner               =     1;
-    int second_winner              =     0;
- 
-   //params are defined by user set functions that may depend on the time step
-   //params[0] alpha factor by which the two nodes with greatest error are changed after adding a new nod
-   //params[1] beta factor by which the error of all nodes is changed
-   //params[2] gamma maximal permitted distortion before adding a new reference
-   //params[3] alpha_max maximal age for an edge 
-   //params[4] epsilon_b weight in winner node update
-   //params[5] epsilon_n weight in neighbor node update
-   //params[6] lambda number of iterations after a new node is added
-   //params[7] w_max maximal number of reference vectors / maximal size of cookbook
-  
-    for( int j = 0; j < NUM_PARAM; j++)  
+  if (this->getDimension()>0)
+  {
+    // number of total steps for the algorithm in one epoch
+    int tsize                       =     this->size();
+
+    if (this->sampling_mode == sequential)
     {
-      this->params[j] =((*this)._funcArray[j])(t);
+      if (this->stopping_criterion == epochs)
+	for (unsigned int e=0; e<this->max_epochs; e++)
+	{
+	  for(unsigned int t = 0; t < tsize; t++)
+	    learning_loop (t);
+	  std::cout << "Global error variable (not real error): " << getGlobalError() << std::endl;
+	}
+
+      else if (this->stopping_criterion == global_error)
+	do
+	{
+	  for (unsigned int t = 0; t < tsize; t++)
+	    learning_loop (t);
+	  std::cout << "Global error variable (not real error): " << getGlobalError() << std::endl;
+	} while (this->min_global_error < getGlobalError());
     }
-    
-    this->getWinner(first_winner,second_winner,(*this)[t]);
-
-    T distance = pow(getDistance((*this)[t],first_winner),2);
-
-    if ( _graphptr->size() < this->params[7] &&  distance >= this->params[2] )
+    else if (this->sampling_mode == randomly)
     {
-     _graphptr->addNode();
+      ::srand( (unsigned)time( NULL ) );
+      if (this->stopping_criterion == epochs)
+	for (unsigned int e=0; e<this->max_epochs; e++)
+	{
+	  for (unsigned int t=0; t<tsize; t++)
+	    learning_loop (::rand() % tsize);
+	  std::cout << "Global error variable (not real error): " << getGlobalError() << std::endl;
+	}
+      else if (this->stopping_criterion == global_error)  
+	do
+	{
+	  for (unsigned int t=0; t<tsize; t++)
+	    learning_loop (::rand() % tsize);
+	  std::cout << "Global error variable (not real error): " << getGlobalError() << std::endl;
+	} while (this->min_global_error < getGlobalError());
+    }
+  }
+  std::cout << "Graph size: " << _graphptr->size() << std::endl;
+}
+
+/** \brief returns global error for stopping purposes
+ */
+template<typename T,typename S> T GNGAlgorithm<T,S>::getGlobalError ()
+{
+  T global_error = this->_zero;
+  for(int i = 0; i < _graphptr->size(); i++)
+  {
+    global_error += _graphptr->getError(i);
+  }
+  return global_error;
+
+}
+
+/** \brief a learning cycle for instance t
+ *  \param t index in the dataset
+ */
+template<typename T,typename S> void GNGAlgorithm<T,S>::learning_loop ( unsigned int t )
+{
+  // init
+  int first_winner               =     1;
+  int second_winner              =     0;
  
-     int gsize = _graphptr->size()-1;
-     //set the position of the new node to be the position of the current data vector
-     (*_graphptr)[gsize].weight = (*this)[t];
-     _graphptr->setAge(first_winner,gsize,0.0);
-     //new node's error is set to the error of the winner node 
-     _graphptr->setError(gsize,_graphptr->getError(first_winner) );  
-    } 
-    else
-    {
-     int gsize = _graphptr->size()-1;
+  //params are defined by user set functions that may depend on the time step
+  //params[0] alpha factor by which the two nodes with greatest error are changed after adding a new nod
+  //params[1] beta factor by which the error of all nodes is changed
+  //params[2] gamma maximal permitted distortion before adding a new reference
+  //params[3] alpha_max maximal age for an edge 
+  //params[4] epsilon_b weight in winner node update
+  //params[5] epsilon_n weight in neighbor node update
+  //params[6] lambda number of iterations after a new node is added
+  //params[7] w_max maximal number of reference vectors / maximal size of cookbook
+  
+  for( int j = 0; j < NUM_PARAM; j++)  
+  {
+    this->params[j] =((*this)._funcArray[j])(t);
+  }
+    
+  this->getWinner(first_winner,second_winner,(*this)[t]);
 
-     std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
+  T distance = pow(getDistance((*this)[t],first_winner),2);
+
+  if ( _graphptr->size() < this->params[7] &&  distance >= this->params[2] )
+  {
+    _graphptr->addNode();
+ 
+    int gsize = _graphptr->size()-1;
+    //set the position of the new node to be the position of the current data vector
+    (*_graphptr)[gsize].weight = (*this)[t];
+    _graphptr->setAge(first_winner,gsize,0.0);
+    //new node's error is set to the error of the winner node 
+    _graphptr->setError(gsize,_graphptr->getError(first_winner) );  
+  } 
+  else
+  {
+    int gsize = _graphptr->size()-1;
+
+    std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
    
-     for(int j=0; j < first_winner_neighbors.size();j++)
-     {
+    for(int j=0; j < first_winner_neighbors.size();j++)
+    {
       _graphptr->incAge(first_winner, first_winner_neighbors[j] ); 
       updateNeighbor(t,first_winner_neighbors[j]);
-     }
-
-     updateWinner(t,first_winner);      
-     _graphptr->setError(gsize,_graphptr->getError(first_winner) + distance  );         
-   
-     if (first_winner != second_winner)
-        _graphptr->setAge(first_winner,second_winner,0.0);
-
     }
 
-    this->rmOldEdges(this->params[3]);  
+    updateWinner(t,first_winner);      
+    _graphptr->setError(gsize,_graphptr->getError(first_winner) + distance  );         
+   
+    if (first_winner != second_winner)
+      _graphptr->setAge(first_winner,second_winner,0.0);
+
+  }
+
+  this->rmOldEdges(this->params[3]);  
     
-    this->rmNotConnectedNodes(); 
+  this->rmNotConnectedNodes(); 
     
-    if( 0<int(this->params[6]) && (t % int(this->params[6])== 0) && _graphptr->size() < this->params[7])
-    {
-       T max_error                   = this->_zero;
-       int max_error_index           = 0;
+  if( 0<int(this->params[6]) && (t % int(this->params[6])== 0) && _graphptr->size() < this->params[7])
+  {
+    T max_error                   = this->_zero;
+    int max_error_index           = 0;
  
-       for (int i=0; i < _graphptr->size(); i++)
-       {
-           if (_graphptr->getError(i) > max_error )
-           {
-            max_error               = _graphptr->getError(i);
-            max_error_index         = i;
-           }
-       }
+    for (int i=0; i < _graphptr->size(); i++)
+    {
+      if (_graphptr->getError(i) > max_error )
+      {
+        max_error               = _graphptr->getError(i);
+        max_error_index         = i;
+      }
+    }
        
-       std::vector<int> neighbors   = _graphptr->getNeighbors(max_error_index);
-       T max_error_n                = this->_zero;
-       int max_error_index_n        = 0;
+    std::vector<int> neighbors   = _graphptr->getNeighbors(max_error_index);
+    T max_error_n                = this->_zero;
+    int max_error_index_n        = 0;
        
-       for (int i=0; i < neighbors.size(); i++)
-       {
+    for (int i=0; i < neighbors.size(); i++)
+    {
 
-           if (_graphptr->getError(neighbors[i]) > max_error_n )
-           {
-            max_error_n             = _graphptr->getError(neighbors[i]);
-            max_error_index_n       = i;
-           }
-       }
+      if (_graphptr->getError(neighbors[i]) > max_error_n )
+      {
+        max_error_n             = _graphptr->getError(neighbors[i]);
+        max_error_index_n       = i;
+      }
+    }
        
-       _graphptr->addNode();
+    _graphptr->addNode();
 
-       int gsize                       = _graphptr->size() - 1;
-       (*_graphptr)[gsize].weight      = (*_graphptr)[max_error_index_n].weight*0.5
-                                         +(*_graphptr)[max_error_index].weight*0.5;
+    int gsize                       = _graphptr->size() - 1;
+    (*_graphptr)[gsize].weight      = (*_graphptr)[max_error_index_n].weight*0.5
+      +(*_graphptr)[max_error_index].weight*0.5;
     
-       _graphptr->addEdge(max_error_index,gsize);
-       _graphptr->addEdge(max_error_index_n,gsize);
+    _graphptr->addEdge(max_error_index,gsize);
+    _graphptr->addEdge(max_error_index_n,gsize);
 
-       _graphptr->setError(max_error_index,this->params[0]*_graphptr->getError(max_error_index));
-       _graphptr->setError(max_error_index_n,this->params[0]*_graphptr->getError(max_error_index_n));       
-       _graphptr->setError(gsize,_graphptr->getError(max_error_index));
-   }
+    _graphptr->setError(max_error_index,this->params[0]*_graphptr->getError(max_error_index));
+    _graphptr->setError(max_error_index_n,this->params[0]*_graphptr->getError(max_error_index_n));       
+    _graphptr->setError(gsize,_graphptr->getError(max_error_index));
+  }
 
-   for(int i = 0; i < _graphptr->size(); i++)
-   {
+  for(int i = 0; i < _graphptr->size(); i++)
+  {
     _graphptr->setError(i, this->params[1] * _graphptr->getError(i));
-   }
-  }  
- }
-}
+  }
+
+}  
 
 } // namespace neuralgas
 

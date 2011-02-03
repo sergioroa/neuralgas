@@ -1,8 +1,9 @@
 /** 
 * \class NeuralGas
 * \author Manuel Noll
+* \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -19,9 +20,25 @@
 /// Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
 namespace neuralgas {
 
-// is the maximal number of used parameters, has to be changed if a larger number of
-// parameters has to be used in a derived class
+/// NUM_PARAM is the maximal number of used parameters, has to be changed if a larger number of
+/// parameters has to be used in a derived class
 #define NUM_PARAM 9
+
+/**
+ * \enum sampling_mode
+ * \brief for using different mechanisms for sampling learning data
+ */
+enum _sampling_mode {sequential, /**< sample instances sequentially */
+		     randomly /**< sample instances randomly */
+};
+
+/**
+ * \enum stopping_criterion
+ * \brief for using different mechanisms for stopping the algorithms
+ */
+enum _stopping_criterion {epochs, /**< nr of training epochs */
+                          global_error /**< a global error measure */
+};
 
 
 /** \brief Class declares the basic operations for the Neural Gas Algorithm and is intended as a super class for inheritance.
@@ -39,12 +56,12 @@ namespace neuralgas {
 
 template < typename T, typename S > class NeuralGas
 {
-  public:
+public:
     typedef T (NeuralGas::*Metric)(const Vector<T>&,const Vector<T>&) const;
     //cto with size of dimension as input
-                            NeuralGas(const int&);         
+    NeuralGas(const int&);         
     //std dto
-                            ~NeuralGas(void);               
+    ~NeuralGas(void);               
     //sets the data to be processed
     inline void             setData(std::vector< Vector<T>* >*);  
     //adds a single datum
@@ -61,8 +78,12 @@ template < typename T, typename S > class NeuralGas
     //determines the maximal value within the given data set
     const int               maxRandomValue() const; 
     // saves the nodes weight in a file
-    void                    save(const char*);             
-
+    void                    save(const char*);
+    // sets the sampling mode for learning instances
+    virtual void            setSamplingMode (unsigned int);
+    //sets a user defined stopping criterion
+    virtual void            setStoppingCriterion (unsigned int);
+    
     //an abstract run func
     virtual void            run()=0;
 
@@ -89,7 +110,11 @@ template < typename T, typename S > class NeuralGas
     float   (*_funcArray[NUM_PARAM])(const int&);
     // parameters for the algorithm
     float   params[NUM_PARAM];
-
+    // sampling mode of learning instances
+    unsigned int sampling_mode;
+    // stopping criterion
+    unsigned int stopping_criterion;
+ 
   private:
     //dimension of the vectors
     int                     _dimension; 
@@ -145,7 +170,9 @@ template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const int& dimensi
   _metric_to_use  = NULL;   // no user defined metric is used, std metric is used
   for (int i=0;i < NUM_PARAM; i++)
       _funcArray[i] = NULL;
-}  
+  sampling_mode = sequential;
+  stopping_criterion = epochs;
+}
 
 /** \brief Dto frees memory by deleting the underlying graph data structure.
 */
@@ -180,6 +207,25 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
 template<typename T,typename S> void NeuralGas<T,S>::save(const char* filename)
 {
  graphptr->save(filename);
+}
+
+
+/**
+ * \brief Sets the sampling mode for selecting learning instances
+ * \param mode sampling mode from \p _sampling_mode enum variables
+ */
+template<typename T,typename S> void NeuralGas<T,S>::setSamplingMode(unsigned int mode)
+{
+  sampling_mode = mode;
+}
+
+/**
+ * \brief Sets the stopping criterion of the algorithm
+ * \param criterion criterion from \p _stopping_criterion enum variab
+ */
+template<typename T,typename S> void NeuralGas<T,S>::setStoppingCriterion(unsigned int criterion)
+{
+  stopping_criterion = criterion;
 }
 
 

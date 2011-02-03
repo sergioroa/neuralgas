@@ -34,30 +34,35 @@ template<typename T,typename S> class ErrorTesting;
 template<typename T,typename S> class GNGModul : public NeuralGas<T,S>
 {
 
- public:
-         //cto with size of dimension as input 
-                  GNGModul(const int& dim);
-         //std dto
-                  ~GNGModul();
-           virtual void    showGraph()=0;
- protected:
-           // class dependent distance function that is used within the winner function
-           //virtual           T      getDistance(const Vector<T>&,const int&)=0;
-           virtual           T      getDistance(const Vector<T>&,const int&) const=0;
-           // func determines for the current time step / data item the two most similar nodes       
-           virtual           void   getWinner( int&, int&, const Vector<T>&) const;
-           //template <typename F> void   getWinner( int&, int&, F Functor);
-	   //func determines the two most similar nodes
-           // removes all edges that have an age greater than the given value
-           virtual           void   rmOldEdges(const float&);
-           // removes all nodes from the graph that are not connected
-           virtual           void   rmNotConnectedNodes();
-           // ptr to the underlying graph structure
-           GNGModulGraph<T,S>*      _graphModulptr;
+public:
+        //cto with size of dimension as input 
+        GNGModul(const int& dim);
+        //std dto
+        ~GNGModul();
+        virtual void    showGraph()=0;
+        //set stopping value (maximal number of epochs)
+        void setMaxEpochs (unsigned int);
+protected:
+        // class dependent distance function that is used within the winner function
+        //virtual           T      getDistance(const Vector<T>&,const int&)=0;
+        virtual           T      getDistance(const Vector<T>&,const int&) const=0;
+        // func determines for the current time step / data item the two most similar nodes       
+        virtual           void   getWinner( int&, int&, const Vector<T>&) const;
+        //template <typename F> void   getWinner( int&, int&, F Functor);
+        //func determines the two most similar nodes
+        // removes all edges that have an age greater than the given value
+        virtual           void   rmOldEdges(const float&);
+        // removes all nodes from the graph that are not connected
+        virtual           void   rmNotConnectedNodes();
+        // ptr to the underlying graph structure
+        GNGModulGraph<T,S>*      _graphModulptr;
  
- private:         
-           // ErrorTesting is defined as friend in order to not having duplicate anything
-           friend class ErrorTesting<T,S>;
+private:         
+        // ErrorTesting is defined as friend in order to not having duplicate anything
+        friend class ErrorTesting<T,S>;
+protected:
+        //maximal number of epochs (used as stopping criterion)
+        unsigned int max_epochs;
 
 };
 
@@ -65,12 +70,21 @@ template<typename T,typename S> class GNGModul : public NeuralGas<T,S>
 */
 
 template<typename T,typename S> GNGModul<T,S>::GNGModul(const int& dim) : NeuralGas<T,S>(dim)
-{}
+{
+  max_epochs = 1;
+}
 
 /** \brief std dto
 */
 template<typename T,typename S> GNGModul<T,S>::~GNGModul(){}
 
+/** \brief set stopping value (maximal number of epochs)
+ *  \param value for maximum epochs
+ */
+template<typename T,typename S> void GNGModul<T,S>::setMaxEpochs (unsigned int value)
+{
+  max_epochs = value;
+}
 
 /** \brief func determines for the current time step / data item the two most similar nodes
 *

@@ -92,33 +92,34 @@ template<typename T,typename S> void updateCounter(Base_Node<T,S>* n,const float
 
 template<typename T,typename S> class MGNGAlgorithm : public GNGModul<T,S>
 {
- public:          // cto initializing the class 
-                         MGNGAlgorithm(const int& dim);
-                  // std dto
-                         ~MGNGAlgorithm();
+public:
+	// cto initializing the class 
+	MGNGAlgorithm(const int& dim);
+	// std dto
+	~MGNGAlgorithm();
                          
-                 // runs the proposed algorithm 
-                 void    run();
+	// runs the proposed algorithm 
+	void    run();
            
-                 // sets the number of inital reference vectors
-         virtual void    setRefVectors(const int&,const int&);
-                 // sets the rule for updating the node counter
-                 void    setFuncUpdateCounter(void (*)(Base_Node<T,S>* n,const float&));
-                 void    showGraph(){_graphptr->showGraph();}
-                 // stores the graph in myfile , just for internal use
-                 void    storeGraph(const int& );
-	         T       getDistance(const Vector<T>&,const int&) const;
- protected:
-                 virtual void updateNeighbor(const int&,const int&);
-                 virtual void updateWinner(const int&,const int&);
+	// sets the number of inital reference vectors
+	virtual void    setRefVectors(const int&,const int&);
+	// sets the rule for updating the node counter
+	void    setFuncUpdateCounter(void (*)(Base_Node<T,S>* n,const float&));
+	void    showGraph(){_graphptr->showGraph();}
+	// stores the graph in myfile , just for internal use
+	void    storeGraph(const int& );
+	T       getDistance(const Vector<T>&,const int&) const;
+protected:
+	virtual void updateNeighbor(const int&,const int&);
+	virtual void updateWinner(const int&,const int&);
         
-                 //vector reflecting the global time series context
-                 Vector<T> globalContextV;
-                 //is a Base_Graph casted pointer to thereof derived class MGNGGraph
-                 MGNGGraph<T,S>*           _graphptr;
-                 //is func pointer to a func with the time as paramter defining 
-                 // the way of updating the counter of each node
-                 void (*_funcUpdateCounter)(Base_Node<T,S>* n,const float&);
+	//vector reflecting the global time series context
+	Vector<T> globalContextV;
+	//is a Base_Graph casted pointer to thereof derived class MGNGGraph
+	MGNGGraph<T,S>*           _graphptr;
+	//is func pointer to a func with the time as paramter defining 
+	// the way of updating the counter of each node
+	void (*_funcUpdateCounter)(Base_Node<T,S>* n,const float&);
    
                  
 };

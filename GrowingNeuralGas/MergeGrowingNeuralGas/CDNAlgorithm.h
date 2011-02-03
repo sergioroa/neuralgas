@@ -16,13 +16,14 @@ namespace neuralgas {
 
 template<typename T,typename S> class CDNAlgorithm : public MGNGAlgorithm<T,S>
 {
- public:          // cto initializing the class 
-                         CDNAlgorithm(const int& dim) : MGNGAlgorithm<T,S>(dim){}
-                         void setEnergy(const float& energy) {_energy = energy;}
- protected:
-                 virtual void updateNeighbor(const int&,const int&);
-                 virtual void updateWinner(const int&,const int&);
-                 float _energy;
+public:
+	// cto initializing the class 
+	CDNAlgorithm(const int& dim) : MGNGAlgorithm<T,S>(dim){}
+	void setEnergy(const float& energy) {_energy = energy;}
+protected:
+	virtual void updateNeighbor(const int&,const int&);
+	virtual void updateWinner(const int&,const int&);
+	float _energy;
 
 };
 
