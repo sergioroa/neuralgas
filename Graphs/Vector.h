@@ -12,6 +12,7 @@
 #define VECTOR_H
 
 #include <vector>
+#include <boost/shared_ptr.hpp>
 
 namespace neuralgas {
 
@@ -23,6 +24,7 @@ template<typename T> class Vector : public std::vector<T>
          inline Vector(const int& dim){this->resize(dim);}
          inline Vector(const int& dim,const T& value){this->resize(dim,value);}
 	 inline Vector(const std::vector<T>& v) { (*this) = static_cast<Vector<T> >(v);}
+	 inline Vector (const Vector<T>& v) { (*this)=v; } 
          //operator+= based on the operations = and +
          inline Vector<T>& operator+=(const Vector<T>&);
          //operator-= based on the operations = and -
@@ -115,7 +117,8 @@ template<typename T> template<typename S> inline Vector<T>& Vector<T>::operator/
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add) const
 {
  unsigned int tsize = this->size();  
- Vector<T>* result   =new Vector<T>(tsize);
+ // Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_add.size() )
  {
@@ -140,7 +143,8 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add)
 {
  unsigned int tsize = this->size();  
- Vector<T>* result   =new Vector<T>(tsize);
+ // Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_add.size() )
  {
@@ -165,7 +169,8 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract) const
 { 
  unsigned int tsize = this->size();  
- Vector<T>* result   =new Vector<T>(tsize);
+ //Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_subtract.size() )
  {
@@ -189,9 +194,9 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
 */
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract)
 { 
- 
  unsigned int tsize = this->size();  
- Vector<T>* result   =new Vector<T>(tsize);
+ //Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_subtract.size() )
  {
@@ -220,7 +225,8 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 {   
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- Vector<T>* result   =new Vector<T>(tsize);
+ // Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if (tsize > 1 )
   for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
@@ -247,7 +253,8 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 {   
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- Vector<T>* result   =new Vector<T>(tsize);
+ // Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  
  if (tsize > 1 )
@@ -277,7 +284,8 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- Vector<T>* result   =new Vector<T>(tsize);
+ // Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if (tsize > 1 )
   for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
@@ -306,7 +314,8 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 {   
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- Vector<T>* result   =new Vector<T>(tsize);
+ // Vector<T>* result   =new Vector<T>(tsize);
+ boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if (tsize > 1 )
   for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)

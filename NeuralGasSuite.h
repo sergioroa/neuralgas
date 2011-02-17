@@ -77,7 +77,7 @@ template <typename T,typename S> void NeuralGasSuite<T,S>::setDataGenerator(Data
 
 template <typename T,typename S> void NeuralGasSuite<T,S>::run()
 {
-         for (int i=0; i <_algos.size();i++)
+         for (unsigned int i=0; i <_algos.size();i++)
          {
              std::cout << "Starting run "<<i <<std::endl;
              _algos[i]->setData(_dg->getData());
@@ -108,7 +108,7 @@ template <typename T,typename S> void NeuralGasSuite<T,S>::setRefVectors(const i
 {
          int max_value = _dg->maxRandomValue();
         
-         for (int i=0; i <_algos.size();i++)
+         for (unsigned int i=0; i <_algos.size();i++)
          {
               _algos[i]->setRefVectors(number,max_value);
          }

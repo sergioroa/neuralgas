@@ -1,8 +1,9 @@
 /** 
 * \class GNGAlgorithm
 * \author Manuel Noll
+* \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -89,7 +90,7 @@ public:
 	// algorithmic dependent distance function
 	T getDistance(const Vector<T>&,const int&) const;
 private:        
-	//is a Base_Graph casted pointer to thereof derived class MGNGGraph
+	/// Base_Graph casted pointer to thereof derived class GNGGraph
 	GNGGraph<T,S>*           _graphptr;
 	//defines the update rule for the in the second index given neighbor by using a given datum
 	void updateNeighbor(const int&,const int&);
@@ -97,7 +98,7 @@ private:
 	void updateWinner(const int&,const int&);
         //a learning cycle for instance t
         void learning_loop ( unsigned int );
-        //global minimal error (used as stopping criterion)
+        /// global minimal error (used as stopping criterion)
         T min_global_error;
                     
 };
@@ -117,8 +118,8 @@ template<typename T,typename S> GNGAlgorithm<T,S>::GNGAlgorithm(const int& dim):
 template<typename T,typename S> GNGAlgorithm<T,S>::~GNGAlgorithm()
 {
 //if (_graphptr!=NULL) 
-  //    delete _graphptr;
-   _graphptr=NULL;                          
+  delete _graphptr;
+  //_graphptr=NULL;                          
 }
 
 /** \brief Sets the number of initial reference vectors.
@@ -216,7 +217,7 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::run()
   if (this->getDimension()>0)
   {
     // number of total steps for the algorithm in one epoch
-    int tsize                       =     this->size();
+    unsigned int tsize                       =     this->size();
 
     if (this->sampling_mode == sequential)
     {
@@ -316,7 +317,7 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::learning_loop ( unsigned
 
     std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
    
-    for(int j=0; j < first_winner_neighbors.size();j++)
+    for(unsigned int j=0; j < first_winner_neighbors.size();j++)
     {
       _graphptr->incAge(first_winner, first_winner_neighbors[j] ); 
       updateNeighbor(t,first_winner_neighbors[j]);
@@ -352,7 +353,7 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::learning_loop ( unsigned
     T max_error_n                = this->_zero;
     int max_error_index_n        = 0;
        
-    for (int i=0; i < neighbors.size(); i++)
+    for (unsigned int i=0; i < neighbors.size(); i++)
     {
 
       if (_graphptr->getError(neighbors[i]) > max_error_n )

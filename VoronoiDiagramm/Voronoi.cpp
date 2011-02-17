@@ -47,7 +47,7 @@ void Voronoi::getData(const char* filename)
 
 void Voronoi::showData()
 {
-    for(int i=0; i < _data.size(); i++)
+    for(unsigned int i=0; i < _data.size(); i++)
         std::cout << _data[i].x << " " <<_data[i].y << std::endl;
 }
 
@@ -58,7 +58,7 @@ void Voronoi::getMaxMinValue()
     _maxY=_data[0].y;
     _minY=_data[0].y;
 
-    for (int i=1; i < _data.size(); i++)
+    for (unsigned int i=1; i < _data.size(); i++)
     {
         if (_data[i].x > _maxX)
             _maxX = _data[i].x;
@@ -101,13 +101,13 @@ void Voronoi::discretize()
     float minY = factorY * _minY;
     std::cout << "minX "<<_minX <<" rescaled minX "<<minX<<" minY "<<_minY<<" rescaled minY "<<minY<<std::endl;
 
-    for(int i=0; i < _data.size(); i++)
+    for(unsigned int i=0; i < _data.size(); i++)
     {
         _data[i].x=( _data[i].x * factorX - minX );
         _data[i].y=( _data[i].y * factorY - minY);
     }
 
-    for(int i=0; i < _neurons.size(); i++)
+    for(unsigned int i=0; i < _neurons.size(); i++)
     {
         _neurons[i].x =( _neurons[i].x * factorX - minX);
         _neurons[i].y =( _neurons[i].y * factorY - minY);
@@ -147,7 +147,7 @@ void Voronoi::setNeurons()
     _xValues = new float[_neurons.size()];
     _yValues = new float[_neurons.size()];
 
-    for(int i=0; i < _neurons.size(); i++)
+    for(unsigned int i=0; i < _neurons.size(); i++)
     {
         _xValues[i] = _neurons[i].x;
         _yValues[i] = _neurons[i].y;
@@ -204,13 +204,13 @@ void Voronoi::save(const char* filename)
     // data
     value = qRgb(255, 255, 255); // 0xff7aa327
     //value = qRgb(0, 0, 255);
-    for(int i=0; i < _data.size();i++)
+    for(unsigned int i=0; i < _data.size();i++)
     {
         image.setPixel(_data[i].x, _data[i].y, value);
     }
     // neurons
     value = qRgb(255, 0, 0); // 0xffbd9527
-    for(int i=0; i < _neurons.size();i++)
+    for(unsigned int i=0; i < _neurons.size();i++)
     {
         image.setPixel(_neurons[i].x, _neurons[i].y, value);
         image.setPixel(_neurons[i].x+1, _neurons[i].y, value);

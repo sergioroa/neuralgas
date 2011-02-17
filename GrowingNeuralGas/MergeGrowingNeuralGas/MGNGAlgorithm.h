@@ -295,7 +295,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
         
     std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
    
-    for(int j=0; j < first_winner_neighbors.size();j++)
+    for(unsigned int j=0; j < first_winner_neighbors.size();j++)
     {
       updateNeighbor(t,first_winner_neighbors[j]);
       //line 12
@@ -340,7 +340,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
        float max_counter_n                 = 0.0;
        int max_counter_index_n             = 0;
        // line 15b
-       for (int i=0; i < neighbors.size(); i++)
+       for (unsigned int i=0; i < neighbors.size(); i++)
        {
 
            if (_graphptr->getCounter(neighbors[i]) > max_counter_n )

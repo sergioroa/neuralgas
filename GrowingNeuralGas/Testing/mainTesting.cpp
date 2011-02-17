@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     ErrorTesting<float,float> et(mgng);
 
     std::vector<float> errors = et.getErrors(30,true);
-    for(int i=0; i < errors.size(); i++)
+    for(unsigned int i=0; i < errors.size(); i++)
             std::cout << errors [i] << " ";
 
     for( int i=0; i < 1500; i++)

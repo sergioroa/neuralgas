@@ -18,9 +18,9 @@ SET(NEURALGAS_ROOT ${PROJECT_ROOT}/trunk CACHE INTERNAL "Path prefix for NeuralG
 # Set the path where other thing should be relative to
 GET_FILENAME_COMPONENT(CMAKE_SOURCE_DIR . ABSOLUTE CACHE INTERNAL "")
 
-# SET(Boost_MAJOR_VERSION 1)
-# SET(Boost_MINOR_VERSION 39)
-# FIND_PACKAGE( Boost 1.39 )
+SET(Boost_MAJOR_VERSION 1)
+SET(Boost_MINOR_VERSION 39)
+FIND_PACKAGE( Boost 1.39 )
 
 # Single output directory for building all NeuralGas libraries
 SET(LIBRARY_OUTPUT_PATH ${NEURALGAS_ROOT}/lib/linux CACHE PATH "Single output directory for building all NeuralGas libraries")
@@ -43,7 +43,7 @@ INCLUDE( ${QT_USE_FILE} )
 # SET(ICE_BIN /usr/bin CACHE PATH "Path prefix for ZeroC Ice binaries")
 
 # ADD_DEFINITIONS(-DLINUX -fpermissive)
-ADD_DEFINITIONS(-DLINUX)
+ADD_DEFINITIONS(-Wall -DLINUX)
 
 LINK_LIBRARIES(NeuralGasVoronoiDiagramm ${QT_LIBRARIES}
   # pthread rt GL glut GLU qwt-qt4 Ice IceUtil
@@ -53,13 +53,13 @@ LINK_LIBRARIES(NeuralGasVoronoiDiagramm ${QT_LIBRARIES}
 INCLUDE_DIRECTORIES(
         ${NEURALGAS_ROOT}
 	${QT_INCLUDE_DIR}
-#	${Boost_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
 #	${QWT_INCLUDE}
 #	${ICE_INCLUDE}
 )
 
 LINK_DIRECTORIES(
-#	${Boost_LIBRARY_DIRS}
+	${Boost_LIBRARY_DIRS}
 #	${QWT_LIBRARY}
 #	${ICE_LIBRARY}
 )

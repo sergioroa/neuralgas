@@ -23,7 +23,7 @@ class BinaryAutomata : public DataGenerator<float>
              virtual void reset();
       private:
              virtual  Vector<float>* generate();
-             virtual  Vector<float>* next(){generate();}
+             virtual  Vector<float>* next(){return generate();}
              short    _last_bit;
 
 };

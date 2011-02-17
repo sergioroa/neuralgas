@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     na.generate(1000);
     vector<Vector<float>*>* data = na.getData();
   
-    for (int i=0; i < data->size(); i++)
+    for (unsigned int i=0; i < data->size(); i++)
         std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
     return EXIT_SUCCESS;
 }

@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    int sizeofdata=1000;
+    int sizeofdata=10000;
     
     NeuralGasSuite<float,int> ng;
 
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     na->generate(sizeofdata);
     vector<Vector<float>*>* data = na->getData();
   
-    for (int i=0; i < data->size(); i++)
+    for (unsigned int i=0; i < data->size(); i++)
         std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
    
@@ -191,10 +191,10 @@ int main(int argc, char *argv[])
         gng->setFuncArray(constgamma,3);
         gng->setFuncArray(functheta,7);
         gng->setFuncArray(funclambda,6);
-        //gng->setStoppingCriterion (global_error);
+        gng->setStoppingCriterion (global_error);
         //gng->setMaxEpochs (5);
         //gng->setSamplingMode(randomly);
-        //(dynamic_cast<GNGAlgorithm<float,int>*>(gng))->setMinGlobalError (0.05);
+        (dynamic_cast<GNGAlgorithm<float,int>*>(gng))->setMinGlobalError (0.00005);
     }
     else if (algorithm == _ebgng)
     {
@@ -205,8 +205,8 @@ int main(int argc, char *argv[])
         gng->setFuncArray(functheta,7);
         gng->setFuncArray(funclambda,8);
         //gng->setSamplingMode(randomly);
-        //gng->setStoppingCriterion (epochs);
-        //gng->setMaxEpochs (5);
+        gng->setStoppingCriterion (epochs);
+        // gng->setMaxEpochs (1000000000);
     }
    
     //ng.add(mgng);
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
         errors = ng.getErrors(i,sizeofdata-1);
         float total_error=0.0;
         //ng[i]->showGraph();   
-        for(int j=0; j < errors.size(); j++)
+        for(unsigned int j=0; j < errors.size(); j++)
         {
          //       std::cout << errors [j] << " ";
                 total_error+=errors[j];

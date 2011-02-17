@@ -47,7 +47,7 @@ template<typename T> class DataGenerator
 	void                                    save(const char* filename);
 
  protected:
-        // generates a datum
+	// generate a datum
         virtual   Vector<T>*                    generate()=0;
         // dimension of the data
         int                                    _dim;
@@ -63,7 +63,7 @@ template<typename T> class DataGenerator
 */
 template<typename T> DataGenerator<T>::DataGenerator(const int& dim)
 {
- T x;
+ T x = T ();
  _zero            = x - x;
  _data            =          new std::vector< Vector<T>* >;                             
  _dim             =          dim;
@@ -74,7 +74,7 @@ template<typename T> DataGenerator<T>::DataGenerator(const int& dim)
 template<typename T> DataGenerator<T>::~DataGenerator()
 {
 
- for(int i=0; i < _data->size(); i++)
+ for(unsigned int i=0; i < _data->size(); i++)
          delete (*_data)[i];
  delete _data;
 
@@ -86,8 +86,8 @@ template<typename T> DataGenerator<T>::~DataGenerator()
 template<typename T> const int DataGenerator<T>::maxRandomValue() const
 {
  T max_data_value = _zero;
- for ( int i = 0; i < _data->size(); i++)
-  for ( int j = 0; j < (*_data)[0]->size(); j++)
+ for ( unsigned int i = 0; i < _data->size(); i++)
+  for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
       if (_data->operator[](i)->operator[](j) > max_data_value ) 
          max_data_value =abs( int (ceil( _data->operator[](i)->operator[](j))) );
  return int(max_data_value);
@@ -97,7 +97,7 @@ template<typename T> const int DataGenerator<T>::maxRandomValue() const
 */
 template<typename T> void DataGenerator<T>::reset()
 {
- for(int i=0; i < _data->size(); i++)
+ for(unsigned int i=0; i < _data->size(); i++)
          delete (*_data)[i];
  _data=NULL;
 }
@@ -131,13 +131,13 @@ template<typename T> void DataGenerator<T>::generate(const int& number)
 }
 
 /** \brief Generates a single datum
-*
-*   This function represents the heart of the class. It defines how to "generate"
-*   datum, meaning whether it should be read from a file, generated via a function
-*   or online streamed.
-*   
-*/
-template<typename T> Vector<T>* DataGenerator<T>::generate(){}
+ *
+ *   This function represents the heart of the class. It defines how to "generate"
+ *   datum, meaning whether it should be read from a file, generated via a function
+ *   or online streamed.
+ *   
+ */
+template<typename T> Vector<T>* DataGenerator<T>::generate()=0;
 
 /** \brief Saves the dataset to a text file
 *

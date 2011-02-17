@@ -64,7 +64,7 @@ float funclambda(const int& time)
 
 float functheta(const int& time)
 {
-      return 3;
+      return 75;
 }
 
 int main(int argc, char *argv[])

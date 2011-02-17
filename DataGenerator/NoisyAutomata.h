@@ -28,7 +28,7 @@ class NoisyAutomata : public DataGenerator<float>
              void setState(const int&);
       private:
              virtual  Vector<float>* generate();
-             virtual  Vector<float>* next(){generate();}
+             virtual  Vector<float>* next(){return generate();}
              Vector<float>* normal_distribution(const float&, const float&);
              float    approx_gauss(const float&);
              void     box_muller(float&,float&);
@@ -102,7 +102,7 @@ Vector<float>* NoisyAutomata::normal_distribution(const float& m1, const float& 
 {
  Vector<float>* v=new Vector<float>(2);
 
- float a;
+ //float a;
  float a1,a2;
  do
  {
@@ -183,7 +183,7 @@ Vector<float>* NoisyAutomata::generate()
     _state=2;
     return normal_distribution(0,0);
  }
- 
+ return 0;
 }
 
 } // namespace neuralgas

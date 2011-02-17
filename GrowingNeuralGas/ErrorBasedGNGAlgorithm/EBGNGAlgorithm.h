@@ -1,8 +1,9 @@
 /** 
 * \class EBGNGAlgorithm
 * \author Manuel Noll
+* \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -40,7 +41,7 @@ private:
 	void updateNeighbor(const int&,const int&);
 	//defines the update rule for the winner
 	void updateWinner(const int&,const int&);
-	//a learning cycle for instance t
+	//a learning cycle for instance
         void learning_loop ( unsigned int );
 
 	// the average error
@@ -70,8 +71,8 @@ template<typename T,typename S> EBGNGAlgorithm<T,S>::EBGNGAlgorithm(const int& d
 template<typename T,typename S> EBGNGAlgorithm<T,S>::~EBGNGAlgorithm()
 {
 //if (_graphptr!=NULL) 
-  //    delete _graphptr;
-   _graphptr=NULL;                          
+	delete _graphptr;
+   // _graphptr=NULL;                          
 }
 
 
@@ -169,7 +170,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
   if (this->getDimension()>0)
   {
     // number of total steps for the algorithm
-    int tsize                       =     this->size();
+    unsigned int tsize                       =     this->size();
     /*   for( int j = 0; j < NUM_PARAM; j++)  
          {
          this->params[j] =((*this)._funcArray[j])(0);
@@ -183,8 +184,8 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
     {
       if (this->stopping_criterion == epochs)
         for (unsigned int e=0; e<this->max_epochs; e++)
-          for(int t = 0; t < tsize; t++)
-            learning_loop (t);
+		for(unsigned int t = 0; t < tsize; t++)
+			learning_loop (t);
     }
     else if (this->sampling_mode == randomly)
     {
@@ -246,8 +247,8 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsign
    
     for(unsigned int j=0; j < first_winner_neighbors.size();j++)
     {
-      _graphptr->incAge(first_winner, first_winner_neighbors[j] ); 
-      updateNeighbor(t,first_winner_neighbors[j]);
+	    _graphptr->incAge(first_winner, first_winner_neighbors[j] ); 
+	    updateNeighbor(t,first_winner_neighbors[j]);
     }
      
     updateWinner(t,first_winner);      
@@ -260,7 +261,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsign
     if (average_error !=0.0 )
       rate =((1.0  - av_error_old  / average_error)>0) ? 1.0  - av_error_old  / average_error : -(1.0  - av_error_old  / average_error) ;
     if (first_winner != second_winner)
-      _graphptr->setAge(first_winner,second_winner,0.0);
+	    _graphptr->setAge(first_winner,second_winner,0.0);
   }
 
   this->rmOldEdges(this->params[3]);  

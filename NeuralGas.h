@@ -15,6 +15,7 @@
 
 #include <math.h>
 #include <vector>
+#include <limits>
 #include <Graphs/Base_Graph.h>
 
 /// Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
@@ -49,6 +50,7 @@ enum _stopping_criterion {epochs, /**< nr of training epochs */
 * forcing the NeuralGas class to be an abstract class as well.
 * \param *graphptr a pointer to the underlying data structure representing the graph
 * \param _zero is the zero element of the unknown datatype T
+* \param _unit is the unit element
 * \param _dimension is dimension of the input data and therefore the dimension of the graph weight vectors
 * \param *_data is a pointer to the given input data; a pointer is used, since for large data a duplicate set could be to memory consuming
 * \param *_metric_to_use is a function pointer which is NULL if not a particular metric is given via setMetric
@@ -105,7 +107,7 @@ public:
     // returns a const reference to the indexed element
     const Vector<T>&        operator[](const int&) const;
     // zero element of unknown datatype T, is set in constructor
-    T                       _zero;    
+    T                       _zero;
     // functions for assigning an integer depending function to the parameters
     float   (*_funcArray[NUM_PARAM])(const int&);
     // parameters for the algorithm
@@ -144,8 +146,8 @@ void NeuralGas<T,S>::setFuncArray(float (*func)(const int& time),const int& inde
 template<typename T,typename S> const int NeuralGas<T,S>::maxRandomValue() const
 {
  T max_data_value = _zero;
- for ( int i = 0; i < _data->size(); i++)
-  for ( int j = 0; j < (*_data)[0]->size(); j++)
+ for ( unsigned int i = 0; i < _data->size(); i++)
+  for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
       if (_data->operator[](i)->operator[](j) > max_data_value ) 
          max_data_value = abs( int(ceil(_data->operator[](i)->operator[](j))) );
  return int(max_data_value);
@@ -295,7 +297,8 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
      T value;
      Vector<T> z = x - y;
      
-     result =  _zero;
+     //result =  _zero;
+     result = 0;
      int tsize = z.size();
      
      for (int i=0; i < tsize; i++)
@@ -303,7 +306,6 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
          value  = (z[i]*z[i]);
          result+=  value;
      }
-  //   return T(sqrt(result));
      return T(sqrt(result));
  }
  else
