@@ -104,7 +104,6 @@ template<typename T,typename S> GNGNode<T,S>* GNGGraph<T,S>::newNode(void)
 */
 template<typename T,typename S> void inline GNGGraph<T,S>::setError(const int& index, const T& newError)
 {
- // DANGER DownCast is performed via dynamic_cast (why?)
  (static_cast< GNGNode<T,S>* > (this->_nodes[index]))->setError(newError);
 }
 /** \brief gets the error value for the given node
@@ -114,8 +113,7 @@ template<typename T,typename S> void inline GNGGraph<T,S>::setError(const int& i
  
 template<typename T,typename S> T inline GNGGraph<T,S>::getError(const int& index) const
 { 
-// DANGER DownCast is performed via dynamic_cast (why?)
-return (static_cast< GNGNode<T,S>* > (this->_nodes[index]))->getError();
+  return (static_cast< GNGNode<T,S>* > (this->_nodes[index]))->getError();
 }
 
 } // namespace neuralgas
