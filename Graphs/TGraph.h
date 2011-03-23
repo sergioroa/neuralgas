@@ -1,6 +1,7 @@
 /** 
 * \class TGraph
 * \author Manuel Noll
+* \author Sergio Roa
 * 
 *  Copyright(c) 20010 Manuel Noll - All rights reserved
 *  \version 1.0
@@ -28,13 +29,13 @@ namespace neuralgas {
 template<typename A,typename B> struct TEdge : Base_Edge<A,B>
 {
   TEdge()
-  {age=0.0;}
+  {age=0;}
 
   //represents the age of the edge which is initialised to 0.0
-  float age;
+  unsigned int age;
   
   // sets the age of the edge
-  void setAge(const float new_age){age=new_age;}
+  void setAge(const unsigned int new_age){age=new_age;}
   // increases the age by one
   void incAge(){++age;}
   // decreases the age by one
@@ -69,27 +70,27 @@ template<typename T,typename S> class TGraph : public virtual Base_Graph<T,S>
 { 
   public:
     //cto creating a graph with the same dimension for node and edge weight vectors
-    TGraph(const int& dim):Base_Graph<T,S>(dim){}
+    TGraph(const unsigned int& dim):Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
-    TGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
+    TGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
     //get the age of the edge going from the first parameter to the second
-    float                            getAge(const int&, const int&) const;
+    float                            getAge(const unsigned int&, const unsigned int&) const;
     //set the age of the edge going from the first parameter to the second
-    void                             setAge(const int&, const int&,const float&);
+    void                             setAge(const unsigned int&, const unsigned int&,const unsigned int&);
     //inc the age of the edge going from the first parameter to the second
-    void                             incAge(const int&,const int&);
+    void                             incAge(const unsigned int&,const unsigned int&);
     //dec the age of the edge going from the first parameter to the second
-    void                             decAge(const int&,const int&);
+    void                             decAge(const unsigned int&,const unsigned int&);
     //returns a pointer to an edge of a type that is currently used by the graph
     virtual TEdge<S,T>*              newEdge();
     //abstract addEdge  
-    virtual void                     addEdge(const int&, const int&)=0;
+    virtual void                     addEdge(const unsigned int&, const unsigned int&)=0;
     //abstract rmEdge
-    virtual void                     rmEdge(const int&, const int&)=0;
-    void                             getID(const int&, const int&);
+    virtual void                     rmEdge(const unsigned int&, const unsigned int&)=0;
+    void                             getID(const unsigned int&, const unsigned int&);
 };  
 /*
-template<typename T,typename S> void TGraph<T,S>::addEdge(const int& x,const int& y)
+template<typename T,typename S> void TGraph<T,S>::addEdge(const unsigned int& x,const unsigned int& y)
 {
  if ( this->_nodes[x]->edges[y] == NULL ) //self edges are allowed
   {
@@ -101,7 +102,7 @@ template<typename T,typename S> void TGraph<T,S>::addEdge(const int& x,const int
   }
 }  
 
-template<typename T,typename S> void TGraph<T,S>::rmEdge(const int& a,const int& b)
+template<typename T,typename S> void TGraph<T,S>::rmEdge(const unsigned int& a,const unsigned int& b)
 {
 } 
 */
@@ -110,56 +111,54 @@ template<typename T,typename S> void TGraph<T,S>::rmEdge(const int& a,const int&
 *   \param x source of the edge
 *   \param y destination of the edge
 */
-template<typename T,typename S> inline float TGraph<T,S>::getAge(const int& x, const int& y) const
+template<typename T,typename S> inline float TGraph<T,S>::getAge(const unsigned int& x, const unsigned int& y) const
 {
-// DANGER DownCast is performed via dynamic_cast
  if ( this->_nodes[x]->edges[y] !=NULL && 0 <= x && x < this->size() && 0 <= y && y < this->size() )
-     return (dynamic_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->getAge();
+     return (static_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->getAge();
  else
      return -1;
 }
 
 /** Set the age of the edge going from x to y if it does exists
-*
+*   The implementation of addEdge should verify the edge availability
 *   \param x source of the edge
 *   \param y destination of the edge
 */
-template<typename T,typename S> void TGraph<T,S>::setAge(const int& x, const int& y,const float& value)
+template<typename T,typename S> void TGraph<T,S>::setAge(const unsigned int& x, const unsigned int& y,const unsigned int& value)
 {
- // DANGER DownCast is performed via dynamic_cast  
-  if ( 0 <= x && x < this->size() && 0 <= y && y < this->size() && value >=0)
+  if ( x < this->size() && y < this->size() )
   {
    addEdge(x,y);
-   (dynamic_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->setAge(value); 
+   (static_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->setAge(value); 
   }
-  else rmEdge(x,y);
+  //else rmEdge(x,y); // ?????? why?
 }
 
 /** Dec the age of the edge going from x to y if it does exists
-*
+*   The implementation of addEdge should verify the edge availability
 *   \param x source of the edge
 *   \param y destination of the edge
 */
-template<typename T,typename S> void TGraph<T,S>::decAge(const int& x,const int& y)
+template<typename T,typename S> void TGraph<T,S>::decAge(const unsigned int& x,const unsigned int& y)
 {
- // DANGER DownCast is performed via dynamic_cast
-  addEdge(x,y);
-  if ( 0 <= x && x < this->size() && 0 <= y && y < this->size() )
-     (dynamic_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->decAge();
+  if ( x < this->size() && y < this->size() )
+  {
+     addEdge(x,y);
+     (static_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->decAge();
+  }
 }
 
 /** Inc the age of the edge going from x to y if it does exists
-*
+*   The implementation of addEdge should verify the edge availability
 *   \param x source of the edge
 *   \param y destination of the edge
 */
-template<typename T,typename S> void TGraph<T,S>::incAge(const int& x,const int& y)
+template<typename T,typename S> void TGraph<T,S>::incAge(const unsigned int& x,const unsigned int& y)
 {
- // DANGER DownCast is performed via dynamic_cast
-  addEdge(x,y);
-  if ( 0 <= x && x < this->size() && 0 <= y && y < this->size() )
+  if ( x < this->size() && y < this->size() )
   {
-     (dynamic_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->incAge();
+     addEdge(x,y);
+     (static_cast< TEdge<S,T>* >(this->_nodes[x]->edges[y]) )->incAge();
   }
 }
 
@@ -180,7 +179,7 @@ template<typename T,typename S> TEdge<S,T>* TGraph<T,S>::newEdge()
   return edge;
 }  
 
-template<typename T,typename S> inline void TGraph<T,S>::getID(const int& x, const int& y)
+template<typename T,typename S> inline void TGraph<T,S>::getID(const unsigned int& x, const unsigned int& y)
 {
   std::cout << typeid( (*this->_nodes[x]->edges[y])).name()<<std::endl;
 }  

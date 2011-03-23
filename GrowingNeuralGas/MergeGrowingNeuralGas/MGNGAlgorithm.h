@@ -43,12 +43,12 @@ template<typename T,typename S> void updateCounter(Base_Node<T,S>* n,const float
 * the precompiler macro NUM_PARAM reflecting the number of needed parameter params within the
 * algorithm.
 * Recap : the values are set via the super class func setFuncArray taking a func ptr of the
-*  float (*)(const int&) and an index of the parameter to set. The setting is
+*  float (*)(const unsigned int&) and an index of the parameter to set. The setting is
 * params[0] alpha, params[1] beta, params[2] gamma, params[3] delta, params[4] epsilon_b, 
 * params[5] epsilon_n, params[6] theta params[7] eta params[8] lambda
 * In order to change the number of parameters the precompile definition NUM_PARAM in file 
 * NeuralGas.h has to be changed accordingly.
-* The int parameter in float (*)(const int&) is the given time step allowing to define
+* The int parameter in float (*)(const unsigned int&) is the given time step allowing to define
 * time / step dependend parameters.
 * A further flexiblization is func is the setFuncUpdateCounter taking a func ptr of the form
 *  void (*)(Base_Node<T,S>* n, const float&)
@@ -94,7 +94,7 @@ template<typename T,typename S> class MGNGAlgorithm : public GNGModul<T,S>
 {
 public:
 	// cto initializing the class 
-	MGNGAlgorithm(const int& dim);
+	MGNGAlgorithm(const unsigned int& dim);
 	// std dto
 	~MGNGAlgorithm();
                          
@@ -102,16 +102,16 @@ public:
 	void    run();
            
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const int&,const int&);
+	virtual void    setRefVectors(const unsigned int&,const T&, const T&);
 	// sets the rule for updating the node counter
 	void    setFuncUpdateCounter(void (*)(Base_Node<T,S>* n,const float&));
 	void    showGraph(){_graphptr->showGraph();}
 	// stores the graph in myfile , just for internal use
-	void    storeGraph(const int& );
-	T       getDistance(const Vector<T>&,const int&) const;
+	void    storeGraph(const unsigned int& );
+	T       getDistance(const Vector<T>&,const unsigned int&) const;
 protected:
-	virtual void updateNeighbor(const int&,const int&);
-	virtual void updateWinner(const int&,const int&);
+	virtual void updateNeighbor(const unsigned int&,const unsigned int&);
+	virtual void updateWinner(const unsigned int&,const unsigned int&);
         
 	//vector reflecting the global time series context
 	Vector<T> globalContextV;
@@ -128,7 +128,7 @@ protected:
 *
 * \param dim is the dimension of the node weights
 */
-template<typename T,typename S> MGNGAlgorithm<T,S>::MGNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
+template<typename T,typename S> MGNGAlgorithm<T,S>::MGNGAlgorithm(const unsigned int& dim): GNGModul<T,S>(dim)
 {_graphptr=NULL;_funcUpdateCounter=updateCounter;}
 
 /** \brief std dto
@@ -163,7 +163,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setFuncUpdateCounter(vo
 * \param num_of_ref_vec is the number of initial reference vectors
 * \param max_value is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const int& num_of_ref_vec,const int& max_value)
+template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const T& low_limit, const T& high_limit)
 {
   if (_graphptr!=NULL)
       delete _graphptr;
@@ -174,12 +174,17 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const int
   // DANGER DownCast is performed via dynamic_cast
   //_graphptr       = dynamic_cast< MGNGGraph<T,S> * >(this->_graphModulptr);
   this->graphptr      = _graphptr;
-  this->_graphModulptr = _graphptr; 
-  _graphptr->setMaxRandomValue(max_value);   // sets the max random value for the init of the context vector
-  _graphptr->initRandomGraph(num_of_ref_vec,max_value); // creates a Graph object with given size of the 
+  this->_graphModulptr = _graphptr;
+
+  // sets the min value for the init of the context vector
+  _graphptr->setLowLimit(low_limit);
+  // sets the max value for the init of the context vector
+  _graphptr->setHighLimit(high_limit);
+
+  _graphptr->initRandomGraph(num_of_ref_vec,low_limit, high_limit); // creates a Graph object with given size of the 
                                                 // vectors and number of ref vectors initilized with 
                                                 // random values
-  for (int i=0;i < num_of_ref_vec; i++)
+  for (unsigned int i=0;i < num_of_ref_vec; i++)
       (*_graphptr).setBirthday(i,0);
 }
 
@@ -195,7 +200,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const int
 *   \param item datum
 *   \param node_index is the node where to the distance shall be determined
 */
-template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const int& node_index) const
+template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
 {
     // dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2
     T distance = (1 - this->params[0]);
@@ -215,7 +220,7 @@ template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(const Vector<T
 *   \param time is the data vector that is used for updating 
 *   \param node_index is the index of topological neighbor that shall be updated
 */
-template<typename T,typename S> void MGNGAlgorithm<T,S>::updateNeighbor(const int& time,const int& index)
+template<typename T,typename S> void MGNGAlgorithm<T,S>::updateNeighbor(const unsigned int& time,const unsigned int& index)
 {
  (*_graphptr)[index].weight  += this->params[5] * ( (*this)[time] - (*_graphptr)[index].weight);
  (*_graphptr).context(index) += this->params[5] * (globalContextV - (*_graphptr).context(index));
@@ -230,7 +235,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::updateNeighbor(const in
 *   \param time is the data vector that is used for updating 
 *   \param winner is the index of the winner that shall be updated
 */
-template<typename T,typename S> void MGNGAlgorithm<T,S>::updateWinner(const int& time,const int& winner)
+template<typename T,typename S> void MGNGAlgorithm<T,S>::updateWinner(const unsigned int& time,const unsigned int& winner)
 {
  (*_graphptr)[winner].weight  += this->params[4] * ( (*this)[time]-(*_graphptr)[winner].weight);
  (*_graphptr).context(winner) += this->params[4] * ( globalContextV - (*_graphptr).context(winner));
@@ -255,15 +260,15 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
   // the line numbers refer to the lines given in the above mentioned paper
   // line 1 - 3
   // number of total steps for the algorithm
-   int tsize                       =     this->size();
+   unsigned int tsize                       =     this->size();
   // line 4
    globalContextV.resize(this->getDimension(),this->_zero);  
   //line 5
-   for(int t = 0; t < tsize; t++)
+   for(unsigned int t = 0; t < tsize; t++)
    {
     // init
-    int first_winner               =     1;
-    int second_winner              =     0;
+    unsigned int first_winner               =     1;
+    unsigned int second_winner              =     0;
     
 
    //params are defined by user set functions that may depend on the time step
@@ -293,7 +298,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
     // line 11
     updateWinner(t,first_winner);
         
-    std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
+    std::vector<unsigned int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
    
     for(unsigned int j=0; j < first_winner_neighbors.size();j++)
     {
@@ -322,12 +327,12 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
     this->rmNotConnectedNodes();    
     // line 15
    
-    if(  ((t % int(this->params[8]))== 0) && _graphptr->size() < this->params[6])
+    if(  ((t % (unsigned int)(this->params[8]))== 0) && _graphptr->size() < this->params[6])
     {
        float max_counter                   = 0.0;
        int max_counter_index               = 0;
        // line 15a
-       for (int i=0; i < _graphptr->size(); i++)
+       for (unsigned int i=0; i < _graphptr->size(); i++)
        {
            if (_graphptr->getCounter(i) > max_counter )
            {
@@ -336,7 +341,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
            }
        }
  
-       std::vector<int> neighbors   = _graphptr->getNeighbors(max_counter_index);
+       std::vector<unsigned int> neighbors   = _graphptr->getNeighbors(max_counter_index);
        float max_counter_n                 = 0.0;
        int max_counter_index_n             = 0;
        // line 15b
@@ -352,7 +357,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
        // line 15c
        _graphptr->addNode();
 
-       int gsize                       = _graphptr->size() - 1;
+       unsigned int gsize                       = _graphptr->size() - 1;
        (*_graphptr).setBirthday(gsize,t);
        (*_graphptr)[gsize].weight      = (*_graphptr)[max_counter_index_n].weight*0.5
                                          +(*_graphptr)[max_counter_index].weight*0.5;
@@ -372,27 +377,27 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
  }
 }
 
-template<typename T,typename S> void MGNGAlgorithm<T,S>::storeGraph(const int& t)
+template<typename T,typename S> void MGNGAlgorithm<T,S>::storeGraph(const unsigned int& t)
 {
   std::ofstream myfile("graph.txt",std::ios::out | std::ios::app);
   
- for(int i=0; i < _graphptr->size(); i++)
+ for(unsigned int i=0; i < _graphptr->size(); i++)
  {
-          myfile << "connex " <<(*_graphptr)[i].num_connections << " ";
-        for(int j=0; j < (*_graphptr)[i].edges.size(); j++)
-             myfile <<(*_graphptr)[i].edges[j] << " ";    
-          myfile << "counter "<<(*_graphptr).getCounter(i)<<" ";
-          myfile << "weight ";
-          for(int j=0; j < (*_graphptr)[i].weight.size(); j++)
-                  myfile << (*_graphptr)[i].weight[j]<<" ";
-          myfile << "context ";
-          for(int j=0; j < _graphptr->context(i).size(); j++)
-                  myfile << _graphptr->context(i)[j]<<" ";
-
-          myfile << std::endl;
+	 myfile << "connex " <<(*_graphptr)[i].num_connections << " ";
+	 for(unsigned int j=0; j < (*_graphptr)[i].edges.size(); j++)
+		 myfile <<(*_graphptr)[i].edges[j] << " ";    
+	 myfile << "counter "<<(*_graphptr).getCounter(i)<<" ";
+	 myfile << "weight ";
+	 for(unsigned int j=0; j < (*_graphptr)[i].weight.size(); j++)
+		 myfile << (*_graphptr)[i].weight[j]<<" ";
+	 myfile << "context ";
+	 for(unsigned int j=0; j < _graphptr->context(i).size(); j++)
+		 myfile << _graphptr->context(i)[j]<<" ";
+	 
+	 myfile << std::endl;
  }
  myfile << "data ";
- for (int i=0; i < (*this)[t].size(); i++)
+ for (unsigned int i=0; i < (*this)[t].size(); i++)
      myfile << (*this)[t][i] <<" ";
  myfile<<std::endl;
  myfile << std::endl;

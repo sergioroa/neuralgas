@@ -1,6 +1,7 @@
 /** 
 * \class GNGGraph
 * \author Manuel Noll
+* \author Sergio Roa
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
@@ -46,7 +47,6 @@ template<typename T,typename S> struct GNGNode : Base_Node<T,S>
 *   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
 *
 * The class is a undirected time graph permiting the access to the GNGnode 
-* via potential dangerous downcastings.
 * The following paragraph is important for derived classes. 
 * It is possible to use a user defined type of node for the graph.
 * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
@@ -61,15 +61,15 @@ template<typename T,typename S> class GNGGraph : public GNGModulGraph<T,S>
 {
 public:
 	//cto creating a graph with the same dimension for node and edge weight vectors
-	GNGGraph(const int& dim) :  Base_Graph<T,S>(dim),UGraph<T,S>(dim),TGraph<T,S>(dim),GNGModulGraph<T,S>(dim){}
+	GNGGraph(const unsigned int& dim) :  Base_Graph<T,S>(dim),UGraph<T,S>(dim),TGraph<T,S>(dim),GNGModulGraph<T,S>(dim){}
 	//cto creating a graph with the different dimension for node and edge weight vectors
-	GNGGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
+	GNGGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
 	// std dto
 	~GNGGraph(){}
 	// sets a new counter value for the given node
-	void inline setError(const int&, const T&);
+	void inline setError(const unsigned int&, const T&);
 	// gets the counter value for the given node
-	T inline getError(const int&) const;
+	T inline getError(const unsigned int&) const;
 	
 private:
 	// returns a pointer to a node of a type that is currently used by the graph
@@ -102,7 +102,7 @@ template<typename T,typename S> GNGNode<T,S>* GNGGraph<T,S>::newNode(void)
 * \param index is the index of the node that shall get a new error value
 * \param newError is the value to be set
 */
-template<typename T,typename S> void inline GNGGraph<T,S>::setError(const int& index, const T& newError)
+template<typename T,typename S> void inline GNGGraph<T,S>::setError(const unsigned int& index, const T& newError)
 {
  (static_cast< GNGNode<T,S>* > (this->_nodes[index]))->setError(newError);
 }
@@ -111,7 +111,7 @@ template<typename T,typename S> void inline GNGGraph<T,S>::setError(const int& i
 * \param index is the index of the node wherefor the error is desired
 */
  
-template<typename T,typename S> T inline GNGGraph<T,S>::getError(const int& index) const
+template<typename T,typename S> T inline GNGGraph<T,S>::getError(const unsigned int& index) const
 { 
   return (static_cast< GNGNode<T,S>* > (this->_nodes[index]))->getError();
 }

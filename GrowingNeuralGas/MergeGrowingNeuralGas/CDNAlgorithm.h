@@ -18,11 +18,11 @@ template<typename T,typename S> class CDNAlgorithm : public MGNGAlgorithm<T,S>
 {
 public:
 	// cto initializing the class 
-	CDNAlgorithm(const int& dim) : MGNGAlgorithm<T,S>(dim){}
+	CDNAlgorithm(const unsigned int& dim) : MGNGAlgorithm<T,S>(dim){}
 	void setEnergy(const float& energy) {_energy = energy;}
 protected:
-	virtual void updateNeighbor(const int&,const int&);
-	virtual void updateWinner(const int&,const int&);
+	virtual void updateNeighbor(const unsigned int&,const unsigned int&);
+	virtual void updateWinner(const unsigned int&,const unsigned int&);
 	float _energy;
 
 };
@@ -38,7 +38,7 @@ protected:
 *   \param time is the data vector that is used for updating 
 *   \param node_index is the index of topological neighbor that shall be updated
 */
-template<typename T,typename S> void CDNAlgorithm<T,S>::updateNeighbor(const int& time,const int& index)
+template<typename T,typename S> void CDNAlgorithm<T,S>::updateNeighbor(const unsigned int& time,const unsigned int& index)
 {
  float distance = pow(this->getDistance((*this)[time],index),2);
  float rate;
@@ -66,7 +66,7 @@ template<typename T,typename S> void CDNAlgorithm<T,S>::updateNeighbor(const int
 *   \param time is the data vector that is used for updating 
 *   \param winner is the index of the winner that shall be updated
 */
-template<typename T,typename S> void CDNAlgorithm<T,S>::updateWinner(const int& time,const int& winner)
+template<typename T,typename S> void CDNAlgorithm<T,S>::updateWinner(const unsigned int& time,const unsigned int& winner)
 {
                   
 float rate = this->_graphptr->getTemp(winner) * exp(- float( time - this->_graphptr->getBirthday(winner) ) )+ _energy;

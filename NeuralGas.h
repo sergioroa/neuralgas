@@ -61,7 +61,7 @@ template < typename T, typename S > class NeuralGas
 public:
     typedef T (NeuralGas::*Metric)(const Vector<T>&,const Vector<T>&) const;
     //cto with size of dimension as input
-    NeuralGas(const int&);         
+    NeuralGas(const unsigned int&);         
     //std dto
     ~NeuralGas(void);               
     //sets the data to be processed
@@ -71,14 +71,16 @@ public:
     //adds an arbitrary number of data
     inline void             addData(std::vector< Vector<T>* >*);
     // sets the number of inital reference vectors
-    virtual void            setRefVectors(const int&,const int&)=0;    
+    virtual void            setRefVectors(const unsigned int&,const T&, const T&)=0;
     //sets a user defined metric, used as distance of reference and data vector 
     //inline void             setMetric(T (*)(const Vector<T>& a,const Vector<T>& b));
     inline void             setMetric(Metric); 
     //assigns int depending functions to the parameters 
-    void                    setFuncArray(float (*)(const int&),const int&); 
+    void                    setFuncArray(float (*)(const unsigned int&),const unsigned int&); 
     //determines the maximal value within the given data set
-    const int               maxRandomValue() const; 
+    const T                 maxValue() const; 
+    //determines the minimal value within the given data set
+    const T                 minValue() const; 
     // saves the nodes weight in a file
     void                    save(const char*);
     // sets the sampling mode for learning instances
@@ -93,23 +95,23 @@ public:
     // pre-specified metric is the standard L2 euclidean metric
     virtual T               metric(const Vector<T>&, const Vector<T>&) const;
     // applies a given function to all neighbors
-    inline void             applyFunc2Neighbors(const int&, void (*)(Base_Node<T,S>* n,const float&),const float&); 
+    inline void             applyFunc2Neighbors(const unsigned int&, void (*)(Base_Node<T,S>* n,const float&),const float&); 
     // applies a given function to all nodes
     inline void             applyFunc2AllNodes(void (*)(Base_Node<T,S>* n,const float&),const float&); 
     // returns the dimension of the data vectors
-    inline int              getDimension(void) const; 
+    inline unsigned int     getDimension(void) const; 
     // ptr to the underlying graph
     Base_Graph<T,S>*        graphptr;          
     // returns the number of data items currently stored
-    inline int              size(void) const;
+    inline unsigned int     size(void) const;
     // returns a reference to the indexed element
-    Vector<T>&              operator[](const int&);
+    Vector<T>&              operator[](const unsigned int&);
     // returns a const reference to the indexed element
-    const Vector<T>&        operator[](const int&) const;
+    const Vector<T>&        operator[](const unsigned int&) const;
     // zero element of unknown datatype T, is set in constructor
     T                       _zero;
     // functions for assigning an integer depending function to the parameters
-    float   (*_funcArray[NUM_PARAM])(const int&);
+    float   (*_funcArray[NUM_PARAM])(const unsigned int&);
     // parameters for the algorithm
     float   params[NUM_PARAM];
     // sampling mode of learning instances
@@ -119,7 +121,7 @@ public:
  
   private:
     //dimension of the vectors
-    int                     _dimension; 
+    unsigned int _dimension; 
     // ptr to the input data
     std::vector< Vector<T>* >* _data; 
     //user specified metric
@@ -135,7 +137,7 @@ public:
 *   \param index is the index of the parameter to be assigned by a function
 */
 template<typename T,typename S> 
-void NeuralGas<T,S>::setFuncArray(float (*func)(const int& time),const int& index)
+void NeuralGas<T,S>::setFuncArray(float (*func)(const unsigned int& time),const unsigned int& index)
 {
  _funcArray[index]=func;
 }
@@ -143,15 +145,29 @@ void NeuralGas<T,S>::setFuncArray(float (*func)(const int& time),const int& inde
 /** \brief Determines the maximal value within the given data set
 *
 */
-template<typename T,typename S> const int NeuralGas<T,S>::maxRandomValue() const
+template<typename T,typename S> const T NeuralGas<T,S>::maxValue() const
 {
- T max_data_value = _zero;
- for ( unsigned int i = 0; i < _data->size(); i++)
-  for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-      if (_data->operator[](i)->operator[](j) > max_data_value ) 
-         max_data_value = abs( int(ceil(_data->operator[](i)->operator[](j))) );
- return int(max_data_value);
+	T max_data_value = (*(*_data)[0])[0];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 1; j < (*_data)[0]->size(); j++)
+			if ((*(*_data)[i])[j] > max_data_value )
+				max_data_value = (*(*_data)[i])[j];
+	return max_data_value;
 } 
+
+/** \brief Determines the minimal value within the given data set
+*
+*/
+template<typename T,typename S> const T NeuralGas<T,S>::minValue() const
+{
+	T min_data_value = (*(*_data)[0])[0];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 1; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) < min_data_value ) 
+				min_data_value = _data->operator[](i)->operator[](j);
+	return min_data_value;
+} 
+
 
 /** \brief Cto with the dimension of the vectors. 
 *
@@ -161,7 +177,7 @@ template<typename T,typename S> const int NeuralGas<T,S>::maxRandomValue() const
 * The dimension cannot be changed after the creation of the object.
 * \param dimension is dimension of the input data and therefore the dimension of the graph weight vectors
 */
-template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const int& dimension)
+template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int& dimension)
 {
   T x = T();
   _zero           = x - x;
@@ -257,7 +273,7 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(Vector<T
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vector< Vector<T>* >* to_add)
 {
- for(int i=0;i < to_add.size(); i++)
+ for(unsigned int i=0;i < to_add.size(); i++)
          _data->push_back( (*to_add)[i]);
 }
 
@@ -299,9 +315,9 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
      
      //result =  _zero;
      result = 0;
-     int tsize = z.size();
+     unsigned int tsize = z.size();
      
-     for (int i=0; i < tsize; i++)
+     for (unsigned int i=0; i < tsize; i++)
      {
          value  = (z[i]*z[i]);
          result+=  value;
@@ -318,7 +334,7 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
 * with random values.
 * \param num_of_ref_vec is the number of initial reference vectors
 */
-/*template < typename T, typename S > void NeuralGas<T,S>::setRefVectors(const int& num_of_ref_vec,const int& max_value)
+/*template < typename T, typename S > void NeuralGas<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const int& max_value)
 {
   if (graphptr!=NULL)
       delete graphptr;
@@ -334,12 +350,13 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
 * void (node<T>& n)
 *
 * to all neigboring nodes of the given node which is addresed by its index.
-* \param home is the homie of the neighbors in question 
+* \param index is the nodex index 
 * \param func function that has to be applied
+* \param value value to be applied
 */
-template < typename T, typename S > void NeuralGas<T,S>::applyFunc2Neighbors(const int& home, void (*func)(Base_Node<T,S>* n,const float&),const float& value)
+template < typename T, typename S > void NeuralGas<T,S>::applyFunc2Neighbors(const unsigned int& index, void (*func)(Base_Node<T,S>* n,const float&),const float& value)
 {
-  graphptr->applyFunc2Neighbors(home,func,value);
+  graphptr->applyFunc2Neighbors(index,func,value);
 }  
 
 /** \brief Applies a given function to all nodes.
@@ -358,26 +375,26 @@ template < typename T, typename S > void NeuralGas<T,S>::applyFunc2AllNodes(void
 
 /** \brief Function returns the vectors dimension.
 */
-template < typename T, typename S > int NeuralGas<T,S>::getDimension(void) const 
+template < typename T, typename S > unsigned int NeuralGas<T,S>::getDimension(void) const 
 {return _dimension;}  
 
 /** returns the number of data items currently stored
 */
-template < typename T, typename S > int NeuralGas<T,S>::size(void) const
+template < typename T, typename S > unsigned int NeuralGas<T,S>::size(void) const
 {return _data->size();}
 
 /** operator[] returns a reference to the indexed data element element
 *
 * \param index
 */
-template <typename T, typename S > Vector<T>& NeuralGas<T,S>::operator[](const int& index)
+template <typename T, typename S > Vector<T>& NeuralGas<T,S>::operator[](const unsigned int& index)
 {return *(*_data)[index];}
 
 /** const operator[] returns a const reference to the indexed data element element
 *
 * \param index
 */
-template <typename T, typename S > const Vector<T>& NeuralGas<T,S>::operator[](const int& index) const
+template <typename T, typename S > const Vector<T>& NeuralGas<T,S>::operator[](const unsigned int& index) const
 {return *(*_data)[index];}
 
 } // namespace neuralgas

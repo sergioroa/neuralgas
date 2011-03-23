@@ -129,8 +129,9 @@ template<typename T,typename S> MGNGNode<T,S>* MGNGGraph<T,S>::newNode(void)
   n->temperature=0.0;
   n->context.resize(this->_dimNode);          // sets dimension of the weight vector
   n->counter=0.0;
-  for(int j = 0; j < this->_dimNode; j++)          
-          n->context[j] = (T)(rand() % this->getMaxRandomValue() ); //sets the value of the weights to random values
+  for(unsigned int j = 0; j < this->_dimNode; j++)          
+    //n->context[j] = (T)(rand() % this->getMaxRandomValue() ); //sets the value of the weights to random values
+  n->context[j] = (T) ((rand() / (static_cast<T>(RAND_MAX) + 1.0)) * (this->high_limit - this->low_limit) + this->low_limit );
   
   return n; 
 }
@@ -141,8 +142,7 @@ template<typename T,typename S> MGNGNode<T,S>* MGNGGraph<T,S>::newNode(void)
 */
 template<typename T,typename S> void inline MGNGGraph<T,S>::setCounter(const int& index, const float& newCounter)
 {
- // DANGER DownCast is performed via dynamic_cast 
- (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->setCounter(newCounter);
+ (static_cast< MGNGNode<T,S>* > (this->_nodes[index]))->setCounter(newCounter);
 }
 /** \brief gets the counter value for the given node
 *
@@ -151,8 +151,7 @@ template<typename T,typename S> void inline MGNGGraph<T,S>::setCounter(const int
  
 template<typename T,typename S> float inline MGNGGraph<T,S>::getCounter(const int& index) const
 { 
-// DANGER DownCast is performed via dynamic_cast
-return (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->getCounter();
+return (static_cast< MGNGNode<T,S>* > (this->_nodes[index]))->getCounter();
 }
 /** \brief decreases the counter by one
 *
@@ -161,8 +160,7 @@ return (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->getCounter();
  
 template<typename T,typename S> void inline MGNGGraph<T,S>::decCounter(const int& index)
 {
-// DANGER DownCast is performed via dynamic_cast 
-(dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->decCounter();
+(static_cast< MGNGNode<T,S>* > (this->_nodes[index]))->decCounter();
 }
 /** \brief increases the counter by one
 *
@@ -171,8 +169,7 @@ template<typename T,typename S> void inline MGNGGraph<T,S>::decCounter(const int
  
 template<typename T,typename S> void inline MGNGGraph<T,S>::incCounter(const int& index)
 { 
-// DANGER DownCast is performed via dynamic_cast
-(dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->incCounter();
+(static_cast< MGNGNode<T,S>* > (this->_nodes[index]))->incCounter();
 }
 /** \brief returns a reference to the given context vector
 *
@@ -181,8 +178,7 @@ template<typename T,typename S> void inline MGNGGraph<T,S>::incCounter(const int
   
 template<typename T,typename S> Vector<T>& MGNGGraph<T,S>::context(const int& index)
 {
-// DANGER DownCast is performed via dynamic_cast
-return (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->context;
+return (static_cast< MGNGNode<T,S>* > (this->_nodes[index]))->context;
 }
 
 } // namespace neuralgas

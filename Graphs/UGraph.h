@@ -35,29 +35,29 @@ template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
 {
   public:
     //cto creating a graph with the same dimension for node and edge weight vectors
-                        UGraph(const int& dim) : Base_Graph<T,S>(dim){}
+                        UGraph(const unsigned int& dim) : Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
-                        UGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
+                        UGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
     //std dto
                         ~UGraph(){}
     //returns whether the two nodes are connected by an edge
-    inline bool         areConnected(const int&,const int&)const;
+    inline bool         areConnected(const unsigned int&,const unsigned int&)const;
     // adds an edge between the nodes given by their indeces      
-    void                addEdge(const int&,const int&);
+    void                addEdge(const unsigned int&,const unsigned int&);
     // removes an edge between the nodes given by their indeces if there exists one     
-    void                rmEdge(const int&,const int&);
+    void                rmEdge(const unsigned int&,const unsigned int&);
 
 };  
 
 /** \brief returns whether the two nodes are connected by an edge
 */
-template<typename T,typename S> inline bool UGraph<T,S>::areConnected(const int& x,const int& y)const
+template<typename T,typename S> inline bool UGraph<T,S>::areConnected(const unsigned int& x,const unsigned int& y)const
 {
   return ( this->_nodes[x]->edges[y] != NULL );
 } 
 
 
-/** \brief Adds an edge between the nodes given by their indeces 
+/** \brief Adds an edge between the nodes given by their indices 
 *
 *   If there is no edge then it is added and the corresponding number of connections 
 *   in the ingoing and outgoing node are updated.
@@ -67,7 +67,7 @@ template<typename T,typename S> inline bool UGraph<T,S>::areConnected(const int&
 *   \param y ingoing node, plays no role in the undirected graph
 */
 
-template<typename T,typename S> void UGraph<T,S>::addEdge(const int& x,const int& y)
+template<typename T,typename S> void UGraph<T,S>::addEdge(const unsigned int& x,const unsigned int& y)
 {
   if ( this->_nodes[x]->edges[y] == NULL ) //self edges are allowed
   {
@@ -85,7 +85,7 @@ template<typename T,typename S> void UGraph<T,S>::addEdge(const int& x,const int
   
 }  
 
-/** \brief Removes an edge between the nodes given by their indeces if there exists one 
+/** \brief Removes an edge between the nodes given by their indices if there exists one 
 *
 *   If there is an edge then it is removed and the corresponding number of connections 
 *   in the ingoing and outgoing node are updated.
@@ -94,7 +94,7 @@ template<typename T,typename S> void UGraph<T,S>::addEdge(const int& x,const int
 *   \param x outgoing node, plays no role in the undirected graph
 *   \param y ingoing node, plays no role in the undirected graph
 */
-template<typename T,typename S> void UGraph<T,S>::rmEdge(const int& x,const int& y)
+template<typename T,typename S> void UGraph<T,S>::rmEdge(const unsigned int& x,const unsigned int& y)
 {
 
   if ( this->_nodes[x]->edges[y] != NULL ) //self edges are allowed
@@ -103,7 +103,9 @@ template<typename T,typename S> void UGraph<T,S>::rmEdge(const int& x,const int&
     this->_nodes[x]->edges[y]     =  NULL;
     this->_nodes[y]->edges[x]     =  NULL;
     this->_nodes[x]->num_connections--;
-    this->_nodes[y]->num_connections--;  
+    this->_nodes[y]->num_connections--;
+    assert (this->_nodes[x]->num_connections >= 0);
+    assert (this->_nodes[y]->num_connections >= 0);
   }  
 }
 

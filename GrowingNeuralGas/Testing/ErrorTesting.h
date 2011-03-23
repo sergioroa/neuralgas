@@ -48,27 +48,27 @@ template < typename T, typename S > class ErrorTesting
 
     void            setGNGObject(GNGModul<T,S>*);
     // returns the errors for given number of data items that are either selected at random or not
-    std::vector<T>  getErrors(const int &,const bool&);
+    std::vector<T>  getErrors(const unsigned int &,const bool&);
     //sets a user defined metric, used for error measuring 
     inline void     setErrorMetric(T (*)(const Vector<T>& a,const Vector<T>& b));  
             
  private:
     // returns the distance of the node and the datum vector
-    T               getErrorDistance(const int&, const int&);
+    T               getErrorDistance(const unsigned int&, const unsigned int&);
     // sets whether to choose the data randomly, default is false
     void            chooseRandomly(const bool&);
     // returns a random index within the range of the data size
-    const int       getRandomIndex() const;
+    const unsigned int       getRandomIndex() const;
     // returns the shortest distance for a given datum
-    const T         getShortestDistance(const int&);
+    const T         getShortestDistance(const unsigned int&);
     // calculates the errors 
     void            calcErrors();
     // sets the number of data items that shall be used
-    void            setPastTimeSteps(const int&);
+    void            setPastTimeSteps(const unsigned int&);
     // ptr to the given GNG object
     GNGModul<T,S> *  _gngptr;
     // defines the number of data items that shall be used, correspoding to the number of returned error points
-    int              _pastTimeSteps;
+    unsigned int     _pastTimeSteps;
     // bool that says whether the data items are selected randomly, default is false
     bool             _random;
     // returns the errors for given number of data items that are either selected at random or not    
@@ -118,7 +118,7 @@ template < typename T, typename S > void ErrorTesting<T,S>::setGNGObject(GNGModu
 *
 *  \param pastTimeSteps
 */
-template < typename T, typename S > void ErrorTesting<T,S>::setPastTimeSteps(const int& pastTimeSteps)
+template < typename T, typename S > void ErrorTesting<T,S>::setPastTimeSteps(const unsigned int& pastTimeSteps)
 {        
  if( pastTimeSteps <= _gngptr->size() ) //check whether the desired number of steps is larger than the available data
   _pastTimeSteps = pastTimeSteps;
@@ -137,7 +137,7 @@ template < typename T, typename S > void ErrorTesting<T,S>::chooseRandomly(const
 * \param steps number of data items that shall be taken to compute the error
 * \param random determines whether the data is taken randomly or whether the last number of data items is used
 */
-template < typename T, typename S > std::vector<T> ErrorTesting<T,S>::getErrors(const int& steps,const bool& random=false) 
+template < typename T, typename S > std::vector<T> ErrorTesting<T,S>::getErrors(const unsigned int& steps,const bool& random=false) 
 {
  chooseRandomly(random);
  setPastTimeSteps(steps);
@@ -162,18 +162,18 @@ template < typename T, typename S > std::vector<T> ErrorTesting<T,S>::getErrors(
 template < typename T, typename S > inline void ErrorTesting<T,S>::setErrorMetric(T (*error_metric_to_use)(const Vector<T>& a,const Vector<T>& b)=NULL )
 {_error_metric_to_use=error_metric_to_use;}  
 
-// returns the distance of the node and the datum vector
-template<typename T,typename S> T ErrorTesting<T,S>::getErrorDistance(const int& node_index, const int& datum_index)
+// returns the distance of the node and the item vector
+template<typename T,typename S> T ErrorTesting<T,S>::getErrorDistance(const unsigned int& node_index, const unsigned int& item_index)
 {
-     return _error_metric_to_use( (*_gngptr)[datum_index], _gngptr->graphptr->operator[](node_index).weight);
+     return _error_metric_to_use( (*_gngptr)[item_index], _gngptr->graphptr->operator[](node_index).weight);
 }
 
 // returns a random index within the range of the data size
-template < typename T, typename S > const int ErrorTesting<T,S>::getRandomIndex() const 
+template < typename T, typename S > const unsigned int ErrorTesting<T,S>::getRandomIndex() const 
 {return (rand() % _gngptr->size()); }
 
 // returns the shortest distance for a given datum
-template < typename T, typename S > const T ErrorTesting<T,S>::getShortestDistance(const int& index)
+template < typename T, typename S > const T ErrorTesting<T,S>::getShortestDistance(const unsigned int& index)
 {
     // init with zero
    T distance      = _gngptr->_zero;
@@ -184,7 +184,7 @@ template < typename T, typename S > const T ErrorTesting<T,S>::getShortestDistan
 
    if (_error_metric_to_use == NULL)
    {
-       for (int j = 0; j < _gngptr->graphptr->size(); j++)
+       for (unsigned int j = 0; j < _gngptr->graphptr->size(); j++)
        {
         distance = _gngptr->getDistance((*_gngptr)[index],j);
     
@@ -196,7 +196,7 @@ template < typename T, typename S > const T ErrorTesting<T,S>::getShortestDistan
    }
    else
    {
-       for (int j = 0; j < _gngptr->graphptr->size(); j++)
+       for (unsigned int j = 0; j < _gngptr->graphptr->size(); j++)
        {
         distance = getErrorDistance(index,j);
     
@@ -216,12 +216,12 @@ template < typename T, typename S > void ErrorTesting<T,S>::calcErrors()
 
  if (_random)
  {
-  for(int i = 0; i < _pastTimeSteps; i++)
+  for(unsigned int i = 0; i < _pastTimeSteps; i++)
           _errors[i]=getShortestDistance(getRandomIndex());         
  }
  else
  {
-  for(int i = 0; i < _pastTimeSteps; i++)
+  for(unsigned int i = 0; i < _pastTimeSteps; i++)
           _errors[i]=getShortestDistance(_gngptr->size() - _pastTimeSteps + i - 1);         
  }
 }

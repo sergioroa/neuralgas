@@ -36,7 +36,7 @@ template<typename T,typename S> class GNGModul : public NeuralGas<T,S>
 
 public:
         //cto with size of dimension as input 
-        GNGModul(const int& dim);
+        GNGModul(const unsigned int& dim);
         //std dto
         ~GNGModul();
         virtual void    showGraph()=0;
@@ -44,14 +44,14 @@ public:
         void setMaxEpochs (unsigned int);
 protected:
         // class dependent distance function that is used within the winner function
-        //virtual           T      getDistance(const Vector<T>&,const int&)=0;
-        virtual           T      getDistance(const Vector<T>&,const int&) const=0;
+        //virtual           T      getDistance(const Vector<T>&,const unsigned int&)=0;
+        virtual           T      getDistance(const Vector<T>&,const unsigned int&) const=0;
         // func determines for the current time step / data item the two most similar nodes       
-        virtual           void   getWinner( int&, int&, const Vector<T>&) const;
+        virtual           void   getWinner( unsigned int&, unsigned int&, const Vector<T>&) const;
         //template <typename F> void   getWinner( int&, int&, F Functor);
         //func determines the two most similar nodes
         // removes all edges that have an age greater than the given value
-        virtual           void   rmOldEdges(const float&);
+        virtual           void   rmOldEdges(const unsigned int&);
         // removes all nodes from the graph that are not connected
         virtual           void   rmNotConnectedNodes();
         // ptr to the underlying graph structure
@@ -69,7 +69,7 @@ protected:
 /** \brief cto with size of dimension as input 
 */
 
-template<typename T,typename S> GNGModul<T,S>::GNGModul(const int& dim) : NeuralGas<T,S>(dim)
+template<typename T,typename S> GNGModul<T,S>::GNGModul(const unsigned int& dim) : NeuralGas<T,S>(dim)
 {
   max_epochs = 1;
 }
@@ -100,7 +100,7 @@ template<typename T,typename S> void GNGModul<T,S>::setMaxEpochs (unsigned int v
 *   \param time is the current time step reflecting the current data to be processed
 */
 
-template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,int& second_winner, const Vector<T>& item) const
+template<typename T,typename S> void GNGModul<T,S>::getWinner(unsigned int& first_winner, unsigned int& second_winner, const Vector<T>& item) const
 {
    // init with zero
    T distance      = this->_zero;
@@ -109,7 +109,7 @@ template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,
    // best_distance set to "infinity"
    best_distance = std::numeric_limits<T>::max();
  
-   for (int j = 0; j < _graphModulptr->size(); j++)
+   for (unsigned int j = 0; j < _graphModulptr->size(); j++)
    {
     distance = getDistance(item,j);
     if (distance < best_distance)
@@ -127,11 +127,11 @@ template<typename T,typename S> void GNGModul<T,S>::getWinner(int& first_winner,
 * \param max_age is the maximal age that is permitted for an edge to have
 */
 
-template<typename T,typename S> void GNGModul<T,S>::rmOldEdges(const float& max_age)
+template<typename T,typename S> void GNGModul<T,S>::rmOldEdges(const unsigned int& max_age)
 {
-    for (int j = 0; j < _graphModulptr->size(); j++)
+    for (unsigned int j = 0; j < _graphModulptr->size(); j++)
     {
-     for (int k = 0; k < j; k++)
+     for (unsigned int k = 0; k < j; k++)
         if ( _graphModulptr->getAge(k,j) > max_age ) // age is greater than max_age
            _graphModulptr->rmEdge(k,j);              // and has to be removedd
     }  
@@ -141,7 +141,8 @@ template<typename T,typename S> void GNGModul<T,S>::rmOldEdges(const float& max_
 */
 template<typename T,typename S> void GNGModul<T,S>::rmNotConnectedNodes()
 {
-    for (int j = _graphModulptr->size() - 1 ; j >= 0 ; j--)
+    assert (_graphModulptr->size() > 0);
+    for (unsigned int j = 0; j < _graphModulptr->size(); j++)
        if (!(_graphModulptr->isConnected(j)) ) 
            _graphModulptr->rmNode(j);   
 }

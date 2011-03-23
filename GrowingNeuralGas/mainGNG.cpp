@@ -5,13 +5,13 @@
 using namespace std;
 using namespace neuralgas;
 
-float func(const int& time)
+float func(const unsigned int& time)
 {return 0.5 ;}
 
-float funclambda(const int& time)
+float funclambda(const unsigned int& time)
 {return 5 ;}
 
-float functheta(const int& time)
+float functheta(const unsigned int& time)
 {return 100;}
 
 int main(int argc, char *argv[])
@@ -41,8 +41,9 @@ int main(int argc, char *argv[])
     mgng.setFuncArray(funclambda,6);
 
     mgng.setData(v);
-    int max_value = mgng.maxRandomValue(); 
-    mgng.setRefVectors(2,max_value);
+    float max_value = mgng.maxValue(); 
+    float min_value = mgng.minValue(); 
+    mgng.setRefVectors(2,min_value,max_value);
     mgng.run();
     mgng.showGraph();
     for( int i=0; i < 1500; i++)

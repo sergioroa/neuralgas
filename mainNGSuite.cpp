@@ -13,56 +13,56 @@
 using namespace std;
 using namespace neuralgas;
 
-float func(const int& time)
+float func(const unsigned int& time)
 {return 0.5 ;}
 
 
-float constalpha(const int& time)
+float constalpha(const unsigned int& time)
 {return 0.5;}
 
-float constbeta(const int& time)
+float constbeta(const unsigned int& time)
 {return 0.75;}
 
-float constgamma(const int& time)
+float constgamma(const unsigned int& time)
 {return 88;}
 
-float constepsilonw(const int& time)
+float constepsilonw(const unsigned int& time)
 {return 0.05;}
 
-float constepsilonn(const int& time)
+float constepsilonn(const unsigned int& time)
 {return 0.0006;}
 
-float constdelta(const int& time)
+float constdelta(const unsigned int& time)
 {return 0.5;}
 
-float consteta(const int& time)
+float consteta(const unsigned int& time)
 {return 0.99995;}
 
-float consttheta(const int& time)
+float consttheta(const unsigned int& time)
 {return 100;}
 
-float constlambda(const int& time)
+float constlambda(const unsigned int& time)
 {return 600 ;}
 
-float funcalpha(const int& time)
+float funcalpha(const unsigned int& time)
 {
       float random_alpha = float(rand()) / float(50000);
       return random_alpha;
 }
 
 
-float funcbeta(const int& time)
+float funcbeta(const unsigned int& time)
 {
      return 0.75 ;
 }
 
-float funcgamma(const int& time)
+float funcgamma(const unsigned int& time)
 {return 1+sqrt(time);}
 
-float funclambda(const int& time)
+float funclambda(const unsigned int& time)
 {return 3 ;}
 
-float functheta(const int& time)
+float functheta(const unsigned int& time)
 {
       return 75;
 }

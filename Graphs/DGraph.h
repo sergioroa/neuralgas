@@ -1,6 +1,7 @@
 /** 
 * \class DGraph
 * \author Manuel Noll
+* \author Sergio Roa
 * 
 *  Copyright(c) 20010 Manuel Noll - All rights reserved
 *  \version 1.0
@@ -70,17 +71,17 @@ template<typename T,typename S> class DGraph : public virtual Base_Graph<T,S>
 {
   public:
     //cto creating a graph with the same dimension for node and edge weight vectors
-                               DGraph(const int& dim) : Base_Graph<T,S>(dim){}
+                               DGraph(const unsigned int& dim) : Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
-                               DGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
+                               DGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
     //std dto
                                ~DGraph(){}
     //returns whether the two nodes are connected by an edge
-    inline bool                areConnected(const int&,const int&)const;
+    inline bool                areConnected(const unsigned int&,const unsigned int&)const;
     // adds an edge between the nodes given by their indeces      
-    void                       addEdge(const int&,const int&);
+    void                       addEdge(const unsigned int&,const unsigned int&);
     // removes an edge between the nodes given by their indeces if there exists one     
-    void                       rmEdge(const int&,const int&);
+    void                       rmEdge(const unsigned int&,const unsigned int&);
     // returns a pointer to a edge of a type that is currently used by the graph
     virtual DNode<T,S>*        newNode();
     void                       getID();
@@ -90,7 +91,7 @@ template<typename T,typename S> class DGraph : public virtual Base_Graph<T,S>
 
 /** \brief returns whether the two nodes are connected by an edge either from x to y or from y to x
 */
-template<typename T,typename S> inline bool DGraph<T,S>::areConnected(const int& x,const int& y)const
+template<typename T,typename S> inline bool DGraph<T,S>::areConnected(const unsigned int& x,const unsigned int& y)const
 {
   return ( this->_nodes[x]->edges[y] != NULL && this->_nodes[y]->edges[x] != NULL);
 } 
@@ -104,7 +105,7 @@ template<typename T,typename S> inline bool DGraph<T,S>::areConnected(const int&
 *   \param x outgoing node
 *   \param y ingoing node
 */
-template<typename T,typename S> void DGraph<T,S>::addEdge(const int& x,const int& y)
+template<typename T,typename S> void DGraph<T,S>::addEdge(const unsigned int& x,const unsigned int& y)
 {
 
   if ( this->_nodes[x]->edges[y] == NULL ) //self edges are allowed
@@ -114,9 +115,9 @@ template<typename T,typename S> void DGraph<T,S>::addEdge(const int& x,const int
     new_edge->out            = this->_nodes[y];
     new_edge->weight.resize(this->_dimEdge);
     this->_nodes[x]->edges[y]    =  new_edge;   
-    // DANGER DownCast is performed via dynamic_cast
-    (dynamic_cast< DNode<T,S>* >(this->_nodes[x]))->incOutEdges(); 
-    (dynamic_cast< DNode<T,S>* >(this->_nodes[y]))->incInEdges(); 
+
+    (static_cast< DNode<T,S>* >(this->_nodes[x]))->incOutEdges(); 
+    (static_cast< DNode<T,S>* >(this->_nodes[y]))->incInEdges(); 
   }      
   
 }  
@@ -130,15 +131,15 @@ template<typename T,typename S> void DGraph<T,S>::addEdge(const int& x,const int
 *   \param x outgoing node
 *   \param y ingoing node
 */
-template<typename T,typename S> void DGraph<T,S>::rmEdge(const int& x,const int& y)
+template<typename T,typename S> void DGraph<T,S>::rmEdge(const unsigned int& x,const unsigned int& y)
 {
   if ( this->_nodes[x]->edges[y] != NULL ) //self edges are allowed
   {
     delete this->_nodes[x]->edges[y];
     this->_nodes[x]->edges[y]     =  NULL;
-    // DANGER DownCast is performed via dynamic_cast  
-    (dynamic_cast< DNode<T,S>* >(this->_nodes[x]))->decOutEdges(); 
-    (dynamic_cast< DNode<T,S>* >(this->_nodes[y]))->decInEdges();     
+
+    (static_cast< DNode<T,S>* >(this->_nodes[x]))->decOutEdges(); 
+    (static_cast< DNode<T,S>* >(this->_nodes[y]))->decInEdges();     
   }  
 }
 

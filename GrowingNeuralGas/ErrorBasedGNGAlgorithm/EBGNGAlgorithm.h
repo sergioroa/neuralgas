@@ -21,7 +21,7 @@ template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
 {
 public:
 	// cto initializing the class 
-	EBGNGAlgorithm(const int& dim);
+	EBGNGAlgorithm(const unsigned int& dim);
 	// std dto
 	~EBGNGAlgorithm();
         
@@ -29,18 +29,18 @@ public:
 	void    run();
         
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const int&,const int&);
+	virtual void    setRefVectors(const unsigned int&,const T&, const T&);
 	
 	void    showGraph(){_graphptr->showGraph();}
 	// algorithmic dependent distance function
-	T       getDistance(const Vector<T>&,const int&) const;
+	T       getDistance(const Vector<T>&,const unsigned int&) const;
 private:        
 	//is a Base_Graph casted pointer to thereof derived class MGNGGraph
 	GNGGraph<T,S>*           _graphptr;
 	//defines the update rule for the in the second index given neighbor by using a given datum
-	void updateNeighbor(const int&,const int&);
+	void updateNeighbor(const unsigned int&,const unsigned int&);
 	//defines the update rule for the winner
-	void updateWinner(const int&,const int&);
+	void updateWinner(const unsigned int&,const unsigned int&);
 	//a learning cycle for instance
         void learning_loop ( unsigned int );
 
@@ -57,11 +57,11 @@ private:
 *
 * \param dim is the dimension of the node weights
 */
-template<typename T,typename S> EBGNGAlgorithm<T,S>::EBGNGAlgorithm(const int& dim): GNGModul<T,S>(dim)
+template<typename T,typename S> EBGNGAlgorithm<T,S>::EBGNGAlgorithm(const unsigned int& dim): GNGModul<T,S>(dim)
 {
  _graphptr=NULL;
- int num_of_elem=50;
- for(int i=0; i < num_of_elem; i++)
+ unsigned int num_of_elem=50;
+ for(unsigned int i=0; i < num_of_elem; i++)
    errors.push(this->_zero);
  
 }
@@ -83,7 +83,7 @@ template<typename T,typename S> EBGNGAlgorithm<T,S>::~EBGNGAlgorithm()
 * \param num_of_ref_vec is the number of initial reference vectors
 * \param max_value is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const int& num_of_ref_vec,const int& max_value)
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const T& low_limit, const T& high_limit)
 {
   if (_graphptr!=NULL)
       delete _graphptr;
@@ -98,8 +98,11 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const in
   //_graphptr       = dynamic_cast< MGNGGraph<T,S> * >(this->_graphModulptr);
   this->graphptr      = _graphptr;
   this->_graphModulptr = _graphptr; 
-  _graphptr->setMaxRandomValue(max_value);   // sets the max random value for the init of the context vector
-  _graphptr->initRandomGraph(num_of_ref_vec,max_value); // creates a Graph object with given size of the 
+  // sets the min value for the init of the context vector
+  _graphptr->setLowLimit(low_limit);
+  // sets the max value for the init of the context vector
+  _graphptr->setHighLimit(high_limit);
+  _graphptr->initRandomGraph(num_of_ref_vec,low_limit, high_limit); // creates a Graph object with given size of the 
                                                 // vectors and number of ref vectors initilized with 
                                                 // random values
 }
@@ -116,7 +119,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const in
 */
 
 
-template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const int& node_index) const
+template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
 {
     // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
     // since this accelerates the calculation but does not change the result
@@ -129,13 +132,13 @@ template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const Vector<
 *   topological neighbor is updated by an algorithmic dependent rule.
 *   w_j(new) = w_j(old) + epsilon_n * ( x_t - w_j(old) )
 *
-*   \param time is the data vector that is used for updating 
+*   \param item_index is the data vector index that is used for updating 
 *   \param node_index is the index of topological neighbor that shall be updated
 */
-template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateNeighbor(const int& time,const int& node_index)
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateNeighbor(const unsigned int& item_index,const unsigned int& node_index)
 {
  //(*_graphptr)[node_index].weight  += this->params[5] * ( (*this)[time]-(*_graphptr)[node_index].weight);
- (*_graphptr)[node_index].weight  += rate * ( (*this)[time]-(*_graphptr)[node_index].weight);
+ (*_graphptr)[node_index].weight  += rate * ( (*this)[item_index]-(*_graphptr)[node_index].weight);
 
 }
 
@@ -145,12 +148,12 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateNeighbor(const i
 *   winner is updated by an algorithmic dependent rule.
 *    w(new) = w(old) + epsilon_b * (x_t - w(old) )
 *
-*   \param time is the data vector that is used for updating 
+*   \param item_index is the data vector index that is used for updating 
 *   \param winner is the index of the winner that shall be updated
 */
-template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateWinner(const int& time,const int& winner)
+template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateWinner(const unsigned int& item_index,const unsigned int& winner)
 {
- (*_graphptr)[winner].weight  += this->params[4] * ( (*this)[time]-(*_graphptr)[winner].weight);
+ (*_graphptr)[winner].weight  += this->params[4] * ( (*this)[item_index]-(*_graphptr)[winner].weight);
 }
 
 
@@ -206,8 +209,8 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsign
   std::cout << "t = " << t << std::endl;
   // init
     
-  int first_winner               =     1;
-  int second_winner              =     0;
+  unsigned int first_winner               =     1;
+  unsigned int second_winner              =     0;
  
   //params are defined by user set functions that may depend on the time step
   //params[0] alpha factor by which the two nodes with greatest error are changed after adding a new nod
@@ -243,7 +246,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsign
   {
     //int gsize = _graphptr->size()-1;
 
-    std::vector<int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
+    std::vector<unsigned int> first_winner_neighbors = _graphptr->getNeighbors(first_winner);
    
     for(unsigned int j=0; j < first_winner_neighbors.size();j++)
     {

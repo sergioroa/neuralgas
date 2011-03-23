@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     ugraph.showGraph();
 */
     DGraph<float,int> dgraph(10);
-    dgraph.initRandomGraph(2, 2);
+    dgraph.initRandomGraph(2, 0, 2);
     dgraph.addNode();
     dgraph.getID();
     dgraph.addEdge(0,1);

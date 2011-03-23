@@ -52,7 +52,7 @@ template < typename T , typename S > struct Base_Node
   }
   /** \brief Calls the user defined function and applies it on this node
   */
-  virtual void update(const int& index=0){(*func)(this);}  
+  virtual void update(const unsigned int& index=0){(*func)(this);}  
   //user defined function called in update for changing the node's values
   void (*func) (Base_Node<T,S>*);
   // number of connected nodes to this node
@@ -125,41 +125,43 @@ template<typename T, typename S> class Base_Graph
 {
       public:
              //cto creating a graph with the same dimension for node and edge weight vectors
-             Base_Graph(const int&);
+             Base_Graph(const unsigned int&);
                          
              //cto creating a graph with the different dimension for node and edge weight vectors
-             Base_Graph(const int&,const int&);
+             Base_Graph(const unsigned int&,const unsigned int&);
              
              //std dto
              ~Base_Graph();            
              //returning a reference to the node indexed by the given index
-             Base_Node<T,S>&                     operator[](const int&);
+             Base_Node<T,S>&                     operator[](const unsigned int&);
              //returning a const reference to the node indexed by the given index
-             Base_Node<T,S>&                     operator[](const int&) const;
+             Base_Node<T,S>&                     operator[](const unsigned int&) const;
              //inits the graph with the given number of nodes with random valued weight vectors
-             void                                initRandomGraph(const int&,const int&);
+             void                                initRandomGraph(const unsigned int&,const T&, const T&);
              //adds a new uninitialized, edgeless node into the graph
              void                                addNode(void);
              // removes the node given by the index, removes its edges and updates the number of connections of its neighbors
-             virtual void                        rmNode(const int&); 
+             virtual void                        rmNode(const unsigned int&); 
              // adds an edge between the nodes given by their indeces      
-             virtual void                        addEdge(const int&,const int&)=0;
+             virtual void                        addEdge(const unsigned int&,const unsigned int&)=0;
              // removes an edge between the nodes given by their indeces if there exists one     
-             virtual void                        rmEdge(const int&,const int&)=0;
+             virtual void                        rmEdge(const unsigned int&,const unsigned int&)=0;
              // saves the nodes weight in a file
              void                                save(const char*);             
-             //returns a vector of ints representing the indeces of the neighboring nodes
-             std::vector<int>                    getNeighbors(const int&) const;
+             //returns a vector of ints representing the indices of the neighboring nodes
+             std::vector<unsigned int>           getNeighbors(const unsigned int&) const;
+             // Returns neighbors set cardinality for some node
+             int                                 getNeighborsSize(const unsigned int&) const;
              //returns whether the node of the given index has neighbors or not
-             inline bool                         isConnected(const int&) const;
+             inline bool                         isConnected(const unsigned int&) const;
              //applies the given func to all nodes
              inline void                         applyFunc2AllNodes(void (*func)(Base_Node<T,S>*,const float&),const float&);
              //applies the given func to the neighboring nodes 
-             inline void                         applyFunc2Neighbors(const int&,void (*func)(Base_Node<T,S>*,const float&),const float&);
+             inline void                         applyFunc2Neighbors(const unsigned int&,void (*func)(Base_Node<T,S>*,const float&),const float&);
              //calls the update function declared within the node struct
              inline void                         update();
              //returns the number of nodes currently in the graph
-             inline int                          size(void) const;
+             inline unsigned int                 size(void) const;
                           
              void                                showGraph();
       protected:
@@ -171,15 +173,15 @@ template<typename T, typename S> class Base_Graph
              std::vector< Base_Node<T,S>* >      _nodes;            
             
              // dimension of the node's weight vectors
-             int                                 _dimNode;
+             unsigned int                        _dimNode;
              // dimension of the edge's weight vectors
-             int                                 _dimEdge;
+             unsigned int                        _dimEdge;
 
       private:
              // dummy variable for operator[]
              Base_Node<T,S>                      _dummy;
              // dummy vector for getNeigbbors()
-             std::vector< int >                  _dummyV;
+             std::vector< unsigned int >         _dummyV;
 };
 
 template < typename T , typename S> void Base_Graph<T,S>::showGraph()
@@ -195,11 +197,11 @@ template < typename T , typename S> void Base_Graph<T,S>::showGraph()
  std::cout << std::endl;
 }
 /*
-template<typename T,typename S> void Base_Graph<T,S>::addEdge(const int& a,const int& b)
+template<typename T,typename S> void Base_Graph<T,S>::addEdge(const unsigned int& a,const unsigned int& b)
 {
 }  
 
-template<typename T,typename S> void Base_Graph<T,S>::rmEdge(const int& a,const int& b)
+template<typename T,typename S> void Base_Graph<T,S>::rmEdge(const unsigned int& a,const unsigned int& b)
 {
 }  
 */
@@ -208,7 +210,7 @@ template<typename T,typename S> void Base_Graph<T,S>::rmEdge(const int& a,const 
 *
 * \param dim is the dimension of the weight vectors of the nodes in the graph
 */
-template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const int& dim)
+template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& dim)
 { 
  _dimNode = dim;
  _dimEdge = dim;
@@ -222,7 +224,7 @@ template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const int& dim)
 * \param dimNode is the dimension of the weight vectors of the nodes in the graph
 * \param dimEdge is the dimension of the weight vectors of the edges in the graph
 */
-template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const int& dimNode,const int& dimEdge)
+template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& dimNode,const unsigned int& dimEdge)
 {
  _dimNode = dimNode;
  _dimEdge = dimEdge; 
@@ -247,9 +249,9 @@ template<typename T,typename S> Base_Graph<T,S>::~Base_Graph()
 *
 * \param index of the node that shall be returned 
 */
-template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const int& index)
+template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const unsigned int& index)
 {
-  if ( index>=0 && index < size() )
+  if ( index < size() )
     return *(_nodes[index]);
   else
     return _dummy;
@@ -259,9 +261,9 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
 *
 * \param index of the node that shall be returned 
 */
-template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const int& index) const
+template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const unsigned int& index) const
 {
-  if ( index>=0 && index < size() )
+  if ( index < size() )
     return *(_nodes[index]);
   else
     return _dummy;
@@ -288,18 +290,18 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
 template<typename T,typename S> void Base_Graph<T,S>::save(const char* filename)
 {
     std::ofstream myfile (filename);
-    int size = _nodes.size();
+    unsigned int size = _nodes.size();
     
     if (myfile.is_open())
     {
-       for(int i = 0; i < size -1; i++)
+       for(unsigned int i = 0; i < size -1; i++)
        {      
-              for(int j=0; j < _dimNode; j++)
+              for(unsigned int j=0; j < _dimNode; j++)
                       myfile << (_nodes[i])->weight[j] << " ";
               myfile << std::endl;
        }
        
-       for(int j=0; j < _dimNode; j++)
+       for(unsigned int j=0; j < _dimNode; j++)
            myfile << (_nodes[size-1])->weight[j] << " ";       
        myfile.close();
     }
@@ -313,24 +315,24 @@ template<typename T,typename S> void Base_Graph<T,S>::save(const char* filename)
 * \param num_of_nodes is the number of nodes with random valued weight vectors the graph is going to be initialized with
 */
   
-template<typename T,typename S> void Base_Graph<T,S>::initRandomGraph(const int& num_of_nodes,const int& max_value)
+template<typename T,typename S> void Base_Graph<T,S>::initRandomGraph(const unsigned int& num_of_nodes, const T& low_limit, const T& high_limit)
 {    
-  int nsize  = size();
-  for(int i = 0; i < nsize; i++)
+  unsigned int nsize  = size();
+  for(unsigned int i = 0; i < nsize; i++)
   {
     delete  _nodes[i];                                // delete ptrs to the nodes
     _nodes[i] = NULL;            
     _nodes.pop_back();                                // rm ptr from the node array 
   }  
  
-  for (int i = 0; i < num_of_nodes; i++)
+  for (unsigned int i = 0; i < num_of_nodes; i++)
   {
      addNode();                                     // adds a new node
      (_nodes[i])->weight.resize(_dimNode);          // sets dimension of the weight vector
      
-     for(int j = 0; j < _dimNode; j++)          
-     {     
-	     (_nodes[i])->weight[j] = (T) (::rand() % max_value );   //sets the value of the weights to random values
+     for(unsigned int j = 0; j < _dimNode; j++)          
+     {
+	     (_nodes[i])->weight[j] = (T) ((rand() / (static_cast<T>(RAND_MAX) + 1.0)) * (high_limit - low_limit) + low_limit );   //sets the value of the weights to random values
      }
     
   }  
@@ -384,11 +386,11 @@ template <typename T,typename S> void Base_Graph<T,S>::addNode(void)
   // function does as follows
   // creates a new node of (sub)class specific type and adds it to the _node array
   // a new slot for a possible edge is added to each node
-  int nsize=size();  
+  unsigned int nsize=size();  
   
   Base_Node<T,S>*    n   =   newNode();  // gets the actual used node type 
   n->weight.resize(_dimNode);
-  for(int i=0; i < nsize; i++)
+  for(unsigned int i=0; i < nsize; i++)
   {
    n->edges.push_back(NULL);    
   }
@@ -396,7 +398,7 @@ template <typename T,typename S> void Base_Graph<T,S>::addNode(void)
  
   nsize++;
     
-  for(int i=0; i < nsize; i++)
+  for(unsigned int i=0; i < nsize; i++)
   {
    _nodes[i]->edges.push_back(NULL);    
   }
@@ -408,16 +410,16 @@ template <typename T,typename S> void Base_Graph<T,S>::addNode(void)
 *
 * \param index is the node that shall be deleted
 */
-template<typename T,typename S> void Base_Graph<T,S>::rmNode(const int& index)
+template<typename T,typename S> void Base_Graph<T,S>::rmNode(const unsigned int& index)
 {
   // function does as follows
   // checks whether the neighbors have an (directed) edge to index and deletes them
   // deletes node in the _nodes array  
  
- int     nsize=size();
- if ( 0 <= index   && index < nsize )
+ unsigned int     nsize=size();
+ if ( index < nsize )
  {
-   std::vector<int> neighbors = getNeighbors(index);
+   std::vector<unsigned int> neighbors = getNeighbors(index);
    
    for(unsigned int i=0; i < neighbors.size(); i++)
     if ( _nodes[ neighbors[i] ]->edges[index]!=NULL ) // edge from i to index
@@ -427,7 +429,7 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const int& index)
       _nodes[ neighbors[i] ]->num_connections--;
     }  
    
-   for(int i=0; i < nsize; i++)
+   for(unsigned int i=0; i < nsize; i++)
    {
      _nodes[ i ]->edges.erase( _nodes[ i ]->edges.begin() + index ); 
    }
@@ -445,26 +447,47 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const int& index)
 *
 * \param index of the homie whose neighbors we are looking for
 */
-template<typename T,typename S> std::vector<int> Base_Graph<T,S>::getNeighbors(const int& index) const
+template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNeighbors(const unsigned int& index) const
 {
- int nsize = size();          
+ unsigned int nsize = size();
         
- if (0<=index && index < nsize )
+ if ( index < nsize )
  {
-  std::vector<int> result_v;
+  std::vector<unsigned int> result_v;
   int num_of_neighbors = _nodes[index]->num_connections;
   int found_neighbors = 0;
   
-  for (int i=0; i < nsize && found_neighbors < num_of_neighbors; i++)
+  for (unsigned int i=0; i < nsize /*&& found_neighbors < num_of_neighbors*/; i++)
     if( _nodes[index]->edges[i] !=NULL && index!=i)
     {
         result_v.push_back(i);   
         found_neighbors++;
-    }  
+    }
+  //if the following is false, something must be wrong
+  assert (found_neighbors <= num_of_neighbors);
   return result_v;
  }
  else
      return _dummyV;
+}
+
+/** \brief Returns neighbors set cardinality for some node
+ * \param index
+ */
+template<typename T,typename S> int Base_Graph<T,S>::getNeighborsSize(const unsigned int& index) const
+{
+	assert ( index < size() );
+	int num_of_neighbors = _nodes[index]->num_connections;
+	int found_neighbors = 0;
+	
+	for (unsigned int i=0; i < size() /*&& found_neighbors < num_of_neighbors*/; i++)
+		if( _nodes[index]->edges[i] !=NULL && index!=i)
+			found_neighbors++;
+	//if the following is false, something must be wrong
+	assert (found_neighbors <= num_of_neighbors);
+
+	return found_neighbors;
+
 }
 
 /** \brief Returns whether the node of the given index has neighbors
@@ -475,10 +498,10 @@ template<typename T,typename S> std::vector<int> Base_Graph<T,S>::getNeighbors(c
 *
 * \param index is the index of the node in question for connectedness
 */
-template<typename T,typename S> inline bool Base_Graph<T,S>::isConnected(const int& index) const
+template<typename T,typename S> inline bool Base_Graph<T,S>::isConnected(const unsigned int& index) const
 {
- if ( 0 <= index && index < size() ) 
-     return ( _nodes[index]->num_connections != 0 ) ? true : false;
+ if ( index < size() ) 
+     return ( _nodes[index]->num_connections > 0 ) ? true : false;
  else
      return false; 
 }
@@ -492,8 +515,8 @@ template<typename T,typename S> inline bool Base_Graph<T,S>::isConnected(const i
 */
 template<typename T,typename S> inline void Base_Graph<T,S>::applyFunc2AllNodes(void (*func)(Base_Node<T,S>*,const float&),const float& value)
 {
-  int nsize = size();
-  for(int i = 0; i < nsize; i++)
+  unsigned int nsize = size();
+  for(unsigned int i = 0; i < nsize; i++)
     (*func)(_nodes[i],value);
 }  
 
@@ -503,13 +526,13 @@ template<typename T,typename S> inline void Base_Graph<T,S>::applyFunc2AllNodes(
 * is slower due to the range check.
 * \param func is a pointer to a function that shall be applied to all neighboring nodes
 */
-template<typename T,typename S> inline void Base_Graph<T,S>::applyFunc2Neighbors(const int& index,void (*func)(Base_Node<T,S>*,const float&),const float& value)
+template<typename T,typename S> inline void Base_Graph<T,S>::applyFunc2Neighbors(const unsigned int& index,void (*func)(Base_Node<T,S>*,const float&),const float& value)
 {
-  int nsize = size();
+  unsigned int nsize = size();
  
-  if (0<=index && index < nsize )
+  if ( index < nsize )
   {   
-    for (int i=0; i < nsize; i++)
+    for (unsigned int i=0; i < nsize; i++)
        if ( _nodes[index]->edges[i]!=NULL )
           (*func)(_nodes[i],value);   //applies the func to the node since it is a neighbor          
   
@@ -528,15 +551,15 @@ template<typename T,typename S> inline void Base_Graph<T,S>::applyFunc2Neighbors
 */
 template<typename T,typename S> inline void Base_Graph<T,S>::update()
 {
-  int nsize = size();
-  for(int i = 0; i < nsize; i++)
+  unsigned int nsize = size();
+  for(unsigned int i = 0; i < nsize; i++)
     (_nodes[i])->update();
 }              
 
 /** \brief returns the number of nodes currently in the graph
 *
 */
-template<typename T, typename S > inline int Base_Graph<T,S>::size(void) const
+template<typename T, typename S > inline unsigned int Base_Graph<T,S>::size(void) const
 {
  return _nodes.size();
 }

@@ -29,34 +29,41 @@ template<typename T,typename S> class ErrorTesting;
 * The same holds for the edges, but in the edge has to be derived from the struct TEdge<S,T>
 * contained in the class TGraph.
 *
-* \param maxRandomValue max value for the random initializiation of the context vector 
+* \param low_limit min value for the random initializiation of the context vector 
+* \param high_limit max value for the random initializiation of the context vector 
 */
 
 template<typename T,typename S> class GNGModulGraph : public virtual UGraph<T,S>, public virtual TGraph<T,S>
 {
 
- public:
+public:
    //cto creating a graph with the same dimension for node and edge weight vectors
-   GNGModulGraph(const int& dim) : Base_Graph<T,S>(dim),UGraph<T,S>(dim),TGraph<T,S>(dim){}
+   GNGModulGraph(const unsigned int& dim) : Base_Graph<T,S>(dim),UGraph<T,S>(dim),TGraph<T,S>(dim){}
    //cto creating a graph with the different dimension for node and edge weight vectors
-   GNGModulGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
+   GNGModulGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
    // std dto
    ~GNGModulGraph(){}
-   // function sets the max random value for the random initializiation of the context vector 
-   void       setMaxRandomValue(const int& value){maxRandomValue = value;}
    // adds an edge between the nodes given by their indeces by calling corresponding upper class method of UGraph
-   virtual void inline  addEdge(const int& x,const int& y){if (x!=y) UGraph<T,S>::addEdge(x,y); }
+   virtual void inline  addEdge(const unsigned int& x,const unsigned int& y){if (x!=y) UGraph<T,S>::addEdge(x,y); }
    // removes an edge between the nodes given by their indeces if there exists one by calling corresponding upper class method of UGraph    
-   virtual void inline  rmEdge(const int& x,const int& y){if (x!=y) UGraph<T,S>::rmEdge(x,y);}
+   virtual void inline  rmEdge(const unsigned int& x,const unsigned int& y){if (x!=y) UGraph<T,S>::rmEdge(x,y);}
 
- protected:
-   // returns the maximal random value
-   int        getMaxRandomValue() const{return maxRandomValue;}
+   /// sets the minimal limit value
+   void setLowLimit(T low) {low_limit = low;}
+   /// sets the maximal limit value
+   void setHighLimit(T high) {high_limit = high;}
+   /// returns the minimal limit value
+   T getLowLimit() const{return low_limit;}
+   /// returns the maximal limit value
+   T getHighLimit() const{return high_limit;}
 
- private:
-   // maxRandomValue max value for the random initializiation of the context vector
-   int                                maxRandomValue;
-   // ErrorTesting is defined as friend in order to not having duplicate anything
+protected:
+   /// low limit min value for the random initializiation of the context vector
+   T low_limit;
+   /// high_limit max value for the random initializiation of the context vector
+   T high_limit;
+private:
+   /// ErrorTesting is defined as friend in order to not having duplicate anything
    friend class ErrorTesting<T,S>;
 
 };

@@ -34,7 +34,9 @@ template<typename T> class DataGenerator
         // std dto
                                                 ~DataGenerator();
         //determines the max value within the data
-        const int                               maxRandomValue() const;
+        const T                                 maxValue() const;
+        //determines the min value within the data
+        const T                                 minValue() const;
         // erases the data
         void                                    reset();
         // returns the next datum
@@ -83,15 +85,31 @@ template<typename T> DataGenerator<T>::~DataGenerator()
 /** \brief Determines the maximal value within the given data set
 *
 */
-template<typename T> const int DataGenerator<T>::maxRandomValue() const
+template<typename T> const T DataGenerator<T>::maxValue() const
 {
- T max_data_value = _zero;
- for ( unsigned int i = 0; i < _data->size(); i++)
-  for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-      if (_data->operator[](i)->operator[](j) > max_data_value ) 
-         max_data_value =abs( int (ceil( _data->operator[](i)->operator[](j))) );
- return int(max_data_value);
+    T max_data_value = (*(*_data)[0])[0];
+    for ( unsigned int i = 0; i < _data->size(); i++)
+	for ( unsigned int j = 1; j < (*_data)[0]->size(); j++) { 
+	    if (_data->operator[](i)->operator[](j) > max_data_value ) 
+		max_data_value = _data->operator[](i)->operator[](j);
+	}
+    return max_data_value;
 } 
+
+/** \brief Determines the minimal value within the given data set
+*
+*/
+template<typename T> const T DataGenerator<T>::minValue() const
+{
+    T min_data_value = (*(*_data)[0])[0];
+    for ( unsigned int i = 0; i < _data->size(); i++)
+	for ( unsigned int j = 1; j < (*_data)[0]->size(); j++) { 
+	    if (_data->operator[](i)->operator[](j) < min_data_value ) 
+		min_data_value = _data->operator[](i)->operator[](j);
+	}
+    return min_data_value;
+} 
+
 
 /** \brief Erases the data generated so far
 */
