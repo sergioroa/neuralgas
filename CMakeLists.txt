@@ -120,6 +120,10 @@ SET(VORONOIDIAGRAMM_HEADERS
 	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.h)
 INSTALL(FILES ${VORONOIDIAGRAMM_HEADERS} DESTINATION include/NeuralGas/VoronoiDiagramm/)
 
+SET(TOOLS_HEADERS
+	${NEURALGAS_ROOT}/tools/metrics.h)
+INSTALL(FILES ${TOOLS_HEADERS} DESTINATION include/NeuralGas/tools/)
+
 SET(VORONOIDIAGRAMM_SOURCES
 	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiDiagramGenerator.cpp
 	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.cpp)

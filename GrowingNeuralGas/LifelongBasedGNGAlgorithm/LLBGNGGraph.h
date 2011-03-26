@@ -5,7 +5,7 @@
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
-*  \date    2010
+*  \date    2011
 */
 
 #ifndef LLBGNGGRAPH_H
@@ -13,6 +13,7 @@
 
 #include <GrowingNeuralGas/GNGModulGraph.h>
 #include <queue>
+#include <tools/metrics.h>
 
 namespace neuralgas {
 
@@ -67,13 +68,20 @@ struct LLBGNGNode : Base_Node<T,S>
 	T learning_rate;
 	/// local similarity of weights
 	T local_similarity;
+	// update activations counter
+	void increaseActivationsCounter ();
+	/// counter for the nr. of activations in a training epoch
+	unsigned int activations_counter;
 };
 
 /// \brief default \p LLBGNGNode cto
 template<typename T, typename S>
 LLBGNGNode<T,S>::LLBGNGNode () :
 	insertion_threshold (0),
-	age (1)
+	age (1),
+	learning_rate (0),
+	local_similarity (0),
+	activations_counter (0)
 {
 }
 
@@ -138,17 +146,22 @@ template<typename T, typename S>
 void LLBGNGNode<T,S>::updateAvgError (T last_error, const T& shortterm_window, const T& longterm_window)
 {
 	errors.push (last_error);
-	float front_error = errors.front();
-	unsigned int shortterm_window_scaled = shortterm_window;
-	unsigned int longterm_window_scaled = longterm_window;
+	T front_error = errors.front();
+	T shortterm_window_scaled = shortterm_window;
+	T longterm_window_scaled = longterm_window;
 	if (errors.size() < longterm_window)
 	{
-		unsigned int errorwindows_ratio = longterm_window / shortterm_window;
+		T errorwindows_ratio = longterm_window / shortterm_window;
+		// std::cout << "errowindows ratio: " << errorwindows_ratio << std::endl;
 		shortterm_window_scaled = errors.size() / errorwindows_ratio;
 		longterm_window_scaled = errors.size();
+ 		// std::cout << "shorterm window: " << shortterm_window_scaled << std::endl;
+		// std::cout << "longterm window: " << longterm_window_scaled << std::endl;
 	}
 	
 	shortterm_avgerror += ( (last_error - front_error) / shortterm_window_scaled);
+	// std::cout << "errors size: " << errors.size() << std::endl;
+	// std::cout << "shortterm update: " << shortterm_avgerror << std::endl;
 	longterm_avgerror += ( (last_error - front_error) / longterm_window_scaled);
 
 	if (errors.size() > longterm_window)
@@ -164,6 +177,13 @@ void LLBGNGNode<T,S>::decreaseAge (unsigned int age_time_window)
 	age = exp (-1/(T) age_time_window) * age;
 }
 
+/** \brief update \p activations_counter
+ */
+template<typename T, typename S>
+void LLBGNGNode<T,S>::increaseActivationsCounter ()
+{
+	activations_counter++;
+}
 
 /** \brief LLBGNGGraph provides some additional learning strategies proposed in
  *   the algorithm Life-long learning cell structures -- continuosly learning
@@ -175,25 +195,25 @@ class LLBGNGGraph : public GNGModulGraph<T,S>
 {
 public:
 	/// cto Graph creation (node and edges weights share dimensionality)
-	LLBGNGGraph (const int&);
+	LLBGNGGraph (const unsigned int&);
 	/// std dto
 	~LLBGNGGraph(){}
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
 	// calculate inherited variables for a node to be inserted between two nodes
-	void calculateInheritedParams (const int, const int, const int);
+	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
-	void updateAvgError (const int, T last_error);
+	void updateAvgError (const unsigned int, T last_error);
 	// calculate learning quality for some node
-	void calculateLearningQuality (const int);
+	void calculateLearningQuality (const unsigned int);
 	// calculate insertion quality for some node
-	void calculateInsertionQuality (const int);
+	void calculateInsertionQuality (const unsigned int);
 	// calculate insertion criterion for some node
-	void calculateInsertionCriterion (const int);
+	void calculateInsertionCriterion (const unsigned int);
 	// update learning rate for some winner node
-	void updateWinnerLearningRate (const int);
+	void updateWinnerLearningRate (const unsigned int);
 	// update learning rate for some winner-neighboring node
-	void updateNeighborLearningRate (const int);
+	void updateNeighborLearningRate (const unsigned int);
 	// set input adaptation threshold
 	void setAdaptationThreshold (T&);
 	// set insertion tolerance
@@ -217,7 +237,9 @@ public:
 	// get stabilization constant
 	T getStabilization () const;
 	// decrease age of some node
-	void decreaseNodeAge (const int index);
+	void decreaseNodeAge (const unsigned int);
+	// update activations counter for some node
+	void increaseActivationsCounter (const unsigned int);
 private:
 	// returns a pointer to a edge of a type that is currently used by the graph
 	virtual LLBGNGNode<T,S>* newNode(void);	
@@ -251,7 +273,7 @@ private:
     \param dim dimensionality
  */
 template<typename T, typename S>
-LLBGNGGraph<T,S>::LLBGNGGraph (const int &dim) :
+LLBGNGGraph<T,S>::LLBGNGGraph (const unsigned int &dim) :
 	Base_Graph<T,S>(dim),
 	UGraph<T,S>(dim),
 	TGraph<T,S>(dim),
@@ -278,7 +300,10 @@ template<typename T,typename S>
 LLBGNGNode<T,S>* LLBGNGGraph<T,S>::newNode(void)
 {
 	LLBGNGNode<T,S>* n = new LLBGNGNode<T,S>;
-	n->inherited_error = this->high_limit - this->low_limit;
+	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
+		n->inherited_error = euclidean<T,S> (this->getHighLimits(), this->getLowLimits());
+	else
+		n->inherited_error = this->high_limit - this->low_limit;		
 	//default inherited errors (used at the beginning of the algorithm)
 	n->shortterm_avgerror = n->inherited_error;
 	n->longterm_avgerror = n->inherited_error;
@@ -306,7 +331,7 @@ void LLBGNGGraph<T,S>::setTimeWindows (unsigned int shortterm, unsigned int long
  *  \param snd_index 2nd node index
  */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::calculateInheritedParams (const int index, const int first_index, const int snd_index)
+void LLBGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const unsigned int first_index, const unsigned int snd_index)
 {
 	LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* >(this->_nodes[index]);
 	LLBGNGNode<T,S>* first_node = static_cast<LLBGNGNode<T,S>* >(this->_nodes[first_index]);
@@ -343,7 +368,7 @@ void LLBGNGGraph<T,S>::calculateInheritedParams (const int index, const int firs
 /** \brief calculate long term and short term error for a given node
     \param index node index */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::updateAvgError (const int index, T last_error)
+void LLBGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->updateAvgError(last_error, shortterm_window, longterm_window);
 
@@ -352,7 +377,7 @@ void LLBGNGGraph<T,S>::updateAvgError (const int index, T last_error)
 /** \brief calculate learning quality for a node
     \param index node index */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::calculateLearningQuality (const int index)
+void LLBGNGGraph<T,S>::calculateLearningQuality (const unsigned int index)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->calculateLearningQuality();
 	
@@ -361,7 +386,7 @@ void LLBGNGGraph<T,S>::calculateLearningQuality (const int index)
 /** \brief calculate insertion quality for a node
     \param index node index */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::calculateInsertionQuality (const int index)
+void LLBGNGGraph<T,S>::calculateInsertionQuality (const unsigned int index)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->calculateInsertionQuality(insertion_tolerance);
 	
@@ -370,7 +395,7 @@ void LLBGNGGraph<T,S>::calculateInsertionQuality (const int index)
 /** \brief calculate insertion criterion for a node
     \param index node index */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::calculateInsertionCriterion (const int index)
+void LLBGNGGraph<T,S>::calculateInsertionCriterion (const unsigned int index)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->calculateInsertionCriterion();
 	
@@ -394,7 +419,7 @@ void LLBGNGGraph<T,S>::setLearningRates (T& winner, T& neighbors, T& insertion_t
  *  \param index node index
  */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::updateWinnerLearningRate (const int index)
+void LLBGNGGraph<T,S>::updateWinnerLearningRate (const unsigned int index)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->updateLearningRate(adaptation_threshold, winner_learning_rate);	
 }
@@ -403,7 +428,7 @@ void LLBGNGGraph<T,S>::updateWinnerLearningRate (const int index)
  *  \param index node index
  */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::updateNeighborLearningRate (const int index)
+void LLBGNGGraph<T,S>::updateNeighborLearningRate (const unsigned int index)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->updateLearningRate(adaptation_threshold, neighbors_learning_rate);	
 }
@@ -497,9 +522,17 @@ T LLBGNGGraph<T,S>::getStabilization () const
 /* \brief decrease age of a node
  */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::decreaseNodeAge (const int index)
+void LLBGNGGraph<T,S>::decreaseNodeAge (const unsigned int index)
 {
 	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->decreaseAge (age_time_window);
+}
+
+/** \brief update activations counter for some node
+ */
+template<typename T, typename S>
+void LLBGNGGraph<T,S>::increaseActivationsCounter (const unsigned int index)
+{
+	(static_cast<LLBGNGNode<T,S>* > (this->_nodes[index]))->increaseActivationsCounter ();
 }
 
 

@@ -29,26 +29,39 @@ int main (int argc, char* argv[])
 	na.generate(size);
 	na.save("data.txt");
 	llbgng->setData(na.getData());
+	Vector<float> mins = llbgng->minValues();
+	Vector<float> maxs = llbgng->maxValues();
 	float min = llbgng->minValue();
 	float max = llbgng->maxValue();
+	// for (unsigned int i=0; i< mins.size(); i++)
+	// {
+	// 	cout << "min: " << mins[i] << endl;
+	// 	cout << "max: " << maxs[i] << " for dim " << i << endl;
+	// }
+	// cout << "min: " << min << endl;
+	// cout << "max: " << max << endl;
+	
 	llbgng->setRefVectors(2,min,max);
+	// llbgng->setRefVectors(2,-10,10);
 
-	llbgng->setTimeWindows (20, 100, 100);
+	llbgng->setTimeWindows (50, 100, 100);
 	llbgng->setLearningRates (0.1, 0.01, 0.1);
 	llbgng->setInsertionRate (10);
 	llbgng->setAdaptationThreshold (0.05);
-	llbgng->setInsertionTolerance (0.2);
-	llbgng->setDeletionThreshold (0.1);
+	llbgng->setInsertionTolerance (0.5);
+	llbgng->setDeletionThreshold (0.2);
 	llbgng->setMinimalNodeAge (0.01);
 	llbgng->setMaximalEdgeAge (50);
-	llbgng->setStabilization (0.01);
+	llbgng->setStabilization (1);
 
 	llbgng->setSamplingMode (randomly);
-	llbgng->setStoppingCriterion (epochs);
-	llbgng->setMaxEpochs (50);
+	//llbgng->setStoppingCriterion (epochs);
+	//llbgng->setMaxEpochs (100);
+	llbgng->setStoppingCriterion (stability);
 
 	llbgng->run(); 
 	llbgng->save("nodes.txt");
+	llbgng->showGraph ();
 	return EXIT_SUCCESS;
 
 }

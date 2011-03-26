@@ -17,6 +17,7 @@
 #include <vector>
 #include <limits>
 #include <Graphs/Base_Graph.h>
+#include <tools/metrics.h>
 
 /// Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
 namespace neuralgas {
@@ -38,7 +39,8 @@ enum _sampling_mode {sequential, /**< sample instances sequentially */
  * \brief for using different mechanisms for stopping the algorithms
  */
 enum _stopping_criterion {epochs, /**< nr of training epochs */
-                          global_error /**< a global error measure */
+                          global_error, /**< a global error measure */
+			  stability /**< a network stability measure */
 };
 
 
@@ -81,6 +83,10 @@ public:
     const T                 maxValue() const; 
     //determines the minimal value within the given data set
     const T                 minValue() const; 
+    //determines the maximal values for each dim within the given data set
+    Vector<T>               maxValues() const; 
+    //determines the minimal values for each dim within the given data set
+    Vector<T>               minValues() const; 
     // saves the nodes weight in a file
     void                    save(const char*);
     // sets the sampling mode for learning instances
@@ -147,9 +153,11 @@ void NeuralGas<T,S>::setFuncArray(float (*func)(const unsigned int& time),const 
 */
 template<typename T,typename S> const T NeuralGas<T,S>::maxValue() const
 {
+	assert (_data->size());
+	assert ((*_data)[0]->size());
 	T max_data_value = (*(*_data)[0])[0];
 	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 1; j < (*_data)[0]->size(); j++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
 			if ((*(*_data)[i])[j] > max_data_value )
 				max_data_value = (*(*_data)[i])[j];
 	return max_data_value;
@@ -160,12 +168,48 @@ template<typename T,typename S> const T NeuralGas<T,S>::maxValue() const
 */
 template<typename T,typename S> const T NeuralGas<T,S>::minValue() const
 {
+	assert (_data->size());
+	assert ((*_data)[0]->size());
 	T min_data_value = (*(*_data)[0])[0];
 	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 1; j < (*_data)[0]->size(); j++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
 			if (_data->operator[](i)->operator[](j) < min_data_value ) 
 				min_data_value = _data->operator[](i)->operator[](j);
 	return min_data_value;
+} 
+
+/** \brief Determines the minimal values in each dim within the given data set
+*
+*/
+template<typename T,typename S> Vector<T> NeuralGas<T,S>::minValues() const
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	Vector<T> min_data_values ((*_data)[0]->size());
+	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
+		min_data_values[j] = (*(*_data)[0])[j];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) < min_data_values[j] ) 
+				min_data_values[j] = _data->operator[](i)->operator[](j);
+	return min_data_values;
+} 
+
+/** \brief Determines the maximal values in each dim within the given data set
+*
+*/
+template<typename T,typename S> Vector<T> NeuralGas<T,S>::maxValues() const
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	Vector<T> max_data_values ((*_data)[0]->size());
+	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
+		max_data_values[j] = (*(*_data)[0])[j];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) > max_data_values[j] ) 
+				max_data_values[j] = _data->operator[](i)->operator[](j);
+	return max_data_values;
 } 
 
 
@@ -309,20 +353,21 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
 {
  if (_metric_to_use==NULL) // is a non-standard metric set ?
  {
-     T result;
-     T value;
-     Vector<T> z = x - y;
+     return euclidean<T,S> (x, y);
+     // T result;
+     // T value;
+     // Vector<T> z = x - y;
      
-     //result =  _zero;
-     result = 0;
-     unsigned int tsize = z.size();
+     // //result =  _zero;
+     // result = 0;
+     // unsigned int tsize = z.size();
      
-     for (unsigned int i=0; i < tsize; i++)
-     {
-         value  = (z[i]*z[i]);
-         result+=  value;
-     }
-     return T(sqrt(result));
+     // for (unsigned int i=0; i < tsize; i++)
+     // {
+     //     value  = (z[i]*z[i]);
+     //     result+=  value;
+     // }
+     // return T(sqrt(result));
  }
  else
 	 return (this->*_metric_to_use)(x,y);   // use the non-standard user defined metric

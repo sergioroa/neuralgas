@@ -2,10 +2,10 @@
 * \class LLBGNGAlgorithm
 * \author Sergio Roa
 * 
-*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
-*  \date    2010
+*  \date    2011
 */
 
 #ifndef LLBGNGALGORITHM_H
@@ -37,6 +37,8 @@ public:
 	void run ();
 	//sets the number of inital reference vectors
 	virtual void setRefVectors(const unsigned int&,const T&, const T&);
+	//sets the number of inital reference vectors
+	void setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
 	// algorithmic dependent distance function
 	T getDistance(const Vector<T>&,const unsigned int&) const;
 	// set time window constants
@@ -57,12 +59,16 @@ public:
 	void setMaximalEdgeAge (unsigned int);
 	// set stabilization constant
 	void setStabilization (T);
-	//find node with maximal value of insertion criterion
+	// find node with maximal value of insertion criterion
 	int maxInsertionCriterionNode ();
-	//find node with maximal value of insertion quality among some nodes
+	// find node with maximal value of insertion quality among some nodes
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
-	//find node with minimal value of deletion criterion
+	// find node with minimal value of deletion criterion
 	int minDeletionCriterionNode ();
+	// check if the ages of the nodes reach some age threshold
+	bool isGraphStable ();
+	// delete nodes that are not being activated
+	void deleteUselessNodes ();
 	// for visualization
 	void showGraph(){_graphptr->showGraph();}
 protected:
@@ -127,6 +133,38 @@ void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 	// vectors and number of ref vectors initilized with 
 	// random values
 	_graphptr->initRandomGraph(num_of_ref_vec, low_limit, high_limit);
+}
+
+
+/** \brief Sets the number of initial reference vectors. This is the first function
+ * to be called.
+ *
+ * The function sets the initial number of reference vectors and initializes those
+ * with random values that are within the range of the given parameter max_value.
+ * \param num_of_ref_vec is the number of initial reference vectors
+ * \param low_limit is the min value that shall be used for the random init value generat * \param high_limit is the max value that shall be used for the random init value generation
+*/
+template<typename T,typename S>
+void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
+{
+	if (_graphptr!=NULL)
+		delete _graphptr;
+	if (this->graphptr!=NULL)
+		delete this->graphptr;
+     
+	_graphptr           = new LLBGNGGraph<T,S>(this->getDimension());
+	this->graphptr      = _graphptr;
+	this->_graphModulptr = _graphptr;
+	// sets the min value for the init of the context vector
+	_graphptr->setLowLimits(low_limits);
+	// sets the max value for the init of the context vector
+	_graphptr->setHighLimits(high_limits);
+	// creates a Graph object with given size of the 
+	// vectors and number of ref vectors initilized with 
+	// random values
+	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
+
+
 }
 
 /** \brief set window constants. This function should only
@@ -272,6 +310,14 @@ void LLBGNGAlgorithm<T,S>::run()
 			for (unsigned int e=0; e<this->max_epochs; e++)
 				for(unsigned int t = 0; t < tsize; t++)
 					learning_loop (t, t);
+		else if (this->stopping_criterion == stability)
+			do
+			{
+				for(unsigned int t = 0; t < tsize; t++)
+					learning_loop (t, t);
+				deleteUselessNodes();
+			}
+			while (!isGraphStable());
 	}
 	else if (this->sampling_mode == randomly)
 	{
@@ -280,6 +326,14 @@ void LLBGNGAlgorithm<T,S>::run()
 			for (unsigned int e=0; e<this->max_epochs; e++)
 				for(unsigned int t = 0; t < tsize; t++)
 					learning_loop (::rand() % tsize, t);
+		else if (this->stopping_criterion == stability)
+			do {
+				for(unsigned int t = 0; t < tsize; t++)
+					learning_loop (::rand() % tsize, t);
+				deleteUselessNodes();
+			}
+			while (!isGraphStable());
+
 	}
 }
 
@@ -295,6 +349,7 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//second winner
 	unsigned int s = 0;
 	this->getWinner(b,s,(*this)[t]);
+	_graphptr->increaseActivationsCounter (b);
 
 	//learning rule for weight adaptation
 	//after calculating learning quality for best matching node b and neighbors
@@ -454,10 +509,10 @@ T LLBGNGAlgorithm<T,S>::getWeightsAvgSimilarity ()
 	T similarity = this->_zero;
 	for(unsigned int i=0; i < _graphptr->size();i++)
 		similarity += calculateWeightsLocalSimilarity (i);
-
+	
 	similarity /= (T) _graphptr->size();
 	return similarity;
-
+	
 }
 
 /* \brief find node with minimal value of deletion criterion
@@ -472,7 +527,7 @@ int LLBGNGAlgorithm<T,S>::minDeletionCriterionNode ()
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (_graphptr->getNeighborsSize(i) >= 2 && node->age < _graphptr->getMinimalNodeAge() && node->learning_quality < _graphptr->getStabilization())
+		if (/*_graphptr->getNeighborsSize(i) >= 2 && node->age < _graphptr->getMinimalNodeAge() &&*/ node->learning_quality < _graphptr->getStabilization())
 		{
 			T deletion_criterion = node->local_similarity / avg_similarity;
 			if (min_value > deletion_criterion)
@@ -483,10 +538,43 @@ int LLBGNGAlgorithm<T,S>::minDeletionCriterionNode ()
 		}
 	}
 	return d;
-		
 }
 
+/* \brief check if nodes are stable (ages are less than the minimal age threshold)
+ */
+template<typename T, typename S>
+bool LLBGNGAlgorithm<T,S>::isGraphStable ()
+{
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
+		std::cout << "node " << i << " age: " << node->age << std::endl;
+		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
+		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
+		std::cout << "node " << i << " long-term e.: " << node->longterm_avgerror << std::endl;
+		std::cout << "node " << i << " short-term e.: " << node->shortterm_avgerror << std::endl;
+		// if (node->age > _graphptr->getMinimalNodeAge())
+		if (node->learning_quality > _graphptr->getStabilization())
+			return false;
+	}
+	return true;
+}
 
+/* \brief delete nodes that are not being activated
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::deleteUselessNodes ()
+{
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
+		if (node->activations_counter == 0)
+			_graphptr->rmNode (i);
+		else
+			node->activations_counter = 0;
+		
+	}
+}
 
 } // namespace neuralgas
 

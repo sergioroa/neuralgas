@@ -52,21 +52,56 @@ public:
    void setLowLimit(T low) {low_limit = low;}
    /// sets the maximal limit value
    void setHighLimit(T high) {high_limit = high;}
+   /// sets the minimal limit value
+   void setLowLimits(Vector<T> low);
+   /// sets the maximal limit value
+   void setHighLimits(Vector<T> high);
    /// returns the minimal limit value
    T getLowLimit() const{return low_limit;}
    /// returns the maximal limit value
    T getHighLimit() const{return high_limit;}
+   /// returns the minimal limit value
+   Vector<T> getLowLimits() const{return low_limits;}
+   /// returns the maximal limit value
+   Vector<T> getHighLimits() const{return high_limits;}
 
 protected:
    /// low limit min value for the random initializiation of the context vector
    T low_limit;
    /// high_limit max value for the random initializiation of the context vector
    T high_limit;
+   /// low limit min value for the random initializiation of the context vector
+   Vector<T> low_limits;
+   /// high_limit max value for the random initializiation of the context vector
+   Vector<T> high_limits;
 private:
    /// ErrorTesting is defined as friend in order to not having duplicate anything
    friend class ErrorTesting<T,S>;
 
 };
+
+template<typename T, typename S>
+void GNGModulGraph<T,S>::setHighLimits (Vector<T> high)
+{
+	high_limits = high;
+	high_limit = high_limits[0];
+	for (unsigned int i=1; i<high_limits.size(); i++)
+		if (high_limits[i] > high_limit)
+			high_limit = high_limits[i];
+	
+}
+
+template<typename T, typename S>
+void GNGModulGraph<T,S>::setLowLimits (Vector<T> low)
+{
+	low_limits = low;
+	low_limit = low_limits[0];
+	for (unsigned int i=1; i<low_limits.size(); i++)
+		if (low_limits[i] < low_limit)
+			low_limit = low_limits[i];
+	
+}
+
 
 } // namespace neuralgas
 
