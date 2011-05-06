@@ -44,15 +44,15 @@ int main (int argc, char* argv[])
 	llbgng->setRefVectors(2,min,max);
 	// llbgng->setRefVectors(2,-10,10);
 
-	llbgng->setTimeWindows (50, 100, 100);
+	llbgng->setTimeWindows (20, 100, 100);
 	llbgng->setLearningRates (0.1, 0.01, 0.1);
 	llbgng->setInsertionRate (10);
 	llbgng->setAdaptationThreshold (0.05);
-	llbgng->setInsertionTolerance (0.5);
-	llbgng->setDeletionThreshold (0.2);
-	llbgng->setMinimalNodeAge (0.01);
+	llbgng->setInsertionTolerance (0.2);
+	llbgng->setDeletionThreshold (0.5);
+	llbgng->setMinimalNodeAge (0.001);
 	llbgng->setMaximalEdgeAge (50);
-	llbgng->setStabilization (1);
+	llbgng->setStabilization (1.001);
 
 	llbgng->setSamplingMode (randomly);
 	//llbgng->setStoppingCriterion (epochs);

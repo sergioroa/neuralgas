@@ -35,7 +35,10 @@ struct LLBGNGNode : Base_Node<T,S>
 	~LLBGNGNode ();
 	/// errors queue for calculating different parameters. Its size is
 	/// set by the maximum allowable long term error window
-	std::queue<T> errors;
+	std::queue<T> longterm_errors;
+	/// errors queue for calculating different parameters. Its size is
+	/// set by the maximum allowable short term error window
+	std::queue<T> shortterm_errors;
 	// calculate \p learning_quality measure
 	void calculateLearningQuality ();
 	/// quality measure for learning
@@ -89,7 +92,8 @@ LLBGNGNode<T,S>::LLBGNGNode () :
 template<typename T, typename S>
 LLBGNGNode<T,S>::~LLBGNGNode ()
 {
-	errors.clear ();
+	longterm_errors.clear ();
+	shortterm_errors.clear ();
 }
 
 
@@ -145,27 +149,37 @@ void LLBGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 template<typename T, typename S>
 void LLBGNGNode<T,S>::updateAvgError (T last_error, const T& shortterm_window, const T& longterm_window)
 {
-	errors.push (last_error);
-	T front_error = errors.front();
+	shortterm_errors.push (last_error);
+	T shortterm_front_error = shortterm_errors.front();
+	longterm_errors.push (last_error);
+	T longterm_front_error = longterm_errors.front();
+	if (longterm_errors.size() > longterm_window)
+		longterm_errors.pop();
+	if (shortterm_errors.size() > shortterm_window)
+		shortterm_errors.pop();
 	T shortterm_window_scaled = shortterm_window;
 	T longterm_window_scaled = longterm_window;
-	if (errors.size() < longterm_window)
+	
+	if (longterm_errors.size() < longterm_window)
 	{
 		T errorwindows_ratio = longterm_window / shortterm_window;
 		// std::cout << "errowindows ratio: " << errorwindows_ratio << std::endl;
-		shortterm_window_scaled = errors.size() / errorwindows_ratio;
-		longterm_window_scaled = errors.size();
+		shortterm_window_scaled = longterm_errors.size() / errorwindows_ratio;
+		longterm_window_scaled = longterm_errors.size();
  		// std::cout << "shorterm window: " << shortterm_window_scaled << std::endl;
 		// std::cout << "longterm window: " << longterm_window_scaled << std::endl;
 	}
-	
-	shortterm_avgerror += ( (last_error - front_error) / shortterm_window_scaled);
+	assert (longterm_errors.size() == longterm_window_scaled);
+
+	shortterm_avgerror += ( (last_error - shortterm_front_error) / shortterm_window_scaled);
+	longterm_avgerror += ( (last_error - longterm_front_error) / longterm_window_scaled);
+
 	// std::cout << "errors size: " << errors.size() << std::endl;
 	// std::cout << "shortterm update: " << shortterm_avgerror << std::endl;
-	longterm_avgerror += ( (last_error - front_error) / longterm_window_scaled);
+	shortterm_avgerror /= shortterm_window_scaled;
+	longterm_avgerror /= longterm_window_scaled;
 
-	if (errors.size() > longterm_window)
-		errors.pop ();
+	
 }
 
 /** \brief decrease node age
@@ -307,7 +321,8 @@ LLBGNGNode<T,S>* LLBGNGGraph<T,S>::newNode(void)
 	//default inherited errors (used at the beginning of the algorithm)
 	n->shortterm_avgerror = n->inherited_error;
 	n->longterm_avgerror = n->inherited_error;
-	n->errors.push (n->inherited_error);
+	n->longterm_errors.push (n->inherited_error);
+	n->shortterm_errors.push (n->inherited_error);
 	return n; 
 }
 
@@ -359,8 +374,10 @@ void LLBGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	snd_node->inherited_error = snd_node->longterm_avgerror;
 	node->inherited_error = node->longterm_avgerror;
 
-	assert (node->errors.size() == 1);
-	node->errors.front() = node->longterm_avgerror;
+	assert (node->longterm_errors.size() == 1);
+	assert (node->shortterm_errors.size() == 1);
+	node->longterm_errors.front() = node->longterm_avgerror;
+	node->shortterm_errors.front() = node->shortterm_avgerror;
 
 	
 }

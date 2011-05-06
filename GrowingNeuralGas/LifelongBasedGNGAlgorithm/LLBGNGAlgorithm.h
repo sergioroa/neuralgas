@@ -369,7 +369,8 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		updateWeight(t,b_neighbor);
 	}
 
-
+	//to be used for storing an index for a deleted node
+	int d;
 	//calculate insertion quality
 	if (i % (unsigned int)(insertion_rate * _graphptr->size()))
 	{
@@ -400,37 +401,41 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			}
 		}
 		//find node with minimal value of deletion criterion
-		int d = minDeletionCriterionNode ();
+		d = minDeletionCriterionNode ();
 		
 		if (d != -1)
 			_graphptr->rmNode (d);
+
 			
 			
 	}
-	
-	//update long-term and short-term error variables
-	_graphptr->updateAvgError (b, getDistance ((*this)[t], b));
 
-	//decrease age of best-matching node
-	_graphptr->decreaseNodeAge (b);
-
-	//the original algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
-
-	//adapt edges
-	bool s_neighborof_b = false;
-	for(unsigned int j=0; j < b_neighbors.size();j++)
+	if (d != b)
 	{
-		unsigned int b_neighbor = b_neighbors[j];
-		if (b_neighbor == s)
+		//update long-term and short-term error variables
+		_graphptr->updateAvgError (b, getDistance ((*this)[t], b));
+		
+		//decrease age of best-matching node
+		_graphptr->decreaseNodeAge (b);
+
+		//the original algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
+
+		//adapt edges
+		bool s_neighborof_b = false;
+		for(unsigned int j=0; j < b_neighbors.size();j++)
 		{
-			s_neighborof_b = true;
-			_graphptr->setAge (b, s, 0.0);
+			unsigned int b_neighbor = b_neighbors[j];
+			if (b_neighbor == s)
+			{
+				s_neighborof_b = true;
+				_graphptr->setAge (b, s, 0.0);
+			}
+			else
+				_graphptr->incAge (b, b_neighbor);
 		}
-		else
-			_graphptr->incAge (b, b_neighbor);
+		if (!s_neighborof_b)
+			_graphptr->setAge (b, s, 0.0);
 	}
-	if (!s_neighborof_b)
-		_graphptr->setAge (b, s, 0.0);
 
 	//remove all edges older than the maximal value for age
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
@@ -554,7 +559,7 @@ bool LLBGNGAlgorithm<T,S>::isGraphStable ()
 		std::cout << "node " << i << " long-term e.: " << node->longterm_avgerror << std::endl;
 		std::cout << "node " << i << " short-term e.: " << node->shortterm_avgerror << std::endl;
 		// if (node->age > _graphptr->getMinimalNodeAge())
-		if (node->learning_quality > _graphptr->getStabilization())
+		if (/*node->age > _graphptr->getMinimalNodeAge() && */node->learning_quality > _graphptr->getStabilization())
 			return false;
 	}
 	return true;
