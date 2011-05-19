@@ -1,9 +1,10 @@
 /** 
-* \class LLBGNGGraph
+* \file metrics.h
 * \author Sergio Roa
 * \author Manuel Noll
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
+*  Copyright(c) 2011 Sergio Roa - All rights reserved
 *  \version 1.0
 *  \date    2011
 */

@@ -29,11 +29,15 @@ public:
 	void    run();
         
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const unsigned int&,const T&, const T&);
-	
+	virtual void    setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	// check graph stability as a stopping criterion
+	bool isGraphStable ();
+	/// show graph for visualization
 	void    showGraph(){_graphptr->showGraph();}
 	// algorithmic dependent distance function
 	T       getDistance(const Vector<T>&,const unsigned int&) const;
+	// set error threshold constant
+	void setErrorThreshold (T);
 private:        
 	//is a Base_Graph casted pointer to thereof derived class MGNGGraph
 	GNGGraph<T,S>*           _graphptr;
@@ -45,9 +49,11 @@ private:
         void learning_loop ( unsigned int );
 
 	// the average error
-	float average_error;
+	T average_error;
 	// rate parameter for adjusting neighbour weights
-	float rate;
+	T rate;
+	// error_threshold
+	T error_threshold;
         // errors queue for calculating \p average_error
         std::queue<T> errors; 
         
@@ -75,36 +81,36 @@ template<typename T,typename S> EBGNGAlgorithm<T,S>::~EBGNGAlgorithm()
    // _graphptr=NULL;                          
 }
 
-
-/** \brief Sets the number of initial reference vectors.
-*
-* The function sets the initial number of reference vectors and initializes those
-* with random values that are within the range of the given parameter max_value.
-* \param num_of_ref_vec is the number of initial reference vectors
-* \param max_value is the max value that shall be used for the random init value generation
+/** \brief Sets the number of initial reference vectors. This is the first function
+ * to be called.
+ *
+ * The function sets the initial number of reference vectors and initializes those
+ * with random values that are within the range of the given parameter max_value.
+ * \param num_of_ref_vec is the number of initial reference vectors
+ * \param low_limit is the min value that shall be used for the random init value generat * \param high_limit is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const T& low_limit, const T& high_limit)
+template<typename T,typename S>
+void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
 {
-  if (_graphptr!=NULL)
-      delete _graphptr;
-  if (this->graphptr!=NULL)
-     delete this->graphptr;
+	if (_graphptr!=NULL)
+		delete _graphptr;
+	if (this->graphptr!=NULL)
+		delete this->graphptr;
      
-  average_error       = 0.0;
-  rate = 0.5;
-  
-  _graphptr           = new GNGGraph<T,S>(this->getDimension());
-  // DANGER DownCast is performed via dynamic_cast
-  //_graphptr       = dynamic_cast< MGNGGraph<T,S> * >(this->_graphModulptr);
-  this->graphptr      = _graphptr;
-  this->_graphModulptr = _graphptr; 
-  // sets the min value for the init of the context vector
-  _graphptr->setLowLimit(low_limit);
-  // sets the max value for the init of the context vector
-  _graphptr->setHighLimit(high_limit);
-  _graphptr->initRandomGraph(num_of_ref_vec,low_limit, high_limit); // creates a Graph object with given size of the 
-                                                // vectors and number of ref vectors initilized with 
-                                                // random values
+	average_error       = 0.0;
+	rate = 0.5;
+
+	_graphptr           = new GNGGraph<T,S>(this->getDimension());
+	this->graphptr      = _graphptr;
+	this->_graphModulptr = _graphptr;
+	// sets the min value for the init of the context vector
+	_graphptr->setLowLimits(low_limits);
+	// sets the max value for the init of the context vector
+	_graphptr->setHighLimits(high_limits);
+	// creates a Graph object with given size of the 
+	// vectors and number of ref vectors initilized with 
+	// random values
+	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
 }
 
 /** \brief Algorithmic dependent distance function
@@ -114,11 +120,9 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::setRefVectors(const un
 *   just the setted metric or a combination thereof.
 *   Currently dist  = metric(x_t,w_j) where x_t is the data vector and w_j the node vector,
 *
-*   \param item datum
+*   \param item data vector
 *   \param node_index is the node where to the distance shall be determined
 */
-
-
 template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
 {
     // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
@@ -185,19 +189,31 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
 
     if (this->sampling_mode == sequential)
     {
-      if (this->stopping_criterion == epochs)
-        for (unsigned int e=0; e<this->max_epochs; e++)
-		for(unsigned int t = 0; t < tsize; t++)
-			learning_loop (t);
+	    if (this->stopping_criterion == epochs)
+		    for (unsigned int e=0; e<this->max_epochs; e++)
+			    for(unsigned int t = 0; t < tsize; t++)
+				    learning_loop (t);
+	    else if (this->stopping_criterion == stability)
+		    do
+		    {
+			    for (unsigned int t = 0; t < tsize; t++)
+				    learning_loop (t);
+		    } while (!isGraphStable());
     }
     else if (this->sampling_mode == randomly)
     {
-      ::srand( (unsigned)time( NULL ) );
-      if (this->stopping_criterion == epochs)
-        for (unsigned int e=0; e<this->max_epochs; e++)
-          for (unsigned int t=0; t<tsize; t++)
-            learning_loop (::rand() % tsize);
-
+	    ::srand( (unsigned)time( NULL ) );
+	    if (this->stopping_criterion == epochs)
+		    for (unsigned int e=0; e<this->max_epochs; e++)
+			    for (unsigned int t=0; t<tsize; t++)
+				    learning_loop (::rand() % tsize);
+	    else if (this->stopping_criterion == stability)
+		    do {
+			    for(unsigned int t = 0; t < tsize; t++)
+				    learning_loop (::rand() % tsize);
+		    }
+		    while (!isGraphStable());
+      
     }
     std::cout << "Graph size: " << _graphptr->size()<< " " << std::endl; 
   }
@@ -206,7 +222,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
 
 template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsigned int t)
 {
-  std::cout << "t = " << t << std::endl;
+  // std::cout << "t = " << t << std::endl;
   // init
     
   unsigned int first_winner               =     1;
@@ -274,7 +290,27 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsign
 
 }
 
+/*  \brief check if graph is stable by using a low error criterion and a expected maximal nr of nodes
+ */
+template<typename T, typename S>
+bool EBGNGAlgorithm<T,S>::isGraphStable ()
+{
+    std::cout << "Graph size: " << _graphptr->size()<< " " << std::endl; 
+    std::cout << "Average error: " << average_error << " " << std::endl;
+	if (_graphptr->size() == this->params[7] && error_threshold > average_error)
+		return true;
+	return false;
+}
 
+/** \brief set \p error_threshold
+    \param threshold given error threshold */
+template<typename T, typename S>
+void EBGNGAlgorithm<T,S>::setErrorThreshold (T threshold)
+{
+	error_threshold = threshold;
+}
+
+	
 } // namespace neuralgas
 
 #endif

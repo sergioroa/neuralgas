@@ -37,7 +37,11 @@ template<typename T> class DataGenerator
         const T                                 maxValue() const;
         //determines the min value within the data
         const T                                 minValue() const;
-        // erases the data
+	//determines the maximal values for each dim within the given data set
+	Vector<T>                               maxValues() const; 
+	//determines the minimal values for each dim within the given data set
+	Vector<T>                               minValues() const; 
+         // erases the data
         void                                    reset();
         // returns the next datum
         virtual   Vector<T>*                    next()=0;
@@ -49,7 +53,7 @@ template<typename T> class DataGenerator
 	void                                    save(const char* filename);
 
  protected:
-	// generate a datum
+	// generate an item
         virtual   Vector<T>*                    generate()=0;
         // dimension of the data
         int                                    _dim;
@@ -108,6 +112,41 @@ template<typename T> const T DataGenerator<T>::minValue() const
 		min_data_value = _data->operator[](i)->operator[](j);
 	}
     return min_data_value;
+} 
+
+
+/** \brief Determines the minimal values in each dim within the given data set
+*
+*/
+template<typename T> Vector<T> DataGenerator<T>::minValues() const
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	Vector<T> min_data_values ((*_data)[0]->size());
+	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
+		min_data_values[j] = (*(*_data)[0])[j];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) < min_data_values[j] ) 
+				min_data_values[j] = _data->operator[](i)->operator[](j);
+	return min_data_values;
+} 
+
+/** \brief Determines the maximal values in each dim within the given data set
+*
+*/
+template<typename T> Vector<T> DataGenerator<T>::maxValues() const
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	Vector<T> max_data_values ((*_data)[0]->size());
+	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
+		max_data_values[j] = (*(*_data)[0])[j];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) > max_data_values[j] ) 
+				max_data_values[j] = _data->operator[](i)->operator[](j);
+	return max_data_values;
 } 
 
 

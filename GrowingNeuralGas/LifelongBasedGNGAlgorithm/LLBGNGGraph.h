@@ -33,12 +33,12 @@ struct LLBGNGNode : Base_Node<T,S>
 	LLBGNGNode ();
 	// default \p LLBGNGNode dto
 	~LLBGNGNode ();
-	/// errors queue for calculating different parameters. Its size is
+	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable long term error window
-	std::queue<T> longterm_errors;
-	/// errors queue for calculating different parameters. Its size is
+	std::vector<T> longterm_errors;
+	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable short term error window
-	std::queue<T> shortterm_errors;
+	std::vector<T> shortterm_errors;
 	// calculate \p learning_quality measure
 	void calculateLearningQuality ();
 	/// quality measure for learning
@@ -115,7 +115,7 @@ void LLBGNGNode<T,S>::calculateInsertionQuality (T& insertion_tolerance)
 template<typename T, typename S>
 void LLBGNGNode<T,S>::calculateInsertionCriterion ()
 {
-	insertion_criterion = insertion_quality - age;
+	insertion_criterion = insertion_quality /*- age*/;
 }
 
 
@@ -130,7 +130,7 @@ void LLBGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 
 	T rate_decision_boundary;
 
-	rate_decision_boundary = learning_quality / (1 + adaptation_threshold) + age -1;
+	rate_decision_boundary = learning_quality / (1 + adaptation_threshold) /*+ age -1*/;
 
 	if (rate_decision_boundary < 0)
 		learning_rate = 0;
@@ -149,14 +149,16 @@ void LLBGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 template<typename T, typename S>
 void LLBGNGNode<T,S>::updateAvgError (T last_error, const T& shortterm_window, const T& longterm_window)
 {
-	shortterm_errors.push (last_error);
-	T shortterm_front_error = shortterm_errors.front();
-	longterm_errors.push (last_error);
-	T longterm_front_error = longterm_errors.front();
+	shortterm_errors.push_back (last_error);
+	// T shortterm_front_error = shortterm_errors.front();
+	longterm_errors.push_back (last_error);
+	// T longterm_front_error = longterm_errors.front();
 	if (longterm_errors.size() > longterm_window)
-		longterm_errors.pop();
+		// longterm_errors.pop();
+		longterm_errors.erase (longterm_errors.begin());
 	if (shortterm_errors.size() > shortterm_window)
-		shortterm_errors.pop();
+		// shortterm_errors.pop();
+		shortterm_errors.erase (shortterm_errors.begin());
 	T shortterm_window_scaled = shortterm_window;
 	T longterm_window_scaled = longterm_window;
 	
@@ -171,13 +173,25 @@ void LLBGNGNode<T,S>::updateAvgError (T last_error, const T& shortterm_window, c
 	}
 	assert (longterm_errors.size() == longterm_window_scaled);
 
-	shortterm_avgerror += ( (last_error - shortterm_front_error) / shortterm_window_scaled);
-	longterm_avgerror += ( (last_error - longterm_front_error) / longterm_window_scaled);
-
+	// if (shortterm_errors.size()== shortterm_window)
+	// 	shortterm_avgerror += ( (last_error - shortterm_front_error) / shortterm_window_scaled);
+	// else
+	// 	shortterm_avgerror += ( last_error / shortterm_window_scaled);
+	// if (longterm_errors.size() == longterm_window)
+	// 	longterm_avgerror += ( (last_error - longterm_front_error) / longterm_window_scaled);
+	// else
+	// 	longterm_avgerror += ( last_error / longterm_window_scaled);
+	shortterm_avgerror = 0;
+	for (unsigned int i=0; i<shortterm_errors.size(); i++)
+		shortterm_avgerror += shortterm_errors[i];
+	shortterm_avgerror /= shortterm_window_scaled;
+	longterm_avgerror = 0;
+	for (unsigned int i=0; i<longterm_errors.size(); i++)
+		longterm_avgerror += longterm_errors[i];
+	longterm_avgerror /= longterm_window_scaled;
+	
 	// std::cout << "errors size: " << errors.size() << std::endl;
 	// std::cout << "shortterm update: " << shortterm_avgerror << std::endl;
-	shortterm_avgerror /= shortterm_window_scaled;
-	longterm_avgerror /= longterm_window_scaled;
 
 	
 }
@@ -321,8 +335,8 @@ LLBGNGNode<T,S>* LLBGNGGraph<T,S>::newNode(void)
 	//default inherited errors (used at the beginning of the algorithm)
 	n->shortterm_avgerror = n->inherited_error;
 	n->longterm_avgerror = n->inherited_error;
-	n->longterm_errors.push (n->inherited_error);
-	n->shortterm_errors.push (n->inherited_error);
+	n->longterm_errors.push_back (n->inherited_error);
+	n->shortterm_errors.push_back (n->inherited_error);
 	return n; 
 }
 

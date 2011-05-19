@@ -6,6 +6,7 @@
 #include "GrowingNeuralGas/MergeGrowingNeuralGas/CDNAlgorithm.h"
 #include "GrowingNeuralGas/GNGAlgorithm.h"
 #include "GrowingNeuralGas/ErrorBasedGNGAlgorithm/EBGNGAlgorithm.h"
+#include "GrowingNeuralGas/LifelongBasedGNGAlgorithm/LLBGNGAlgorithm.h"
 #include "DataGenerator/MackeyGlass.h"
 #include "DataGenerator/NoisyAutomata.h"
 #include <math.h>
@@ -64,16 +65,16 @@ float funclambda(const unsigned int& time)
 
 float functheta(const unsigned int& time)
 {
-      return 75;
+      return 100;
 }
 
-enum _algorithm { _gng, _ebgng, _mgng, _cdn };
+enum _algorithm { _gng, _ebgng, _mgng, _cdn, _llbgng };
 
 int main(int argc, char *argv[])
 {
 
     if (argc < 2) {
-      cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn" << endl;
+      cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn/llbgng" << endl;
       exit(1);
     }
 
@@ -85,27 +86,32 @@ int main(int argc, char *argv[])
     //CDNAlgorithm<float,int>* cdn      = new CDNAlgorithm<float,int>(1);
     if (string(argv[1]) == "gng")
     {
-        gng = new GNGAlgorithm<float,int>(2);
+	    gng = new GNGAlgorithm<float,int>(1);
         algorithm = _gng;
     }
     else if (string(argv[1]) == "ebgng")
     {
-        gng = new EBGNGAlgorithm<float,int>(2);
+	    gng = new EBGNGAlgorithm<float,int>(1);
         algorithm = _ebgng;
     }
     else if (string(argv[1]) == "mgng")
     {
-        gng = new MGNGAlgorithm<float,int>(2);
+        gng = new MGNGAlgorithm<float,int>(1);
         algorithm = _mgng;
     }
     else if (string(argv[1]) == "cdn")
     {
-        gng = new CDNAlgorithm<float,int>(2);
+        gng = new CDNAlgorithm<float,int>(1);
         algorithm = _cdn;
+    }
+    else if (string(argv[1]) == "llbgng")
+    {
+        gng = new LLBGNGAlgorithm<float,int>(1);
+        algorithm = _llbgng;
     }
     else
     {
-        cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn" << endl;
+        cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn/llbgng" << endl;
         exit(1);
     }
 
@@ -114,26 +120,29 @@ int main(int argc, char *argv[])
     NeuralGasSuite<float,int> ng;
 
     
-    /*MackeyGlass* mg = new MackeyGlass;
+    MackeyGlass* mg = new MackeyGlass;
     mg->setPastTimeSteps(17);
     mg->setBoundary(0.4);
-    mg->setPower(10);*/
-    NoisyAutomata* na = new NoisyAutomata;
+    mg->setPower(10);
+    /*NoisyAutomata* na = new NoisyAutomata;
     na->setSigma (0.1);
-    na->setTransProb (0.1);
+    na->setTransProb (0.1);*/
     
     
-    //ng.setDataGenerator(mg);
-    ng.setDataGenerator(na);
+    ng.setDataGenerator(mg);
+    //ng.setDataGenerator(na);
     
     
-    //mg->generate(sizeofdata);
-    na->generate(sizeofdata);
-    vector<Vector<float>*>* data = na->getData();
-  
+    mg->generate(sizeofdata);
+    //na->generate(sizeofdata);
+    //vector<Vector<float>*>* data = na->getData();
+    vector<Vector<float>*>* data = mg->getData();
+    
     for (unsigned int i=0; i < data->size(); i++)
-        std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
+	    std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
+    ng.add(gng);
+    ng.setRefVectors(2);
    
     for(int i=0; i < NUM_PARAM; i++)
     {
@@ -191,10 +200,11 @@ int main(int argc, char *argv[])
         gng->setFuncArray(constgamma,3);
         gng->setFuncArray(functheta,7);
         gng->setFuncArray(funclambda,6);
-        gng->setStoppingCriterion (global_error);
-        //gng->setMaxEpochs (5);
-        //gng->setSamplingMode(randomly);
-        (dynamic_cast<GNGAlgorithm<float,int>*>(gng))->setMinGlobalError (0.00005);
+        //gng->setStoppingCriterion (global_error);
+        gng->setStoppingCriterion (epochs);
+        gng->setMaxEpochs (100);
+        gng->setSamplingMode(randomly);
+        //(dynamic_cast<GNGAlgorithm<float,int>*>(gng))->setMinGlobalError (0.01);
     }
     else if (algorithm == _ebgng)
     {
@@ -208,14 +218,29 @@ int main(int argc, char *argv[])
         gng->setStoppingCriterion (epochs);
         // gng->setMaxEpochs (1000000000);
     }
+    else if (algorithm == _llbgng)
+    {
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setTimeWindows (20, 100, 100);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setLearningRates (0.1, 0.01, 0.1);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setInsertionRate (10);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setAdaptationThreshold (0.05);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setInsertionTolerance (0.001);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setDeletionThreshold (0.5);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setMinimalNodeAge (0.001);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setMaximalEdgeAge (50);
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setStabilization (1.001);
+
+	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setSamplingMode (randomly);
+	    //gng->setStoppingCriterion (epochs);
+	    //gng->setMaxEpochs (100);
+	    //(dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setMaxNodes(5);
+	    gng->setStoppingCriterion (stability);
+    }
    
-    //ng.add(mgng);
-    //ng.add(ebgng);
-    //ng.add(cdn);
-    ng.add(gng);
-    ng.setRefVectors(2);
     //(dynamic_cast< CDNAlgorithm<float,int>* > (ng[1]))->setEnergy(0.1);
-    ng.run(); 
+    //na->save("data.txt");
+    mg->save("data.txt");
+    ng.run();
     std::vector<float> errors;
     for (int i=0; i < ng.size(); i++)
     {
@@ -223,7 +248,8 @@ int main(int argc, char *argv[])
         //errors = ng.getErrors(i,500);
         errors = ng.getErrors(i,sizeofdata-1);
         float total_error=0.0;
-        //ng[i]->showGraph();   
+        ng[i]->showGraph();
+	ng[i]->save ("nodes.txt");
         for(unsigned int j=0; j < errors.size(); j++)
         {
          //       std::cout << errors [j] << " ";
@@ -235,8 +261,8 @@ int main(int argc, char *argv[])
     }
 
     std::cout << std::endl;
-    //delete mg;
-    delete na;
+    delete mg;
+    //delete na;
     
     return EXIT_SUCCESS;
 }

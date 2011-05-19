@@ -137,8 +137,6 @@ template<typename T, typename S> class Base_Graph
              //returning a const reference to the node indexed by the given index
              Base_Node<T,S>&                     operator[](const unsigned int&) const;
              //inits the graph with the given number of nodes with random valued weight vectors
-             void                                initRandomGraph(const unsigned int&,const T&, const T&);
-             //inits the graph with the given number of nodes with random valued weight vectors
 	     void                                initRandomGraph(const unsigned int&,const Vector<T>&, const Vector<T>&);
 	//adds a new uninitialized, edgeless node into the graph
              void                                addNode(void);
@@ -310,35 +308,6 @@ template<typename T,typename S> void Base_Graph<T,S>::save(const char* filename)
 
 }
 
-
-/** \brief Inits the graph with the given number of nodes with random valued weight vectors.
-* If a graph already existed it is going to be erased.
-* 
-* \param num_of_nodes is the number of nodes with random valued weight vectors the graph is going to be initialized with
-*/
-  
-template<typename T,typename S> void Base_Graph<T,S>::initRandomGraph(const unsigned int& num_of_nodes, const T& low_limit, const T& high_limit)
-{    
-  unsigned int nsize  = size();
-  for(unsigned int i = 0; i < nsize; i++)
-  {
-    delete  _nodes[i];                                // delete ptrs to the nodes
-    _nodes[i] = NULL;            
-    _nodes.pop_back();                                // rm ptr from the node array 
-  }  
- 
-  for (unsigned int i = 0; i < num_of_nodes; i++)
-  {
-     addNode();                                     // adds a new node
-     (_nodes[i])->weight.resize(_dimNode);          // sets dimension of the weight vector
-     
-     for(unsigned int j = 0; j < _dimNode; j++)          
-     {
-	     (_nodes[i])->weight[j] = (T) ((rand() / (static_cast<T>(RAND_MAX) + 1.0)) * (high_limit - low_limit) + low_limit );   //sets the value of the weights to random values
-     }
-    
-  }  
-}
 
 /** \brief Inits the graph with the given number of nodes with random valued weight vectors.
 * If a graph already existed it is going to be erased.

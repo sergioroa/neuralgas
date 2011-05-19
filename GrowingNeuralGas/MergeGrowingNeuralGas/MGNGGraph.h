@@ -131,7 +131,7 @@ template<typename T,typename S> MGNGNode<T,S>* MGNGGraph<T,S>::newNode(void)
   n->counter=0.0;
   for(unsigned int j = 0; j < this->_dimNode; j++)          
     //n->context[j] = (T)(rand() % this->getMaxRandomValue() ); //sets the value of the weights to random values
-  n->context[j] = (T) ((rand() / (static_cast<T>(RAND_MAX) + 1.0)) * (this->high_limit - this->low_limit) + this->low_limit );
+  n->context[j] = (T) ((rand() / (static_cast<T>(RAND_MAX) + 1.0)) * (this->high_limits[j] - this->low_limits[j]) + this->low_limits[j] );
   
   return n; 
 }

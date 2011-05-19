@@ -48,21 +48,13 @@ public:
    // removes an edge between the nodes given by their indeces if there exists one by calling corresponding upper class method of UGraph    
    virtual void inline  rmEdge(const unsigned int& x,const unsigned int& y){if (x!=y) UGraph<T,S>::rmEdge(x,y);}
 
-   /// sets the minimal limit value
-   void setLowLimit(T low) {low_limit = low;}
-   /// sets the maximal limit value
-   void setHighLimit(T high) {high_limit = high;}
-   /// sets the minimal limit value
+   /// sets the minimal limit values
    void setLowLimits(Vector<T> low);
-   /// sets the maximal limit value
+   /// sets the maximal limit values
    void setHighLimits(Vector<T> high);
-   /// returns the minimal limit value
-   T getLowLimit() const{return low_limit;}
-   /// returns the maximal limit value
-   T getHighLimit() const{return high_limit;}
-   /// returns the minimal limit value
+   /// returns the minimal limit values
    Vector<T> getLowLimits() const{return low_limits;}
-   /// returns the maximal limit value
+   /// returns the maximal limit values
    Vector<T> getHighLimits() const{return high_limits;}
 
 protected:
@@ -70,9 +62,9 @@ protected:
    T low_limit;
    /// high_limit max value for the random initializiation of the context vector
    T high_limit;
-   /// low limit min value for the random initializiation of the context vector
+   /// low limit min value for the random initializiation of the context vector for each dimension
    Vector<T> low_limits;
-   /// high_limit max value for the random initializiation of the context vector
+   /// high_limit max value for the random initializiation of the context vector for each dimension
    Vector<T> high_limits;
 private:
    /// ErrorTesting is defined as friend in order to not having duplicate anything

@@ -69,7 +69,7 @@ float functheta(const unsigned int& time)
 
 int main(int argc, char *argv[])
 {
-    EBGNGAlgorithm<float,int>* eb= new EBGNGAlgorithm<float,int>(2);
+    EBGNGAlgorithm<float,int>* eb= new EBGNGAlgorithm<float,int>(/*2*/1);
     
     eb->setFuncArray(constgamma,3);
     eb->setFuncArray(func,4);
@@ -88,46 +88,56 @@ int main(int argc, char *argv[])
     }
     
     // noisy automata testing
-    NoisyAutomata na;
+    /*NoisyAutomata na;
     na.setSigma(sigma);
     na.setTransProb(transProb);
     na.generate(size);
     na.save("data.txt");
-    eb->setData(na.getData());
-    float min = eb->minValue();
-    float max = eb->maxValue();
-    eb->setRefVectors(2,min,max);
+    eb->setData(na.getData());*/
     //binary automata testing
   /*  BinaryAutomata ba;
     ba.generate(size);
     eb->setData(ba.getData());
    */ 
     //Mackey Glass testing
-   /* 
+    
    
     ErrorTesting<float,int> et(eb);
-    MackeyGlass mg;
-    mg.setPastTimeSteps(17);
-    mg.setBoundary(0.4);
-    mg.setPower(10);
+    MackeyGlass *mg = new MackeyGlass;
+    mg->setPastTimeSteps(17);
+    mg->setBoundary(0.4);
+    mg->setPower(10);
     
-    mg.generate(size);
+    mg->generate(size);
     
         
-    eb->setData(mg.getData());
-    eb->run();
+    eb->setData(mg->getData());
+
+    vector<Vector<float>*>* data = mg->getData();
+    
+    for (unsigned int i=0; i < data->size(); i++)
+	    std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
+
+    Vector<float> mins = eb->minValues();
+    Vector<float> maxs = eb->maxValues();
+    // float min = eb->minValue();
+    // float max = eb->maxValue();
+    // eb->setRefVectors(2,min,max);
+    eb->setRefVectors(2,mins,maxs);
+    eb->setErrorThreshold(0.01);
+   
+    eb->setSamplingMode(randomly);
+    // eb->setStoppingCriterion (epochs);
+    // eb->setMaxEpochs (5);
+    eb->setStoppingCriterion (stability);
+
+    eb->run(); 
+    // eb->save("nodes.txt");
     float total_error=0.0;
     std::vector<float> errors = et.getErrors(50);
-    for (int i =0; i < errors.size(); i++)
+    for (unsigned int i =0; i < errors.size(); i++)
         total_error += errors[i];
     
     std::cout << total_error <<std::endl;
-   */
-    //eb->setSamplingMode(randomly);
-    eb->setStoppingCriterion (epochs);
-    eb->setMaxEpochs (5);
-
-    eb->run(); 
-    eb->save("nodes.txt");
     return EXIT_SUCCESS;
 }

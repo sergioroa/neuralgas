@@ -10,10 +10,8 @@
 #ifndef NOISYAUTOMATA_H
 #define NOISYAUTOMATA_H
 
-#define PI 3.14159
-
-#include <math.h>
 #include "DataGenerator.h"
+#include <tools/math_helpers.h>
 
 namespace neuralgas {
 
@@ -29,14 +27,12 @@ class NoisyAutomata : public DataGenerator<float>
       private:
              virtual  Vector<float>* generate();
              virtual  Vector<float>* next(){return generate();}
-             Vector<float>* normal_distribution(const float&, const float&);
-             float    approx_gauss(const float&);
-             void     box_muller(float&,float&);
+             // Vector<float>* normal_distribution(const float&, const float&);
+             // float    approx_gauss(const float&);
+             // void     box_muller(float&,float&);
              short    _state;
              float    _sigma;
              float    _transProb;
-             float    _sqrt2;
-             float    _sqrtPI;
       
 };
 
@@ -46,8 +42,6 @@ NoisyAutomata::NoisyAutomata() : DataGenerator<float>(2)
  _state=0;
  _transProb=0.5;
  _sigma=1;
- _sqrt2 = sqrt(2);
- _sqrtPI = sqrt(M_PI);
 }
 
 void NoisyAutomata::reset()
@@ -74,66 +68,6 @@ void NoisyAutomata::setTransProb(const float& transProb)
  _transProb=transProb;
 }
 
-float NoisyAutomata::approx_gauss(const float& value)
-{
-      float dz = 10E-5;
-      float integral = 0.0;
-      float z = 0.0;
-    
-      float tmpvalue=(value >0 )? value : -value; 
- 
-      while ( integral < tmpvalue  )
-      {
-            integral+=exp(- pow(z,2))*dz;
-            z += dz;
-      } 
-      return ( value > 0) ? z : -z;
-}
-
-void NoisyAutomata::box_muller(float& a1, float& a2)
-{
-     float rho = sqrt( -2* (log(a1)));
-     float phi = 2*M_PI*a2;
-     a1 = rho * cos(phi);
-     a2 = rho * sin(phi);
-}
-
-Vector<float>* NoisyAutomata::normal_distribution(const float& m1, const float& m2)
-{
- Vector<float>* v=new Vector<float>(2);
-
- //float a;
- float a1,a2;
- do
- {
-  a1 = float(rand()%10000) / 10000;
- }while(a1==0.0);
- a2 = float(rand()%10000) / 10000;
- 
- box_muller(a1,a2); 
- (*v)[0] = a1  * _sigma + m1; 
- (*v)[1] = a2  * _sigma + m2; 
-
- /*do
- {
-       a = _sqrtPI * ( float(rand()%10000) / 10000) - _sqrtPI / 2;
- }
- while(a>0.88 or a <-0.88); 
-
- (*v)[0] = _sqrt2 * approx_gauss(a)  * _sigma + m1; 
- 
- do
- {
-       a = _sqrtPI * (float(rand()%10000) / 10000) - _sqrtPI / 2;
- }
- while(a>0.88 or a <-0.88); 
- 
- (*v)[1] = _sqrt2 * approx_gauss(a) * _sigma + m2; 
- */
- return v;
-             
-}             
-
 Vector<float>* NoisyAutomata::generate()
 {
  float prob  =float (rand() % 1000) /1000;
@@ -149,39 +83,39 @@ Vector<float>* NoisyAutomata::generate()
       {
       
             _state=1;
-            return normal_distribution(1,0);
+            return normal_distribution(1,0,_sigma,_sigma);
       }
    else 
       {
             
             _state=3;
             
-            return normal_distribution(0,1);
+            return normal_distribution(0,1,_sigma,_sigma);
       }
  }
  else if( _state==1)
  {
    _state=0;
-   return normal_distribution(0,0);
+   return normal_distribution(0,0,_sigma,_sigma);
  }
  else if (_state==2)
  {
    if (prob <= _transProb)
       {
             _state=3;
-            return normal_distribution(0,1);
+            return normal_distribution(0,1,_sigma,_sigma);
       }
    else 
       {
 
             _state=1;
-            return normal_distribution(1,0);
+            return normal_distribution(1,0,_sigma,_sigma);
       } 
  }
  else if(_state==3)
  {
     _state=2;
-    return normal_distribution(0,0);
+    return normal_distribution(0,0,_sigma,_sigma);
  }
  return 0;
 }

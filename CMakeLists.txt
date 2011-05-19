@@ -111,6 +111,7 @@ SET(DATAGENERATOR_HEADERS
 	${NEURALGAS_ROOT}/DataGenerator/MackeyGlass.h
 	${NEURALGAS_ROOT}/DataGenerator/BinaryAutomata.h
 	${NEURALGAS_ROOT}/DataGenerator/NoisyAutomata.h
+	${NEURALGAS_ROOT}/DataGenerator/GaussianNoise.h
 	${NEURALGAS_ROOT}/DataGenerator/ProbMackeyGlass.h
 )
 INSTALL(FILES ${DATAGENERATOR_HEADERS} DESTINATION include/NeuralGas/DataGenerator/)
@@ -121,7 +122,8 @@ SET(VORONOIDIAGRAMM_HEADERS
 INSTALL(FILES ${VORONOIDIAGRAMM_HEADERS} DESTINATION include/NeuralGas/VoronoiDiagramm/)
 
 SET(TOOLS_HEADERS
-	${NEURALGAS_ROOT}/tools/metrics.h)
+	${NEURALGAS_ROOT}/tools/metrics.h
+	${NEURALGAS_ROOT}/tools/math_helpers.h)
 INSTALL(FILES ${TOOLS_HEADERS} DESTINATION include/NeuralGas/tools/)
 
 SET(VORONOIDIAGRAMM_SOURCES
@@ -144,6 +146,9 @@ SET(PROBMACKEYGLASS
 
 SET(NOISYAUTOMATA
         ${NEURALGAS_ROOT}/DataGenerator/mainNoisyAutomata.cpp)
+
+SET(GAUSSIANNOISE
+        ${NEURALGAS_ROOT}/DataGenerator/mainGaussianNoise.cpp)
 
 SET(VORONOIDIAGRAMM
         ${NEURALGAS_ROOT}/VoronoiDiagramm/main.cpp)
@@ -183,6 +188,7 @@ ADD_EXECUTABLE(MackeyGlass ${MACKEYGLASS})
 ADD_EXECUTABLE(BinaryAutomata ${BINARYAUTOMATA})
 ADD_EXECUTABLE(ProbMackeyGlass ${PROBMACKEYGLASS})
 ADD_EXECUTABLE(NoisyAutomata ${NOISYAUTOMATA})
+ADD_EXECUTABLE(GaussianNoise ${GAUSSIANNOISE})
 ADD_EXECUTABLE(VoronoiDiagramm ${VORONOIDIAGRAMM})
 ADD_EXECUTABLE(GNG ${GNG})
 ADD_EXECUTABLE(LLBGNG ${LLBGNG})

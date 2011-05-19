@@ -79,7 +79,7 @@ public:
 	void    run();
            
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const unsigned int&,const T&, const T&);
+	virtual void    setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
         // get global error
         virtual T getGlobalError ();
         // set stopping value (minimum global error)
@@ -129,7 +129,7 @@ template<typename T,typename S> GNGAlgorithm<T,S>::~GNGAlgorithm()
 * \param num_of_ref_vec is the number of initial reference vectors
 * \param max_value is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const T& low_limit, const T& high_limit)
+template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
 {
   if (_graphptr!=NULL)
       delete _graphptr;
@@ -137,15 +137,13 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const unsi
      delete this->graphptr;
   
   _graphptr           = new GNGGraph<T,S>(this->getDimension());
-  // DANGER DownCast is performed via dynamic_cast
-  //_graphptr       = dynamic_cast< MGNGGraph<T,S> * >(this->_graphModulptr);
   this->graphptr      = _graphptr;
   this->_graphModulptr = _graphptr;
-  // sets the min value for the init of the context vector
-  _graphptr->setLowLimit(low_limit);
-  // sets the max value for the init of the context vector
-  _graphptr->setHighLimit(high_limit);
-  _graphptr->initRandomGraph(num_of_ref_vec,low_limit, high_limit); // creates a Graph object with given size of the 
+  // sets the min values for the init of the context vector
+  _graphptr->setLowLimits(low_limits);
+  // sets the max values for the init of the context vector
+  _graphptr->setHighLimits(high_limits);
+  _graphptr->initRandomGraph(num_of_ref_vec,low_limits, high_limits); // creates a Graph object with given size of the 
                                                 // vectors and number of ref vectors initilized with 
                                                 // random values
 }

@@ -1,35 +1,47 @@
 #include <iostream>
-#include "LLBGNGAlgorithm.h"
-#include <DataGenerator/NoisyAutomata.h>
+#include <GrowingNeuralGas/LifelongBasedGNGAlgorithm/LLBGNGAlgorithm.h>
+#include <DataGenerator/GaussianNoise.h>
 #include "GrowingNeuralGas/Testing/ErrorTesting.h"
-
 
 using namespace std;
 using namespace neuralgas;
 
-int main (int argc, char* argv[])
-{
-	LLBGNGAlgorithm<float, int>* llbgng = new LLBGNGAlgorithm<float, int>(2);
 
+int main(int argc, char *argv[])
+{
+	
+	LLBGNGAlgorithm<float, int>* llbgng = new LLBGNGAlgorithm<float, int>(2);
 	int size;
-	float sigma, transProb;
-	if (argc == 4) {
+	float whitenoise_prob = -1.0;
+	if (argc >= 2) {
 		size = atoi(argv[1]);
-		sigma = atof(argv[2]);
-		transProb = atof(argv[3]);
 	}
-	else {
-		cerr << "Usage: " << argv[0] << " size sigma transition_prob" << endl;
+	if (argc >= 3) {
+		whitenoise_prob = atof(argv[2]);
+		if (whitenoise_prob < 0.0 || whitenoise_prob > 1.0)
+		{
+			cerr << "Please enter a valid probability value!" << endl;
+			return 1;
+		}
+	}
+	if (argc < 2) {
+		cerr << "Usage: " << argv[0] << " size [whitenoise_prob]" << endl;
 		return 1;
 	}
-    
-	// noisy automata testing
-	NoisyAutomata na;
-	na.setSigma(sigma);
-	na.setTransProb(transProb);
-	na.generate(size);
-	na.save("data.txt");
-	llbgng->setData(na.getData());
+
+
+	GaussianNoise gn;
+	gn.setCanonicalDataset ();
+	if (whitenoise_prob != -1.0)
+		gn.setWhiteNoiseProb (whitenoise_prob);
+	gn.generate(size);
+	vector<Vector<float>*>* data = gn.getData();
+	
+	for (unsigned int i=0; i < data->size(); i++)
+		std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
+
+	gn.save("data.txt");
+	llbgng->setData(gn.getData());
 	Vector<float> mins = llbgng->minValues();
 	Vector<float> maxs = llbgng->maxValues();
 	// float min = llbgng->minValue();
@@ -53,7 +65,7 @@ int main (int argc, char* argv[])
 	llbgng->setDeletionThreshold (0.5);
 	llbgng->setMinimalNodeAge (0.001);
 	llbgng->setMaximalEdgeAge (50);
-	// llbgng->setMaxNodes (3);
+	//llbgng->setMaxNodes (5);
 	llbgng->setStabilization (1.001);
 
 	llbgng->setSamplingMode (randomly);
@@ -71,8 +83,8 @@ int main (int argc, char* argv[])
 	for (unsigned int i =0; i < errors.size(); i++)
 		total_error += errors[i];
 	
-	std::cout << total_error / size<<std::endl;
+	std::cout << total_error / size <<std::endl;
 
+	
 	return EXIT_SUCCESS;
-
 }
