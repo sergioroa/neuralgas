@@ -27,6 +27,7 @@ int main (int argc, char* argv[])
 	NoisyAutomata na;
 	na.setSigma(sigma);
 	na.setTransProb(transProb);
+	na.openCrySSMExFile ();
 	na.generate(size);
 	na.save("data.txt");
 	llbgng->setData(na.getData());

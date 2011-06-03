@@ -31,7 +31,8 @@ int main(int argc, char *argv[])
 
 
 	GaussianNoise gn;
-	gn.setCanonicalDataset ();
+	//gn.setCanonicalDataset ();
+	gn.setCustomizedDataset ();
 	if (whitenoise_prob != -1.0)
 		gn.setWhiteNoiseProb (whitenoise_prob);
 	gn.generate(size);
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
 	// llbgng->setRefVectors(2,mins,maxs);
 
 	llbgng->setTimeWindows (20, 100, 100);
-	llbgng->setLearningRates (0.1, 0.001, 0.1);
+	llbgng->setLearningRates (0.1, 0.001, 0.01);
 	llbgng->setInsertionRate (10);
 	llbgng->setAdaptationThreshold (0.05);
 	llbgng->setInsertionTolerance (0.1);
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
 
 	llbgng->setSamplingMode (randomly);
 	//llbgng->setStoppingCriterion (epochs);
-	//llbgng->setMaxEpochs (100);
+	//llbgng->setMaxEpochs (1);
 	llbgng->setStoppingCriterion (stability);
 
 	llbgng->run(); 

@@ -375,19 +375,24 @@ void LLBGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	//check if insertion is successful
 	if (first_node->longterm_avgerror >= first_node->inherited_error * (1 - insertion_tolerance)) {
 		first_node->insertion_threshold += insertion_learning_rate * (first_node->longterm_avgerror - first_node->insertion_threshold * (1 - insertion_tolerance));
+   		// std::cout << "1st i.t.: " << first_node->insertion_threshold << std::endl;
 	}
 	
 	if (snd_node->longterm_avgerror >= snd_node->inherited_error * (1 - insertion_tolerance)) {
 		snd_node->insertion_threshold += insertion_learning_rate * (snd_node->longterm_avgerror - snd_node->insertion_threshold * (1 - insertion_tolerance));
+		// std::cout << "2nd i.t.: " << snd_node->insertion_threshold << std::endl;
 	}
 	if(node->longterm_avgerror >= node->inherited_error * (1 - insertion_tolerance)) {
 		node->insertion_threshold += insertion_learning_rate * (node->longterm_avgerror - node->insertion_threshold * (1 - insertion_tolerance));
-		
+		// std::cout << "node i.t.: " << node->insertion_threshold << std::endl;		
 	}
-	first_node->inherited_error = first_node->longterm_avgerror;	
+	first_node->inherited_error = first_node->longterm_avgerror;
 	snd_node->inherited_error = snd_node->longterm_avgerror;
 	node->inherited_error = node->longterm_avgerror;
-
+	// std::cout << "1st i.e.: " << first_node->inherited_error << std::endl;
+	// std::cout << "2nd i.e.: " << snd_node->inherited_error << std::endl;
+	// std::cout << "node i.e.: " << node->inherited_error << std::endl;
+	
 	assert (node->longterm_errors.size() == 1);
 	assert (node->shortterm_errors.size() == 1);
 	node->longterm_errors.front() = node->longterm_avgerror;

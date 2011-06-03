@@ -220,17 +220,17 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == _llbgng)
     {
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setTimeWindows (20, 100, 100);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setLearningRates (0.1, 0.01, 0.1);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setInsertionRate (10);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setAdaptationThreshold (0.05);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setInsertionTolerance (0.001);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setDeletionThreshold (0.5);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setMinimalNodeAge (0.001);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setMaximalEdgeAge (50);
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setStabilization (1.001);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setTimeWindows (20, 100, 100);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setLearningRates (0.1, 0.01, 0.1);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setInsertionRate (10);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setAdaptationThreshold (0.05);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setInsertionTolerance (0.001);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setDeletionThreshold (0.5);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setMinimalNodeAge (0.001);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setMaximalEdgeAge (50);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setStabilization (1.001);
 
-	    (dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setSamplingMode (randomly);
+	    dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng)->setSamplingMode (randomly);
 	    //gng->setStoppingCriterion (epochs);
 	    //gng->setMaxEpochs (100);
 	    //(dynamic_cast<LLBGNGAlgorithm<float,int>*>(gng))->setMaxNodes(5);

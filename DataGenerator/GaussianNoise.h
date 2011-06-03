@@ -22,7 +22,7 @@ public:
 	void generate(const int& number);
 	virtual void reset();
 	void setCanonicalDataset ();
-	void setCustomizedDataset () {}; // TO DO
+	void setCustomizedDataset ();
 	void setWhiteNoiseProb(const float&);
 	void setLimits (float, float, float, float);
 private:
@@ -68,8 +68,8 @@ void GaussianNoise::setCanonicalDataset ()
 	
 	centers_params[2][0] = 2;
 	centers_params[2][1] = 0;
-	centers_params[2][2] = 0.1;
-	centers_params[2][3] = 0.1;
+	centers_params[2][2] = 0.3;
+	centers_params[2][3] = 0.3;
 
 	centers_params[3][0] = -1;
 	centers_params[3][1] = 0;
@@ -81,6 +81,41 @@ void GaussianNoise::setCanonicalDataset ()
 	centers_params[4][2] = 0.1;
 	centers_params[4][3] = 0.2;
 }
+
+void GaussianNoise::setCustomizedDataset ()
+{
+	int nr_centers;
+	std::cout << "Type nr. of centers: ";
+	std::cin >> nr_centers;
+	
+	for (int i=0; i<nr_centers; i++)
+	{
+		Vector<float> params;
+		centers_params.push_back (params);
+		for (int j=0; j<4; j++)
+			centers_params[i].push_back (0.0);
+		std::cout << "x = ";
+		std::cin >> centers_params[i][0];
+		std::cout << "y = ";
+		std::cin >> centers_params[i][1];
+		std::cout << "var x = ";
+		std::cin >> centers_params[i][2];
+		std::cout << "var y = ";
+		std::cin >> centers_params[i][3];
+	}
+
+	float min_x, max_x, min_y, max_y;
+	std::cout << "Min x: ";
+	std::cin >> min_x;
+	std::cout << "Max x: ";
+	std::cin >> max_x;
+	std::cout << "Min y: ";
+	std::cin >> min_y;
+	std::cout << "Max y: ";
+	std::cin >> max_y;
+	setLimits (min_x, max_x, min_y, max_y);
+}
+
 
 void GaussianNoise::setLimits (float min_x, float max_x, float min_y, float max_y)
 {

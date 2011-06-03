@@ -72,7 +72,9 @@ public:
 	/// show graph for visualization
 	void showGraph(){_graphptr->showGraph();}
 	// sets a maximal partition
-	void setMaxNodes (unsigned int nr) { max_nodes = nr;} 
+	void setMaxNodes (unsigned int nr) { max_nodes = nr;}
+	// gets maximal partition
+	unsigned int getMaxNodes () const;
 protected:
 	// calculate and return local similarity of weights for some node
 	T calculateWeightsLocalSimilarity (const int);
@@ -87,7 +89,7 @@ private:
         void learning_loop ( unsigned int, unsigned int );
 	/// insertion rate constant
 	T insertion_rate;
-	/// maximal number of nodes if it is set
+	/// maximal number of nodes if it is set (not obligatory)
 	unsigned int max_nodes;
 	
 };
@@ -99,7 +101,9 @@ private:
 template<typename T,typename S>
 LLBGNGAlgorithm<T,S>::LLBGNGAlgorithm(const unsigned int& dim): GNGModul<T,S>(dim)
 {
-	_graphptr=NULL;
+	_graphptr = new LLBGNGGraph<T,S>(dim);
+	this->graphptr = _graphptr;
+	this->_graphModulptr = _graphptr;
 	max_nodes = 0;
 }
 
@@ -123,14 +127,15 @@ template<typename T,typename S>
 void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
 {
 	assert (num_of_ref_vec >= 2);
-	if (_graphptr!=NULL)
+	assert (_graphptr->size() == 0);
+	/*if (_graphptr!=NULL)
 		delete _graphptr;
 	if (this->graphptr!=NULL)
 		delete this->graphptr;
-     
+	
 	_graphptr           = new LLBGNGGraph<T,S>(this->getDimension());
 	this->graphptr      = _graphptr;
-	this->_graphModulptr = _graphptr;
+	this->_graphModulptr = _graphptr;*/
 	// sets the min value for the init of the context vector
 	_graphptr->setLowLimits(low_limits);
 	// sets the max value for the init of the context vector
@@ -151,7 +156,6 @@ void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setTimeWindows (unsigned int shortterm_window, unsigned int longterm_window, unsigned int age_time_window)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setTimeWindows (shortterm_window, longterm_window, age_time_window);
 }
 
@@ -163,7 +167,6 @@ void LLBGNGAlgorithm<T,S>::setTimeWindows (unsigned int shortterm_window, unsign
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setLearningRates (T winner_learning_rate, T neighbors_learning_rate, T insertion_learning_rate)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setLearningRates (winner_learning_rate, neighbors_learning_rate, insertion_learning_rate);
 }
 
@@ -172,7 +175,6 @@ void LLBGNGAlgorithm<T,S>::setLearningRates (T winner_learning_rate, T neighbors
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setAdaptationThreshold (T adaptation_threshold)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setAdaptationThreshold (adaptation_threshold );	
 }
 
@@ -181,7 +183,6 @@ void LLBGNGAlgorithm<T,S>::setAdaptationThreshold (T adaptation_threshold)
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setInsertionTolerance (T insertion_tolerance)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setInsertionTolerance (insertion_tolerance);	
 }
 
@@ -190,7 +191,6 @@ void LLBGNGAlgorithm<T,S>::setInsertionTolerance (T insertion_tolerance)
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setInsertionRate (T rate)
 {
-	assert (_graphptr != NULL);
 	insertion_rate = rate;	
 }
 
@@ -199,7 +199,6 @@ void LLBGNGAlgorithm<T,S>::setInsertionRate (T rate)
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setDeletionThreshold (T deletion_threshold)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setDeletionThreshold (deletion_threshold);	
 }
 
@@ -209,7 +208,6 @@ void LLBGNGAlgorithm<T,S>::setDeletionThreshold (T deletion_threshold)
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setMinimalNodeAge (T minimal_node_age)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setMinimalNodeAge (minimal_node_age);
 }
 
@@ -219,7 +217,6 @@ void LLBGNGAlgorithm<T,S>::setMinimalNodeAge (T minimal_node_age)
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setMaximalEdgeAge (unsigned int maximal_edge_age)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setMaximalEdgeAge (maximal_edge_age) ;
 }
 
@@ -229,7 +226,6 @@ void LLBGNGAlgorithm<T,S>::setMaximalEdgeAge (unsigned int maximal_edge_age)
 template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setStabilization (T stabilization)
 {
-	assert (_graphptr != NULL);
 	_graphptr->setStabilization( stabilization );
 }
 
@@ -534,6 +530,9 @@ bool LLBGNGAlgorithm<T,S>::isGraphStable ()
 		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
 		std::cout << "node " << i << " long-term e.: " << node->longterm_avgerror << std::endl;
 		std::cout << "node " << i << " short-term e.: " << node->shortterm_avgerror << std::endl;
+		std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
+		std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
+		std::cout << "node " << i << " insertion t.: " << node->insertion_threshold << std::endl;		
 		// if (node->age > _graphptr->getMinimalNodeAge())
 		if (node->age > _graphptr->getMinimalNodeAge() || node->learning_quality > _graphptr->getStabilization())
 			return false;
@@ -558,6 +557,17 @@ void LLBGNGAlgorithm<T,S>::deleteUselessNodes ()
 			node->activations_counter = 0;
 		
 	}
+}
+
+/* \brief get maximal number of partitions
+ */
+template<typename T, typename S>
+unsigned int LLBGNGAlgorithm<T,S>::getMaxNodes () const
+{
+	if (max_nodes == 0)
+		return _graphptr->size ();
+	else
+		return max_nodes;
 }
 
 } // namespace neuralgas
