@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
 
 
 	GaussianNoise gn;
-	//gn.setCanonicalDataset ();
-	gn.setCustomizedDataset ();
+	gn.setCanonicalDataset ();
+	//gn.setCustomizedDataset ();
 	if (whitenoise_prob != -1.0)
 		gn.setWhiteNoiseProb (whitenoise_prob);
 	gn.generate(size);

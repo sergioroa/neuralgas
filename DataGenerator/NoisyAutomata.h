@@ -16,6 +16,8 @@
 
 namespace neuralgas {
 
+enum noisyautomata_encoding { vectorial, symbolic };
+
 class NoisyAutomata : public DataGenerator<float>
 {
       public:
@@ -26,6 +28,8 @@ class NoisyAutomata : public DataGenerator<float>
              void setTransProb(const float&);
              void setState(const int&);
              void openCrySSMExFile (const char*);
+             void setInputFormat (unsigned int);
+             void setOutputFormat (unsigned int);
       private:
              virtual  Vector<float>* generate();
              virtual  Vector<float>* next(){return generate();}
@@ -36,6 +40,8 @@ class NoisyAutomata : public DataGenerator<float>
              float    _sigma;
              float    _transProb;
              std::ofstream crySSMExFile;
+             unsigned int input_format;
+             unsigned int output_format;
       
 };
 
@@ -45,6 +51,8 @@ NoisyAutomata::NoisyAutomata() : DataGenerator<float>(2)
  _state=0;
  _transProb=0.5;
  _sigma=1;
+ input_format = symbolic;
+ output_format = symbolic;
 }
 
 void NoisyAutomata::reset()
@@ -71,6 +79,16 @@ void NoisyAutomata::setTransProb(const float& transProb)
  _transProb=transProb;
 }
 
+void NoisyAutomata::setInputFormat (unsigned int format)
+{
+  input_format = format;
+}
+
+void NoisyAutomata::setOutputFormat (unsigned int format)
+{
+  output_format = format;
+}
+
 void NoisyAutomata::openCrySSMExFile (const char* filename = "cryssmexdata.cry")
 {
   crySSMExFile.open(filename);
@@ -82,17 +100,32 @@ void NoisyAutomata::generate(const int& number)
   if (crySSMExFile.is_open())
   {
     crySSMExFile << "# input dim" << std::endl;
-    crySSMExFile << 0 << std::endl;
+    if (input_format == symbolic)
+      crySSMExFile << 0 << std::endl;
+    else if (input_format == vectorial)
+      crySSMExFile << _dim << std::endl;
+
     crySSMExFile << "# state dim" << std::endl;
     crySSMExFile << _dim << std::endl;
     crySSMExFile << "# output dim" << std::endl;
-    crySSMExFile << 0 << std::endl;
+    if (output_format == symbolic)
+      crySSMExFile << 0 << std::endl;
+    else if (output_format == vectorial)
+      crySSMExFile << _dim << std::endl;
 
-    crySSMExFile << "# nr input symbols" << std::endl << "4" << std::endl;
-    crySSMExFile << "# examples" << std::endl << "ba ab ca ac" << std::endl;
-    crySSMExFile << "# nr output symbols" << std::endl;
-    crySSMExFile << 4 << std::endl;
-    crySSMExFile << "# examples" << std::endl << "ba ab ca ac" << std::endl;
+    if (input_format == symbolic)
+    {
+      crySSMExFile << "# nr input symbols" << std::endl << 3 << std::endl;
+      crySSMExFile << "# examples" << std::endl << "a b c" << std::endl;
+    }
+    else if (input_format == vectorial)
+      crySSMExFile << "# nr input symbols" << std::endl << 0.0 << std::endl;
+    if (output_format == symbolic)
+    {
+      crySSMExFile << "# nr output symbols" << std::endl;
+      crySSMExFile << 3 << std::endl;
+      crySSMExFile << "# examples" << std::endl << "a b c" << std::endl;
+    }
     
     
   }
@@ -117,23 +150,35 @@ Vector<float>* NoisyAutomata::generate()
  // 3 : ac
 
  Vector<float>* item;
+
+ if (_data->size() == 0)
+ {
+   item = normal_distribution(0,0,_sigma,_sigma);
+   return item; 
+ }
+ else
+   item = _data->back();
+
  if ( _state==0)
  {
-   if (crySSMExFile.is_open())
-     crySSMExFile << "ba  ";
+   if (crySSMExFile.is_open() && input_format == vectorial)
+     write_vector (crySSMExFile, item);
+   else if (crySSMExFile.is_open() && input_format == symbolic)
+     crySSMExFile << "a  ";
        
    if (prob <= _transProb)
-      {
-      
-	_state=1;
-	item = normal_distribution(1,0,_sigma,_sigma);
-	if (crySSMExFile.is_open())
-	{
-	  write_vector (crySSMExFile, item);
-	  crySSMExFile << "ab" << std::endl;
-	}
-	return item; 
-      }
+   {
+     
+     _state=1;
+     item = normal_distribution(1,0,_sigma,_sigma);
+     if (crySSMExFile.is_open())
+     {
+       write_vector (crySSMExFile, item);
+       if (output_format == symbolic)
+	 crySSMExFile << "b" << std::endl;
+     }
+     return item; 
+   }
    else 
    {
      
@@ -142,39 +187,48 @@ Vector<float>* NoisyAutomata::generate()
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, item);
-       crySSMExFile << "ac" << std::endl;
+       if (output_format == symbolic)
+	 crySSMExFile << "c" << std::endl;
      }
      return item;
    }
  }
  else if( _state==1)
  {
-   if (crySSMExFile.is_open())
-     crySSMExFile << "ab  ";
+   if (crySSMExFile.is_open() && input_format == vectorial)
+     write_vector (crySSMExFile, item);
+   else if (crySSMExFile.is_open() && input_format == symbolic)
+     crySSMExFile << "b  ";
+
    _state=0;
    item = normal_distribution(0,0,_sigma,_sigma);
    if (crySSMExFile.is_open())
    {
      write_vector (crySSMExFile, item);
-     crySSMExFile << "ba" << std::endl;
+     if (output_format == symbolic)
+       crySSMExFile << "a" << std::endl;
    }   
    return item;
  }
  else if (_state==2)
  {
-   if (crySSMExFile.is_open())
-     crySSMExFile << "ca  ";
+   if (crySSMExFile.is_open() && input_format == vectorial)
+     write_vector (crySSMExFile, item);
+   else if (crySSMExFile.is_open() && input_format == symbolic)
+     crySSMExFile << "a  ";
+
    if (prob <= _transProb)
-      {
-	_state=3;
-	item = normal_distribution(0,1,_sigma,_sigma);
-	if (crySSMExFile.is_open())
-	{
-	  write_vector (crySSMExFile, item);
-	  crySSMExFile << "ac" << std::endl;
-	}
-	return item;
-      }
+   {
+     _state=3;
+     item = normal_distribution(0,1,_sigma,_sigma);
+     if (crySSMExFile.is_open())
+     {
+       write_vector (crySSMExFile, item);
+       if (output_format == symbolic)
+	 crySSMExFile << "c" << std::endl;
+     }
+     return item;
+   }
    else 
    {
      
@@ -183,21 +237,25 @@ Vector<float>* NoisyAutomata::generate()
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, item);
-       crySSMExFile << "ab" << std::endl;
+       if (output_format == symbolic)
+	 crySSMExFile << "b" << std::endl;
      } 
      return item;
    } 
  }
  else if(_state==3)
  {
-   if (crySSMExFile.is_open())
-     crySSMExFile << "ac  ";
+   if (crySSMExFile.is_open() && input_format == vectorial)
+     write_vector (crySSMExFile, item);
+   else if (crySSMExFile.is_open() && input_format == symbolic)
+     crySSMExFile << "c  ";
    _state=2;
    item = normal_distribution(0,0,_sigma,_sigma);
    if (crySSMExFile.is_open())
    {
      write_vector (crySSMExFile, item);
-     crySSMExFile << "ca" << std::endl;
+     if (output_format == symbolic)
+       crySSMExFile << "a" << std::endl;
    }   
    return item;
  }

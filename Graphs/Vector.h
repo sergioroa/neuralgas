@@ -24,8 +24,8 @@ template<typename T> class Vector : public std::vector<T>
          inline Vector(){this->resize(1);}
          inline Vector(const int& dim){this->resize(dim);}
          inline Vector(const int& dim,const T& value){this->resize(dim,value);}
-	 inline Vector(const std::vector<T>& v) { (*this) = static_cast<Vector<T> >(v);}
-	 inline Vector (const Vector<T>& v) { (*this)=v; } 
+         inline Vector(const std::vector<T>& v);
+         inline Vector (const Vector<T>& v) { (*this)=v; } //hmm, verify size? 
          //operator+= based on the operations = and +
          inline Vector<T>& operator+=(const Vector<T>&);
          //operator-= based on the operations = and -
@@ -329,6 +329,14 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 
  return (*result);
 
+}
+
+template<typename T>
+inline Vector<T>::Vector (const std::vector<T>& v)
+{
+  this->resize(v.size());
+  for (unsigned int i=0; i<v.size(); i++)
+    this->at(i) = v[i];
 }
 
 } // namespace neuralgas
