@@ -31,8 +31,14 @@ int main(int argc, char *argv[])
 
 
 	GaussianNoise gn;
-	gn.setCanonicalDataset ();
-	//gn.setCustomizedDataset ();
+	// gn.setCanonicalDataset ();
+	gn.setCustomizedDataset ();
+	// const char* filename = "prueba.dat";
+	// if (!gn.readCustomizedDataset (filename))
+	// {
+	// 	cerr << "Error opening file..." << endl;
+	// 	return 1;
+	// }
 	if (whitenoise_prob != -1.0)
 		gn.setWhiteNoiseProb (whitenoise_prob);
 	gn.generate(size);
@@ -58,7 +64,8 @@ int main(int argc, char *argv[])
 	llbgng->setRefVectors(2,mins,maxs);
 	// llbgng->setRefVectors(2,mins,maxs);
 
-	llbgng->setTimeWindows (20, 100, 100);
+	// llbgng->setTimeWindows (20, 100, 100);
+	llbgng->setTimeWindows (100, 60, 100);
 	llbgng->setLearningRates (0.1, 0.001, 0.01);
 	llbgng->setInsertionRate (10);
 	llbgng->setAdaptationThreshold (0.05);

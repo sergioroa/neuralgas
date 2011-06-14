@@ -47,8 +47,9 @@ int main (int argc, char* argv[])
 	llbgng->setRefVectors(2,mins,maxs);
 	// llbgng->setRefVectors(2,mins,maxs);
 
-	llbgng->setTimeWindows (20, 100, 100);
-	llbgng->setLearningRates (0.1, 0.001, 0.1);
+	// llbgng->setTimeWindows (20, 100, 100);
+	llbgng->setTimeWindows (100, 60, 100);
+	llbgng->setLearningRates (0.1, 0.001, 0.01);
 	llbgng->setInsertionRate (10);
 	llbgng->setAdaptationThreshold (0.05);
 	llbgng->setInsertionTolerance (0.1);
@@ -56,7 +57,7 @@ int main (int argc, char* argv[])
 	llbgng->setMinimalNodeAge (0.001);
 	llbgng->setMaximalEdgeAge (50);
 	// llbgng->setMaxNodes (3);
-	llbgng->setStabilization (1.001);
+	llbgng->setStabilization (1.01);
 
 	llbgng->setSamplingMode (randomly);
 	//llbgng->setStoppingCriterion (epochs);

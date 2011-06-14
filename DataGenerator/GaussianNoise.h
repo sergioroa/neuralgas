@@ -12,6 +12,7 @@
 
 #include "DataGenerator.h"
 #include <tools/math_helpers.h>
+#include <string>
 
 namespace neuralgas {
 
@@ -23,6 +24,7 @@ public:
 	virtual void reset();
 	void setCanonicalDataset ();
 	void setCustomizedDataset ();
+	bool readCustomizedDataset (const char*);
 	void setWhiteNoiseProb(const float&);
 	void setLimits (float, float, float, float);
 private:
@@ -114,6 +116,41 @@ void GaussianNoise::setCustomizedDataset ()
 	std::cout << "Max y: ";
 	std::cin >> max_y;
 	setLimits (min_x, max_x, min_y, max_y);
+}
+
+bool GaussianNoise::readCustomizedDataset (const char* filename)
+{
+	std::ifstream file (filename);
+	if (!file)
+		return false;
+	int nr_centers;
+	file >> nr_centers;
+	for (int i=0; i< nr_centers; i++)
+	{
+		Vector<float> params;
+		centers_params.push_back (params);
+		for (int j=0; j<4; j++)
+			centers_params[i].push_back (0.0);
+
+		for (int j=0; j<4; j++)
+		{
+			file >> centers_params[i][j];
+			std::cout << centers_params[i][j] << std::endl;
+		}
+		
+	}
+
+	float min_x, max_x, min_y, max_y;
+	file >> min_x;
+	file >> max_x;
+	file >> min_y;
+	file >> max_y;
+	std::cout << min_x << ", " << max_x << ", " << min_y << ", " << max_y << std::endl;
+	setLimits (min_x, max_x, min_y, max_y);
+
+	file.close ();
+	return true;
+
 }
 
 

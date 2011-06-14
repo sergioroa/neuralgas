@@ -31,7 +31,7 @@ class LLBGNGAlgorithm : public GNGModul<T,S>
 public:
 
 	// cto class initialization
-	LLBGNGAlgorithm (const unsigned int& dim);
+	LLBGNGAlgorithm (const unsigned int& dim, const unsigned int&);
 	// std dto
 	~LLBGNGAlgorithm ();
 
@@ -99,9 +99,10 @@ private:
 * \param dim is the dimension of the node weights
 */
 template<typename T,typename S>
-LLBGNGAlgorithm<T,S>::LLBGNGAlgorithm(const unsigned int& dim): GNGModul<T,S>(dim)
+LLBGNGAlgorithm<T,S>::LLBGNGAlgorithm(const unsigned int& dim, const unsigned int& window = 200):
+	GNGModul<T,S>(dim)
 {
-	_graphptr = new LLBGNGGraph<T,S>(dim);
+	_graphptr = new LLBGNGGraph<T,S>(dim, window);
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	max_nodes = 0;
@@ -153,11 +154,23 @@ void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
     \param shortterm_window short term time window constant
     \param longterm_window long term time window constant
     \param age_time_window age time window constant */
-template<typename T, typename S>
+/*template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::setTimeWindows (unsigned int shortterm_window, unsigned int longterm_window, unsigned int age_time_window)
 {
 	_graphptr->setTimeWindows (shortterm_window, longterm_window, age_time_window);
+}*/
+
+/** \brief set window constants. This function should only
+    be called once when creating the graph
+    \param smoothing smoothing time window constant
+    \param longterm error time window constant
+    \param age age time window constant */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::setTimeWindows (unsigned int smoothing, unsigned int error, unsigned int age)
+{
+	_graphptr->setTimeWindows (smoothing, error, age);
 }
+
 
 /** \brief set initial learning rate constants
  *  \param winner_learning_rate initial winner learning rate constant
@@ -375,8 +388,10 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		//find node with minimal value of deletion criterion
 		d = minDeletionCriterionNode ();
 		
-		if (d != -1)
+		if (d != -1) {
+			std::cout << "node " << d << " deleted..." << std::endl;
 			_graphptr->rmNode (d);
+		}
 
 			
 			
@@ -522,14 +537,17 @@ int LLBGNGAlgorithm<T,S>::minDeletionCriterionNode ()
 template<typename T, typename S>
 bool LLBGNGAlgorithm<T,S>::isGraphStable ()
 {
+	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
 		std::cout << "node " << i << " age: " << node->age << std::endl;
 		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
 		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
-		std::cout << "node " << i << " long-term e.: " << node->longterm_avgerror << std::endl;
-		std::cout << "node " << i << " short-term e.: " << node->shortterm_avgerror << std::endl;
+		// std::cout << "node " << i << " long-term e.: " << node->longterm_avgerror << std::endl;
+		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
+		// std::cout << "node " << i << " short-term e.: " << node->shortterm_avgerror << std::endl;
+		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
 		std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
 		std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
 		std::cout << "node " << i << " insertion t.: " << node->insertion_threshold << std::endl;		

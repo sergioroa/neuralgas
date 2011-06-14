@@ -149,115 +149,117 @@ Vector<float>* NoisyAutomata::generate()
  // 2 : ca
  // 3 : ac
 
- Vector<float>* item;
+ Vector<float>* previous_item;
+ Vector<float>* current_item;
 
  if (_data->size() == 0)
  {
-   item = normal_distribution(0,0,_sigma,_sigma);
-   return item; 
+   previous_item = normal_distribution(0,0,_sigma,_sigma);
+   return previous_item; 
  }
  else
-   item = _data->back();
+   previous_item = _data->back();
 
  if ( _state==0)
  {
    if (crySSMExFile.is_open() && input_format == vectorial)
-     write_vector (crySSMExFile, item);
+     write_vector (crySSMExFile, previous_item);
    else if (crySSMExFile.is_open() && input_format == symbolic)
      crySSMExFile << "a  ";
        
-   if (prob <= _transProb)
+   if (prob < _transProb)
    {
      
      _state=1;
-     item = normal_distribution(1,0,_sigma,_sigma);
+     current_item = normal_distribution(1,0,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
-       write_vector (crySSMExFile, item);
+       write_vector (crySSMExFile, current_item);
        if (output_format == symbolic)
 	 crySSMExFile << "b" << std::endl;
+       else if (output_format == vectorial)
+       {
+       }
      }
-     return item; 
    }
    else 
    {
      
      _state=3;
-     item = normal_distribution(0,1,_sigma,_sigma);
+     current_item = normal_distribution(0,1,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
-       write_vector (crySSMExFile, item);
+       write_vector (crySSMExFile, current_item);
        if (output_format == symbolic)
 	 crySSMExFile << "c" << std::endl;
      }
-     return item;
    }
+   return current_item;
  }
  else if( _state==1)
  {
    if (crySSMExFile.is_open() && input_format == vectorial)
-     write_vector (crySSMExFile, item);
+     write_vector (crySSMExFile, previous_item);
    else if (crySSMExFile.is_open() && input_format == symbolic)
      crySSMExFile << "b  ";
 
    _state=0;
-   item = normal_distribution(0,0,_sigma,_sigma);
+   current_item = normal_distribution(0,0,_sigma,_sigma);
    if (crySSMExFile.is_open())
    {
-     write_vector (crySSMExFile, item);
+     write_vector (crySSMExFile, current_item);
      if (output_format == symbolic)
        crySSMExFile << "a" << std::endl;
    }   
-   return item;
+   return current_item;
  }
  else if (_state==2)
  {
    if (crySSMExFile.is_open() && input_format == vectorial)
-     write_vector (crySSMExFile, item);
+     write_vector (crySSMExFile, previous_item);
    else if (crySSMExFile.is_open() && input_format == symbolic)
      crySSMExFile << "a  ";
 
-   if (prob <= _transProb)
+   if (prob < _transProb)
    {
      _state=3;
-     item = normal_distribution(0,1,_sigma,_sigma);
+     current_item = normal_distribution(0,1,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
-       write_vector (crySSMExFile, item);
+       write_vector (crySSMExFile, current_item);
        if (output_format == symbolic)
 	 crySSMExFile << "c" << std::endl;
      }
-     return item;
    }
    else 
    {
      
      _state=1;
-     item = normal_distribution(1,0,_sigma,_sigma);
+     current_item = normal_distribution(1,0,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
-       write_vector (crySSMExFile, item);
+       write_vector (crySSMExFile, current_item);
        if (output_format == symbolic)
 	 crySSMExFile << "b" << std::endl;
      } 
-     return item;
    } 
+   return current_item;
  }
  else if(_state==3)
  {
    if (crySSMExFile.is_open() && input_format == vectorial)
-     write_vector (crySSMExFile, item);
+     write_vector (crySSMExFile, previous_item);
    else if (crySSMExFile.is_open() && input_format == symbolic)
      crySSMExFile << "c  ";
    _state=2;
-   item = normal_distribution(0,0,_sigma,_sigma);
+   current_item = normal_distribution(0,0,_sigma,_sigma);
    if (crySSMExFile.is_open())
    {
-     write_vector (crySSMExFile, item);
+     write_vector (crySSMExFile, current_item);
      if (output_format == symbolic)
        crySSMExFile << "a" << std::endl;
    }   
-   return item;
+   return current_item;
  }
  return 0;
 }

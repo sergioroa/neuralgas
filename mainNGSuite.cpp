@@ -86,27 +86,27 @@ int main(int argc, char *argv[])
     //CDNAlgorithm<float,int>* cdn      = new CDNAlgorithm<float,int>(1);
     if (string(argv[1]) == "gng")
     {
-	    gng = new GNGAlgorithm<float,int>(1);
+	    gng = new GNGAlgorithm<float,int>(2);
         algorithm = _gng;
     }
     else if (string(argv[1]) == "ebgng")
     {
-	    gng = new EBGNGAlgorithm<float,int>(1);
+	    gng = new EBGNGAlgorithm<float,int>(2);
         algorithm = _ebgng;
     }
     else if (string(argv[1]) == "mgng")
     {
-        gng = new MGNGAlgorithm<float,int>(1);
+        gng = new MGNGAlgorithm<float,int>(2);
         algorithm = _mgng;
     }
     else if (string(argv[1]) == "cdn")
     {
-        gng = new CDNAlgorithm<float,int>(1);
+        gng = new CDNAlgorithm<float,int>(2);
         algorithm = _cdn;
     }
     else if (string(argv[1]) == "llbgng")
     {
-        gng = new LLBGNGAlgorithm<float,int>(1);
+        gng = new LLBGNGAlgorithm<float,int>(2);
         algorithm = _llbgng;
     }
     else
@@ -120,23 +120,23 @@ int main(int argc, char *argv[])
     NeuralGasSuite<float,int> ng;
 
     
-    MackeyGlass* mg = new MackeyGlass;
-    mg->setPastTimeSteps(17);
-    mg->setBoundary(0.4);
-    mg->setPower(10);
-    /*NoisyAutomata* na = new NoisyAutomata;
+    // MackeyGlass* mg = new MackeyGlass;
+    // mg->setPastTimeSteps(17);
+    // mg->setBoundary(0.4);
+    // mg->setPower(10);
+    NoisyAutomata* na = new NoisyAutomata;
     na->setSigma (0.1);
-    na->setTransProb (0.1);*/
+    na->setTransProb (0.1);
     
     
-    ng.setDataGenerator(mg);
-    //ng.setDataGenerator(na);
+    //ng.setDataGenerator(mg);
+    ng.setDataGenerator(na);
     
     
-    mg->generate(sizeofdata);
-    //na->generate(sizeofdata);
-    //vector<Vector<float>*>* data = na->getData();
-    vector<Vector<float>*>* data = mg->getData();
+    //mg->generate(sizeofdata);
+    na->generate(sizeofdata);
+    vector<Vector<float>*>* data = na->getData();
+    //vector<Vector<float>*>* data = mg->getData();
     
     for (unsigned int i=0; i < data->size(); i++)
 	    std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
@@ -211,11 +211,13 @@ int main(int argc, char *argv[])
     // ebgng->setFuncArray(constgamma,3);
     // ebgng->setFuncArray(functheta,7);
     // ebgng->setFuncArray(funclambda,8);
+	dynamic_cast<EBGNGAlgorithm<float,int>*>(gng)->setErrorThreshold(0.03);
         gng->setFuncArray(constgamma,3);
         gng->setFuncArray(functheta,7);
         gng->setFuncArray(funclambda,8);
-        //gng->setSamplingMode(randomly);
-        gng->setStoppingCriterion (epochs);
+        gng->setSamplingMode(randomly);
+        // gng->setStoppingCriterion (epochs);
+	gng->setStoppingCriterion (stability);
         // gng->setMaxEpochs (1000000000);
     }
     else if (algorithm == _llbgng)
@@ -238,8 +240,8 @@ int main(int argc, char *argv[])
     }
    
     //(dynamic_cast< CDNAlgorithm<float,int>* > (ng[1]))->setEnergy(0.1);
-    //na->save("data.txt");
-    mg->save("data.txt");
+    na->save("data.txt");
+    //mg->save("data.txt");
     ng.run();
     std::vector<float> errors;
     for (int i=0; i < ng.size(); i++)
@@ -261,8 +263,8 @@ int main(int argc, char *argv[])
     }
 
     std::cout << std::endl;
-    delete mg;
-    //delete na;
+    //delete mg;
+    delete na;
     
     return EXIT_SUCCESS;
 }
