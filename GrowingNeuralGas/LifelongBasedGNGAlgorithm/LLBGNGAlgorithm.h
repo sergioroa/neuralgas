@@ -17,13 +17,11 @@
 
 namespace neuralgas {
 
-/** \brief Class implements some techniques proposed in the algorithm Life-long learning
- *         cell structures -- continuosly learning without catastrophic interference
+/** \brief Class implements some techniques based on the algorithm
+ * Life-long learning cell structures -- continuosly learning without catastrophic interference
  *         by Fred H. Hamker.
- *  Parameters like insertion and deletion criteria are added, whose purpose is a trade-off
- *  for dealing with bias-variance issues.
- *  In this new algorithm, there is no output layer. The learning process
- *  is unsupervised.
+ *  Parameters like insertion and deletion criteria are added, whose purpose is a trade-off for dealing with bias-variance issues.
+ *  In this new algorithm, there is no output layer. The learning process is unsupervised.
 */
 template<typename T, typename S>
 class LLBGNGAlgorithm : public GNGModul<T,S>
@@ -129,14 +127,6 @@ void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 {
 	assert (num_of_ref_vec >= 2);
 	assert (_graphptr->size() == 0);
-	/*if (_graphptr!=NULL)
-		delete _graphptr;
-	if (this->graphptr!=NULL)
-		delete this->graphptr;
-	
-	_graphptr           = new LLBGNGGraph<T,S>(this->getDimension());
-	this->graphptr      = _graphptr;
-	this->_graphModulptr = _graphptr;*/
 	// sets the min value for the init of the context vector
 	_graphptr->setLowLimits(low_limits);
 	// sets the max value for the init of the context vector
@@ -148,17 +138,6 @@ void LLBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 
 
 }
-
-/** \brief set window constants. This function should only
-    be called once when creating the graph
-    \param shortterm_window short term time window constant
-    \param longterm_window long term time window constant
-    \param age_time_window age time window constant */
-/*template<typename T, typename S>
-void LLBGNGAlgorithm<T,S>::setTimeWindows (unsigned int shortterm_window, unsigned int longterm_window, unsigned int age_time_window)
-{
-	_graphptr->setTimeWindows (shortterm_window, longterm_window, age_time_window);
-}*/
 
 /** \brief set window constants. This function should only
     be called once when creating the graph
@@ -544,14 +523,12 @@ bool LLBGNGAlgorithm<T,S>::isGraphStable ()
 		std::cout << "node " << i << " age: " << node->age << std::endl;
 		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
 		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
-		// std::cout << "node " << i << " long-term e.: " << node->longterm_avgerror << std::endl;
 		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
-		// std::cout << "node " << i << " short-term e.: " << node->shortterm_avgerror << std::endl;
 		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
 		std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
 		std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
 		std::cout << "node " << i << " insertion t.: " << node->insertion_threshold << std::endl;		
-		// if (node->age > _graphptr->getMinimalNodeAge())
+
 		if (node->age > _graphptr->getMinimalNodeAge() || node->learning_quality > _graphptr->getStabilization())
 			return false;
 	}

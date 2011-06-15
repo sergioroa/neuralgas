@@ -57,7 +57,7 @@ int main (int argc, char* argv[])
 	llbgng->setMinimalNodeAge (0.001);
 	llbgng->setMaximalEdgeAge (50);
 	// llbgng->setMaxNodes (3);
-	llbgng->setStabilization (1.01);
+	llbgng->setStabilization (1.001);
 
 	llbgng->setSamplingMode (randomly);
 	//llbgng->setStoppingCriterion (epochs);
