@@ -25,7 +25,6 @@ template<typename T> class Vector : public std::vector<T>
          inline Vector(const int& dim){this->resize(dim);}
          inline Vector(const int& dim,const T& value){this->resize(dim,value);}
          inline Vector(const std::vector<T>& v);
-         inline Vector (const Vector<T>& v) { (*this)=v; } //hmm, verify size? 
          //operator+= based on the operations = and +
          inline Vector<T>& operator+=(const Vector<T>&);
          //operator-= based on the operations = and -

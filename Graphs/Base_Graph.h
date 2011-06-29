@@ -126,6 +126,8 @@ template<typename T, typename S> class Base_Graph
       public:
              //cto creating a graph with the same dimension for node and edge weight vectors
              Base_Graph(const unsigned int&);
+             //dummy copy constructor. Copying procedures should be done in derived classes
+             Base_Graph (const Base_Graph&) {}
                          
              //cto creating a graph with the different dimension for node and edge weight vectors
              Base_Graph(const unsigned int&,const unsigned int&);
@@ -177,11 +179,11 @@ template<typename T, typename S> class Base_Graph
              // dimension of the edge's weight vectors
              unsigned int                        _dimEdge;
 
-      private:
-             // dummy variable for operator[]
-             Base_Node<T,S>                      _dummy;
-             // dummy vector for getNeigbbors()
-             std::vector< unsigned int >         _dummyV;
+      // private:
+      //        // dummy variable for operator[]
+      //        Base_Node<T,S>                      _dummy;
+      //        // dummy vector for getNeigbbors()
+      //        std::vector< unsigned int >         _dummyV;
 };
 
 template < typename T , typename S> void Base_Graph<T,S>::showGraph()
@@ -212,9 +214,9 @@ template<typename T,typename S> void Base_Graph<T,S>::rmEdge(const unsigned int&
 */
 template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& dim)
 { 
- _dimNode = dim;
- _dimEdge = dim;
- ::srand( (unsigned)time( NULL ) );                    //inits the random function 
+  _dimNode = dim;
+  _dimEdge = dim;
+  ::srand( (unsigned)time( NULL ) );                    //inits the random function 
 }
 
 /** \brief cto creating a graph with the given dimension of the node weight vectors where 
@@ -226,9 +228,9 @@ template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& 
 */
 template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& dimNode,const unsigned int& dimEdge)
 {
- _dimNode = dimNode;
- _dimEdge = dimEdge; 
- ::srand( (unsigned)time( NULL ) );                    //inits the random function 
+  _dimNode = dimNode;
+  _dimEdge = dimEdge; 
+  ::srand( (unsigned)time( NULL ) );                    //inits the random function 
 }
 
 /** \brief std dto
@@ -251,10 +253,11 @@ template<typename T,typename S> Base_Graph<T,S>::~Base_Graph()
 */
 template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const unsigned int& index)
 {
-  if ( index < size() )
+  assert (index < size () );
+  // if ( index < size() )
     return *(_nodes[index]);
-  else
-    return _dummy;
+  // else
+  //   return _dummy;
 }  
 
 /** \brief returning a const reference to the node indexed by the given index
@@ -263,10 +266,11 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
 */
 template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const unsigned int& index) const
 {
-  if ( index < size() )
+  assert (index < size());
+  // if ( index < size() )
     return *(_nodes[index]);
-  else
-    return _dummy;
+  // else
+  //   return _dummy;
 }
 
 
@@ -450,9 +454,9 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const unsigned int&
 template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNeighbors(const unsigned int& index) const
 {
  unsigned int nsize = size();
-        
- if ( index < nsize )
- {
+ assert (index < nsize );
+ // if ( index < nsize )
+ // {
   std::vector<unsigned int> result_v;
   int num_of_neighbors = _nodes[index]->num_connections;
   int found_neighbors = 0;
@@ -466,9 +470,9 @@ template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNe
   //if the following is false, something must be wrong
   assert (found_neighbors <= num_of_neighbors);
   return result_v;
- }
- else
-     return _dummyV;
+ // }
+ // else
+ //     return _dummyV;
 }
 
 /** \brief Returns neighbors set cardinality for some node
@@ -476,17 +480,17 @@ template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNe
  */
 template<typename T,typename S> int Base_Graph<T,S>::getNeighborsSize(const unsigned int& index) const
 {
-	assert ( index < size() );
-	int num_of_neighbors = _nodes[index]->num_connections;
-	int found_neighbors = 0;
+  assert ( index < size() );
+  int num_of_neighbors = _nodes[index]->num_connections;
+  int found_neighbors = 0;
 	
-	for (unsigned int i=0; i < size() /*&& found_neighbors < num_of_neighbors*/; i++)
-		if( _nodes[index]->edges[i] !=NULL && index!=i)
-			found_neighbors++;
-	//if the following is false, something must be wrong
-	assert (found_neighbors <= num_of_neighbors);
+  for (unsigned int i=0; i < size() /*&& found_neighbors < num_of_neighbors*/; i++)
+    if( _nodes[index]->edges[i] !=NULL && index!=i)
+      found_neighbors++;
+  //if the following is false, something must be wrong
+  assert (found_neighbors <= num_of_neighbors);
 
-	return found_neighbors;
+  return found_neighbors;
 
 }
 

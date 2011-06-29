@@ -39,6 +39,7 @@ struct LLBGNGNode : Base_Node<T,S>
 	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable error window
 	std::vector<T> errors;
+	// std::vector<Vector<T> > dim_errors;
 	// calculate \p learning_quality measure
 	void calculateLearningQuality ();
 	/// quality measure for learning
@@ -52,11 +53,20 @@ struct LLBGNGNode : Base_Node<T,S>
 	/// insertion criterion
 	T insertion_criterion;
 	// calculate \p prev_avgerror and \p last_avgerror
-	void updateAvgError (T, const unsigned int&, const unsigned int&, const unsigned int&);
+	void updateAvgError (T/*, Vector<T>&*/, const unsigned int&, const unsigned int&, const unsigned int&);
 	/// previous mean error counter
 	T prev_avgerror;
 	/// last mean error counter
 	T last_avgerror;
+	/// last minimal mean error counter found
+	T min_last_avgerror;
+	/// last epoch where avg error was reduced
+	unsigned int last_epoch_improvement;
+	// /// last mean error for each dimension
+	// Vector<T> dim_last_avgerror;
+	// /// last mean error standard deviation
+	// Vector<T> dim_stddev_avgerror;
+	// T receptive_field;
 	/// inherited error calculating during node insertion
 	T inherited_error;
 	/// An insertion is only allowed if the long-term error exceeds this threshold
@@ -95,6 +105,7 @@ LLBGNGNode<T,S>::~LLBGNGNode ()
 	// longterm_errors.clear ();
 	// shortterm_errors.clear ();
 	errors.clear ();
+	// dim_errors.clear ();
 }
 
 
@@ -151,11 +162,16 @@ void LLBGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
  *  \param timewindow error time window constant
  */
 template<typename T, typename S>
-void LLBGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
+void LLBGNGNode<T,S>::updateAvgError (T last_error/*, Vector<T>& dim_last_error*/, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
 {
 	errors.push_back (last_error);
+	// dim_errors.push_back (dim_last_error);
 	if (errors.size() > max_errors_size)
+	{
 		errors.erase (errors.begin());
+		// dim_errors.erase (dim_errors.begin());
+	}
+
 
 	unsigned int errors_size = errors.size();
 	
@@ -201,6 +217,30 @@ void LLBGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	prev_avgerror /= smoothing_prev;
 	last_avgerror /= smoothing_last;
 
+	if (min_last_avgerror > last_avgerror)
+		min_last_avgerror = last_avgerror;
+
+	// for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
+	// {
+	// 	dim_last_avgerror[i] = 0.0;
+	// 	dim_stddev_avgerror[i] = 0.0;
+	// 	for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
+	// 		dim_last_avgerror[i] += dim_errors[j][i];
+	// 	dim_last_avgerror[i] /= smoothing_last;
+
+	// 	for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
+	// 		dim_stddev_avgerror[i] += (dim_errors[j][i] - dim_last_avgerror[i])*(dim_errors[j][i] - dim_last_avgerror[i]);
+	// 	dim_stddev_avgerror[i] /= smoothing_last;
+	// 	dim_stddev_avgerror[i] = sqrt (dim_stddev_avgerror[i]);
+	// }
+
+	// receptive_field = 0;
+	// for (unsigned int i=0; i<dim_last_avgerror.size (); i++)
+	// 	receptive_field += dim_last_avgerror[i] * dim_last_avgerror[i] / dim_stddev_avgerror[i] * dim_stddev_avgerror[i];
+	// receptive_field = T (sqrt (receptive_field) );
+
+
+	
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
 	
@@ -237,6 +277,8 @@ class LLBGNGGraph : public GNGModulGraph<T,S>
 public:
 	/// cto Graph creation (node and edges weights share dimensionality)
 	LLBGNGGraph (const unsigned int&, const unsigned int&);
+	/// copy constructor
+	LLBGNGGraph (const LLBGNGGraph&);
 	/// std dto
 	~LLBGNGGraph(){}
 	// set time window constants
@@ -244,7 +286,7 @@ public:
 	// calculate inherited variables for a node to be inserted between two nodes
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
-	void updateAvgError (const unsigned int, T last_error);
+	void updateAvgError (const unsigned int/*, Vector<T>&*/, T last_error);
 	// calculate learning quality for some node
 	void calculateLearningQuality (const unsigned int);
 	// calculate insertion quality for some node
@@ -281,6 +323,12 @@ public:
 	void decreaseNodeAge (const unsigned int);
 	// update activations counter for some node
 	void increaseActivationsCounter (const unsigned int);
+	// reset activations counters for all nodes
+	void resetActivationsCounters ();
+	// get last stored minimal average error for some node
+	T getNodeMinLastAvgError (const unsigned int);
+	// set last epoch where an error reduction for a node was achieved
+	void setLastEpochImprovement (const unsigned int, unsigned int);
 private:
 	// returns a pointer to a edge of a type that is currently used by the graph
 	virtual LLBGNGNode<T,S>* newNode(void);	
@@ -316,7 +364,7 @@ private:
     \param dim dimensionality
  */
 template<typename T, typename S>
-LLBGNGGraph<T,S>::LLBGNGGraph (const unsigned int &dim, const unsigned int& max_error_window) :
+LLBGNGGraph<T,S>::LLBGNGGraph (const unsigned int &dim, const unsigned int& max_error_window = 200) :
 	Base_Graph<T,S>(dim),
 	UGraph<T,S>(dim),
 	TGraph<T,S>(dim),
@@ -337,6 +385,73 @@ LLBGNGGraph<T,S>::LLBGNGGraph (const unsigned int &dim, const unsigned int& max_
 {
 }
 
+/** \brief copy constructor.
+ *   Calls UGraph and Base_Graph customized copy constructors (they are empty)
+ *  \param g graph to be copied from. 
+ */
+template<typename T,typename S>
+LLBGNGGraph<T,S>::LLBGNGGraph (const LLBGNGGraph& g) :
+	Base_Graph<T,S>(g),
+	UGraph<T,S>(g),
+	TGraph<T,S>(g),
+	GNGModulGraph<T,S>(g),
+	adaptation_threshold (g.adaptation_threshold),
+	insertion_tolerance (g.insertion_tolerance),
+	winner_learning_rate (g.winner_learning_rate),
+	neighbors_learning_rate (g.neighbors_learning_rate),
+	insertion_learning_rate (g.insertion_learning_rate),
+	minimal_node_age (g.minimal_node_age),
+	maximal_edge_age (g.maximal_edge_age),
+	stabilization (g.stabilization),
+	deletion_threshold (g.deletion_threshold),
+	smoothing_window (g.smoothing_window),
+	error_time_window (g.error_time_window),
+	age_time_window (g.age_time_window),
+	max_errors_size (g.max_errors_size)
+{
+
+	this->_dimNode = g._dimNode;
+	this->_dimEdge = g._dimEdge;
+	unsigned int gsize = g.size();
+	
+	for (unsigned int i=0; i < gsize; i++)
+	{
+		this->addNode ();
+		this->_nodes[i]->weight = g._nodes[i]->weight;
+		
+	}
+	for (unsigned int i=0; i < gsize; i++)
+		for (unsigned int j=0; j<g._nodes[i]->edges.size(); j++)
+			if ( g._nodes[i]->edges[j] != NULL )
+			{
+				this->addEdge (i, j);
+				this->_nodes[i]->edges[j]->weight = g._nodes[i]->edges[j]->weight;
+				static_cast<TEdge<S,T>* >(this->_nodes[i]->edges[j])->age = static_cast<TEdge<S,T>* >(g._nodes[i]->edges[j])->age;
+			}
+	
+	for (unsigned int i=0; i < gsize; i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* >(this->_nodes[i]);
+		LLBGNGNode<T,S>* copynode = static_cast<LLBGNGNode<T,S>* >(g._nodes[i]);
+
+		node->learning_quality = copynode->learning_quality;
+		node->insertion_quality = copynode->insertion_quality;
+		node->insertion_criterion = copynode->insertion_criterion;
+		node->prev_avgerror = copynode->prev_avgerror;
+		node->last_avgerror = copynode->last_avgerror;
+		node->min_last_avgerror = copynode->min_last_avgerror;
+		node->last_epoch_improvement = copynode->last_epoch_improvement;
+		node->inherited_error = copynode->inherited_error;
+		node->insertion_threshold = copynode->insertion_threshold;
+		node->age = copynode->age;
+		node->learning_rate = copynode->learning_rate;
+		node->local_similarity = copynode->local_similarity;
+		node->activations_counter = copynode->activations_counter;
+		node->errors = copynode->errors;
+	}
+}
+
+
 
 /** \brief overriden function from \p Base_Graph
     to create a node of type \p LLBGNGNode */
@@ -345,13 +460,20 @@ LLBGNGNode<T,S>* LLBGNGGraph<T,S>::newNode(void)
 {
 	LLBGNGNode<T,S>* n = new LLBGNGNode<T,S>;
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
-		n->inherited_error = euclidean<T,S> (this->getHighLimits(), this->getLowLimits());
+		n->inherited_error = euclidean<T,S> (this->high_limits, this->low_limits);
 	else
-		n->inherited_error = this->high_limit - this->low_limit;		
+		n->inherited_error = (this->high_limit - this->low_limit) * (this->high_limit - this->low_limit);		
 	//default inherited errors (used when initializing reference vectors)
 	n->prev_avgerror = n->inherited_error;
 	n->last_avgerror = n->inherited_error;
 	n->errors.push_back (n->inherited_error);
+	n->min_last_avgerror = n->last_avgerror;
+	// n->dim_last_avgerror.resize (this->_dimNode);
+	// n->dim_stddev_avgerror.resize (this->_dimNode);
+	// n->dim_errors.resize (1);
+	// n->dim_errors[0].resize (this->_dimNode);
+	// for (unsigned int i=0; i<this->_dimNode; i++)
+	// 	n->dim_errors[0][i] = (this->high_limits[i] - this->low_limits[i])*(this->high_limits[i] - this->low_limits[i]);
 	return n; 
 }
 
@@ -405,6 +527,8 @@ void LLBGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	first_node->inherited_error = first_node->last_avgerror;
 	snd_node->inherited_error = snd_node->last_avgerror;
 	node->inherited_error = node->last_avgerror;
+	node->min_last_avgerror = node->last_avgerror;
+
 	// std::cout << "1st i.e.: " << first_node->inherited_error << std::endl;
 	// std::cout << "2nd i.e.: " << snd_node->inherited_error << std::endl;
 	// std::cout << "node i.e.: " << node->inherited_error << std::endl;
@@ -420,9 +544,9 @@ void LLBGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 /** \brief calculate last and previous mean error for a given node
     \param index node index */
 template<typename T, typename S>
-void LLBGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
+void LLBGNGGraph<T,S>::updateAvgError (const unsigned int index/*, Vector<T>& dim_last_error*/, T last_error)
 {
-	static_cast<LLBGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error, smoothing_window, error_time_window, max_errors_size);
+	static_cast<LLBGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error/*, dim_last_error*/, smoothing_window, error_time_window, max_errors_size);
 
 }
 
@@ -586,6 +710,34 @@ void LLBGNGGraph<T,S>::increaseActivationsCounter (const unsigned int index)
 {
 	static_cast<LLBGNGNode<T,S>* > (this->_nodes[index])->increaseActivationsCounter ();
 }
+
+/** \brief reset activations counter for all nodes
+ */
+template<typename T, typename S>
+void LLBGNGGraph<T,S>::resetActivationsCounters ()
+{
+	for (unsigned int i=0; i < this->size(); i++)
+		static_cast<LLBGNGNode<T,S>* > (this->_nodes[i])->activations_counter = 0;
+}
+
+/* \brief get last stored minimal average error for some node
+ */
+template<typename T, typename S>
+T LLBGNGGraph<T,S>::getNodeMinLastAvgError (const unsigned int index)
+{
+	return static_cast<LLBGNGNode<T,S>* > (this->_nodes[index])->min_last_avgerror;
+}
+
+/* \brief set last epoch where an error reduction for a node was achieved
+   \param index node index
+   \param epoch current training epoch
+ */
+template<typename T, typename S>
+void LLBGNGGraph<T,S>::setLastEpochImprovement (const unsigned int index, unsigned int epoch)
+{
+	static_cast<LLBGNGNode<T,S>* > (this->_nodes[index])->last_epoch_improvement = epoch;
+}
+
 
 
 } // namespace neuralgas

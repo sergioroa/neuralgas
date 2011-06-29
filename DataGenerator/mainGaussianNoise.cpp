@@ -13,32 +13,40 @@ int main(int argc, char *argv[])
 	LLBGNGAlgorithm<float, int>* llbgng = new LLBGNGAlgorithm<float, int>(2);
 	int size;
 	float whitenoise_prob = -1.0;
-	if (argc >= 2) {
-		size = atoi(argv[1]);
-	}
+	string dataset;
 	if (argc >= 3) {
-		whitenoise_prob = atof(argv[2]);
+		size = atoi(argv[2]);
+		dataset = string (argv[1]);
+	}
+	if (argc >= 4) {
+		whitenoise_prob = atof(argv[3]);
 		if (whitenoise_prob < 0.0 || whitenoise_prob > 1.0)
 		{
 			cerr << "Please enter a valid probability value!" << endl;
 			return 1;
 		}
 	}
-	if (argc < 2) {
-		cerr << "Usage: " << argv[0] << " size [whitenoise_prob]" << endl;
+	if (argc < 3) {
+		cerr << "Usage: " << argv[0] << " 1/2/file size [whitenoise_prob]" << endl;
+		cerr << "where 1/2/file means canonical, customized or read dataset (file)" << endl;
 		return 1;
 	}
 
 
 	GaussianNoise gn;
-	// gn.setCanonicalDataset ();
-	gn.setCustomizedDataset ();
-	// const char* filename = "prueba.dat";
-	// if (!gn.readCustomizedDataset (filename))
-	// {
-	// 	cerr << "Error opening file..." << endl;
-	// 	return 1;
-	// }
+	if (dataset == "1")
+		gn.setCanonicalDataset ();
+	else if (dataset == "2")
+		gn.setCustomizedDataset ();
+	else
+	{
+		const char* filename = dataset.c_str();
+		if (!gn.readCustomizedDataset (filename))
+		{
+			cerr << "Error opening file..." << endl;
+			return 1;
+		}
+	}
 	if (whitenoise_prob != -1.0)
 		gn.setWhiteNoiseProb (whitenoise_prob);
 	gn.generate(size);
@@ -66,16 +74,19 @@ int main(int argc, char *argv[])
 
 	// llbgng->setTimeWindows (20, 100, 100);
 	llbgng->setTimeWindows (100, 60, 100);
-	llbgng->setLearningRates (0.1, 0.001, 0.01);
-	llbgng->setInsertionRate (10);
+	llbgng->setLearningRates (0.1, 0.001, 0.1);
+	llbgng->setInsertionRate (size);
 	llbgng->setAdaptationThreshold (0.05);
 	llbgng->setInsertionTolerance (0.1);
 	llbgng->setDeletionThreshold (0.5);
 	llbgng->setMinimalNodeAge (0.001);
 	llbgng->setMaximalEdgeAge (50);
+	llbgng->setDataAccuracy (0.001);
 	//llbgng->setMaxNodes (5);
-	llbgng->setStabilization (1.001);
-
+	llbgng->setStabilization (0.99);
+	llbgng->setMaxEpochsErrorReduction (5);
+	llbgng->setMaxEpochsMDLReduction (40);
+	
 	llbgng->setSamplingMode (randomly);
 	//llbgng->setStoppingCriterion (epochs);
 	//llbgng->setMaxEpochs (1);

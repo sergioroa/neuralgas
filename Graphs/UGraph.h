@@ -1,10 +1,11 @@
 /** 
 * \class UGraph
 * \author Manuel Noll
-* 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+* \author Sergio Roa
+*
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
-*  \date    2010
+*  \date    2011
 */
 
 
@@ -37,12 +38,15 @@ template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
     //cto creating a graph with the same dimension for node and edge weight vectors
                         UGraph(const unsigned int& dim) : Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
-                        UGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
+                        UGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}
+    //dummy copy constructor. Copying procedures should be done in derived classes
+    UGraph (const UGraph& g) : Base_Graph<T,S> (g) {}
+
     //std dto
                         ~UGraph(){}
     //returns whether the two nodes are connected by an edge
     inline bool         areConnected(const unsigned int&,const unsigned int&)const;
-    // adds an edge between the nodes given by their indeces      
+    // adds an edge between the nodes given by their indices      
     void                addEdge(const unsigned int&,const unsigned int&);
     // removes an edge between the nodes given by their indeces if there exists one     
     void                rmEdge(const unsigned int&,const unsigned int&);
@@ -66,7 +70,6 @@ template<typename T,typename S> inline bool UGraph<T,S>::areConnected(const unsi
 *   \param x outgoing node, plays no role in the undirected graph
 *   \param y ingoing node, plays no role in the undirected graph
 */
-
 template<typename T,typename S> void UGraph<T,S>::addEdge(const unsigned int& x,const unsigned int& y)
 {
   if ( this->_nodes[x]->edges[y] == NULL ) //self edges are allowed

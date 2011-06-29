@@ -50,13 +50,9 @@ void GaussianNoise::reset()
 void GaussianNoise::setCanonicalDataset ()
 {
 	setLimits (-5,5,-5,5);
+	centers_params.resize (5);
 	for (int i=0; i<5; i++)
-	{
-		Vector<float> params;
-		centers_params.push_back (params);
-		for (int j=0; j<4; j++)
-			centers_params[i].push_back (0.0);
-	}
+		centers_params[i].resize (4);
 
 	centers_params[0][0] = 0;
 	centers_params[0][1] = 2;
@@ -89,13 +85,11 @@ void GaussianNoise::setCustomizedDataset ()
 	int nr_centers;
 	std::cout << "Type nr. of centers: ";
 	std::cin >> nr_centers;
-	
+
+	centers_params.resize (nr_centers);
 	for (int i=0; i<nr_centers; i++)
 	{
-		Vector<float> params;
-		centers_params.push_back (params);
-		for (int j=0; j<4; j++)
-			centers_params[i].push_back (0.0);
+		centers_params[i].resize (4);
 		std::cout << "x = ";
 		std::cin >> centers_params[i][0];
 		std::cout << "y = ";
@@ -125,12 +119,10 @@ bool GaussianNoise::readCustomizedDataset (const char* filename)
 		return false;
 	int nr_centers;
 	file >> nr_centers;
+	centers_params.resize (nr_centers);
 	for (int i=0; i< nr_centers; i++)
 	{
-		Vector<float> params;
-		centers_params.push_back (params);
-		for (int j=0; j<4; j++)
-			centers_params[i].push_back (0.0);
+		centers_params[i].resize (4);
 
 		for (int j=0; j<4; j++)
 		{

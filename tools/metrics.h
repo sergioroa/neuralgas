@@ -12,6 +12,7 @@
 #define METRICS_H
 
 #include <Graphs/Vector.h>
+#include <math.h>
 
 namespace neuralgas
 {
@@ -34,8 +35,6 @@ T euclidean (const Vector<T>& x, const Vector<T>& y)
 	}
 	return T(sqrt(result));
 }
-
-
 
 } //namespace neuralgas
 

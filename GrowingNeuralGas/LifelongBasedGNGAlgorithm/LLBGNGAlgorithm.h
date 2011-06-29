@@ -57,6 +57,8 @@ public:
 	void setMaximalEdgeAge (unsigned int);
 	// set stabilization constant
 	void setStabilization (T);
+	// set data accuracy (quantization) constant
+	void setDataAccuracy (T);
 	// find node with maximal value of insertion criterion
 	int maxInsertionCriterionNode ();
 	// find node with maximal value of insertion quality among some nodes
@@ -67,17 +69,35 @@ public:
 	bool isGraphStable ();
 	// delete nodes that are not being activated
 	void deleteUselessNodes ();
+	// find node with less activations
+	int findLessActivatedNode ();
 	/// show graph for visualization
 	void showGraph(){_graphptr->showGraph();}
 	// sets a maximal partition
 	void setMaxNodes (unsigned int nr) { max_nodes = nr;}
 	// gets maximal partition
 	unsigned int getMaxNodes () const;
+	// calculate the Minimum Description Length of the current graph and dataset
+	T calculateMinimumDescriptionLength ();
+	// set maximum nr of epochs after avg error reduction is expected
+	void setMaxEpochsErrorReduction (unsigned int);
+	// set maximum nr of epochs after mdl reduction is expected
+	void setMaxEpochsMDLReduction (unsigned int);
 protected:
 	// calculate and return local similarity of weights for some node
 	T calculateWeightsLocalSimilarity (const int);
 	// return average similarity of weights
 	T getWeightsAvgSimilarity ();
+	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
+	bool minimalAvgErrors ();
+	// update the graph with minimal description length
+	void updateMinimalGraphMDL ();
+	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
+	bool minimalMDL ();
+	// mark the current graph as stable in order to stop the algorithm
+	void markAsStableGraph ();
+	// calculate value range of data
+	void calculateValueRange ();
 	//defines the update rule for the given node by using a given data vector index
 	void updateWeight(const unsigned int&,const unsigned int&);
 private:
@@ -89,6 +109,26 @@ private:
 	T insertion_rate;
 	/// maximal number of nodes if it is set (not obligatory)
 	unsigned int max_nodes;
+	/// current minimum description length value
+	T mdl;
+	/// accuracy constant
+	T data_accuracy;
+	/// current training epoch
+	unsigned int epoch;
+	/// maximal nr of epochs for checking for mean errors non-reduction
+	unsigned int max_epochs_error_reduction;
+	/// maximal nr of epochs for checking \p mdl reduction
+	unsigned int max_epochs_mdl_reduction;
+	/// last epoch when mdl reduction found
+	unsigned int last_epoch_mdl_reduction;
+	/// current minimal mdl
+	T min_mdl;
+	/// current minimal graph (mdl criterion)
+	LLBGNGGraph<T,S>* min_mdl_graphptr;
+	/// used as stopping criterion (graph stability)
+	bool stable_graph;
+	/// value range of data
+	T value_range;
 	
 };
 
@@ -104,6 +144,9 @@ LLBGNGAlgorithm<T,S>::LLBGNGAlgorithm(const unsigned int& dim, const unsigned in
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	max_nodes = 0;
+	data_accuracy = 0.001;
+	mdl = 1e10;
+	min_mdl = mdl;
 }
 
 /** \brief std dto
@@ -112,6 +155,8 @@ template<typename T,typename S>
 LLBGNGAlgorithm<T,S>::~LLBGNGAlgorithm()
 {
 	delete _graphptr;
+	if (this->stopping_criterion == stability)
+		delete min_mdl_graphptr;
 }
 
 /** \brief Sets the number of initial reference vectors. This is the first function
@@ -221,6 +266,16 @@ void LLBGNGAlgorithm<T,S>::setStabilization (T stabilization)
 	_graphptr->setStabilization( stabilization );
 }
 
+/* set \p data_accuracy constant
+ * \param accuracy maximal data precision or minimal quantization constant
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::setDataAccuracy (T accuracy)
+{
+	data_accuracy = accuracy;
+}
+
+
 /** \brief Algorithmic dependent distance function
 *
 *   This function returns the distance of the given item and the given node. 
@@ -238,6 +293,7 @@ T LLBGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& n
     // since this accelerates the calculation but does not change the result
 	return metric( item, (*_graphptr)[node_index].weight);
 }
+
 
 /** \brief Defines the update rule for a node given by the second index 
 *
@@ -271,32 +327,57 @@ void LLBGNGAlgorithm<T,S>::run()
 	if (this->sampling_mode == sequential)
 	{
 		if (this->stopping_criterion == epochs)
-			for (unsigned int e=0; e<this->max_epochs; e++)
+			for (epoch = 0; epoch < this->max_epochs; epoch++)
 				for(unsigned int t = 0; t < tsize; t++)
 					learning_loop (t, t);
 		else if (this->stopping_criterion == stability)
+		{
+			epoch = 0;
+			stable_graph = false;
+			calculateValueRange ();
 			do
 			{
 				for(unsigned int t = 0; t < tsize; t++)
+				{
 					learning_loop (t, t);
-				deleteUselessNodes();
+					if (stable_graph)
+						break;
+				}
+				// deleteUselessNodes();
+				if (stable_graph)
+					break;
+				epoch++;
 			}
-			while (!isGraphStable());
+			while (/*!isGraphStable()*/true);
+		}
 	}
 	else if (this->sampling_mode == randomly)
 	{
 		::srand( (unsigned)time( NULL ) );
 		if (this->stopping_criterion == epochs)
-			for (unsigned int e=0; e<this->max_epochs; e++)
+			for (epoch = 0; epoch < this->max_epochs; epoch++)
 				for(unsigned int t = 0; t < tsize; t++)
 					learning_loop (::rand() % tsize, t);
 		else if (this->stopping_criterion == stability)
+		{
+			epoch = 0;
+			stable_graph = false;
+			calculateValueRange ();
 			do {
 				for(unsigned int t = 0; t < tsize; t++)
+				{
 					learning_loop (::rand() % tsize, t);
-				deleteUselessNodes();
+					if (stable_graph)
+						break;
+				}
+				// deleteUselessNodes();
+				// std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
+				if (stable_graph)
+					break;
+				epoch++;
 			}
-			while (!isGraphStable());
+			while (/*!isGraphStable()*/true);
+		}
 
 	}
 }
@@ -314,7 +395,7 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	unsigned int s = 0;
 	this->getWinner(b,s,(*this)[t]);
 	_graphptr->increaseActivationsCounter (b);
-
+	
 	//learning rule for weight adaptation
 	//after calculating learning quality for best matching node b and neighbors
 	//based on input learning rate, input adaptation threshold and nodes age
@@ -334,9 +415,30 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	}
 
 	//to be used for storing an index for a deleted node
-	int d = -1;
+	// int d = -1;
+
+	if (i == (unsigned int)(insertion_rate - 1) && this->stopping_criterion == stability)
+	{
+		if (i > 0)
+			updateMinimalGraphMDL ();
+		else
+		{
+			std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
+			min_mdl = mdl;
+			min_mdl_graphptr = new LLBGNGGraph<T,S>(*_graphptr);
+			
+		}
+		if (minimalMDL ())
+		{
+			markAsStableGraph ();
+			return;
+		}
+		
+	}
+
+	
 	//calculate insertion quality
-	if (i % (unsigned int)(insertion_rate * _graphptr->size()))
+	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
 		for (unsigned int j=0; j<_graphptr->size(); j++)
 		{
@@ -345,41 +447,54 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		}
 		
 		//find node with maximal value of insertion criterion
-		int q = maxInsertionCriterionNode ();
-		
-		// find node among neighbours of q with maximal value of
-		//quality measure of insertion
-		if (q != -1)
+		if (minimalAvgErrors ())
 		{
-			std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
-			int f = maxInsertionQualityNode (q_neighbors);
-			if (f != -1)
-			{
-				
-				_graphptr->rmEdge (q, f);
-				_graphptr->addNode ();
-				int node_index = _graphptr->size()-1;
-				_graphptr->calculateInheritedParams (node_index, q, f);
-				_graphptr->setAge(q,node_index,0.0);
-				_graphptr->setAge(f,node_index,0.0);
-			}
-		}
-		//find node with minimal value of deletion criterion
-		d = minDeletionCriterionNode ();
+			// if (min_mdl_graphptr->size() < _graphptr->size())
+			// {
+				int q = maxInsertionCriterionNode ();
 		
-		if (d != -1) {
-			std::cout << "node " << d << " deleted..." << std::endl;
-			_graphptr->rmNode (d);
+				// find node among neighbours of q with maximal value of
+				//quality measure of insertion
+				if (q != -1)
+				{
+					std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
+					int f = maxInsertionQualityNode (q_neighbors);
+					if (f != -1)
+					{	
+						_graphptr->rmEdge (q, f);
+						_graphptr->addNode ();
+						int node_index = _graphptr->size()-1;
+						std::cout << "adding node " << node_index << "..." << std::endl;
+						_graphptr->calculateInheritedParams (node_index, q, f);
+						_graphptr->setAge(q,node_index,0.0);
+						_graphptr->setAge(f,node_index,0.0);
+					}
+				}
+			// }
 		}
+		// find node with minimal value of deletion criterion
+		// d = minDeletionCriterionNode ();
+		
+		// if (d != -1) {
+		// 	std::cout << "deleting node " << d << std::endl;
+		// 	_graphptr->rmNode (d);
+ 		// }
+		// _graphptr->resetActivationsCounters ();
 
-			
+
 			
 	}
 
-	if (d != (int)b)
+	if (/*d != (int)b*/!stable_graph)
 	{
 		//update long-term and short-term error variables
-		_graphptr->updateAvgError (b, getDistance ((*this)[t], b));
+		// Vector<T> dim_distances (this->getDimension());
+		// for (unsigned int i=0; i<this->getDimension(); i++)
+		// 	dim_distances[i] = T(fabs ((*this)[t][i] - (*_graphptr)[b].weight[i]));
+		T min_error = _graphptr->getNodeMinLastAvgError (b);
+		_graphptr->updateAvgError (b, /*dim_distances,*/ getDistance ((*this)[t], b));
+		if (min_error > _graphptr->getNodeMinLastAvgError (b))
+			_graphptr->setLastEpochImprovement (b, epoch);
 		
 		//decrease age of best-matching node
 		_graphptr->decreaseNodeAge (b);
@@ -439,7 +554,7 @@ int LLBGNGAlgorithm<T,S>::maxInsertionQualityNode (const std::vector<unsigned in
 {
 	if (nodes.size() == 0)
 		return -1;
-	T max_value = (static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[nodes[0]]))->insertion_quality;
+	T max_value = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[nodes[0]])->insertion_quality;
 	unsigned int f = nodes[0];
 	for (unsigned int i=1; i<nodes.size(); i++)
 	{
@@ -486,6 +601,27 @@ T LLBGNGAlgorithm<T,S>::getWeightsAvgSimilarity ()
 	
 }
 
+template<typename T, typename S>
+T LLBGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
+{
+	T k = 4;
+	mdl = 0;
+	for(unsigned int t = 0; t < this->size(); t++)
+	{
+		//winners
+		unsigned int b, s;
+		this->getWinner(b,s,(*this)[t]);
+		mdl += max(log2(getDistance ((*this)[t], b) / data_accuracy), 1.0);
+		
+	}
+	mdl *= k;
+	int K = ceil (log2(value_range / data_accuracy));
+
+	mdl += _graphptr->size() * K + this->size() * log2 (_graphptr->size());
+	return mdl;
+
+}
+
 /* \brief find node with minimal value of deletion criterion
  */
 template<typename T, typename S>
@@ -498,7 +634,7 @@ int LLBGNGAlgorithm<T,S>::minDeletionCriterionNode ()
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (/*_graphptr->getNeighborsSize(i) >= 2 && node->age < _graphptr->getMinimalNodeAge() &&*/ node->learning_quality < _graphptr->getStabilization())
+		if (_graphptr->getNeighborsSize(i) >= 1 /*&& node->age < _graphptr->getMinimalNodeAge()*/ && node->learning_quality < _graphptr->getStabilization())
 		{
 			T deletion_criterion = node->local_similarity / avg_similarity;
 			if (min_value > deletion_criterion)
@@ -511,33 +647,6 @@ int LLBGNGAlgorithm<T,S>::minDeletionCriterionNode ()
 	return d;
 }
 
-/* \brief check if nodes are stable (ages are less than the minimal age threshold and learning quality less than threshold for all nodes)
- */
-template<typename T, typename S>
-bool LLBGNGAlgorithm<T,S>::isGraphStable ()
-{
-	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
-	for (unsigned int i=0; i < _graphptr->size(); i++)
-	{
-		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
-		std::cout << "node " << i << " age: " << node->age << std::endl;
-		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
-		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
-		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
-		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
-		std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
-		std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
-		std::cout << "node " << i << " insertion t.: " << node->insertion_threshold << std::endl;		
-
-		if (node->age > _graphptr->getMinimalNodeAge() || node->learning_quality > _graphptr->getStabilization())
-			return false;
-	}
-	// if max_nodes is set, and the termination condition is not fulfilled, then the graph is not stable
-	if (max_nodes > 0 && max_nodes != _graphptr->size())
-		return false;
-	return true;
-}
-
 /* \brief delete nodes that are not being activated
  */
 template<typename T, typename S>
@@ -548,11 +657,30 @@ void LLBGNGAlgorithm<T,S>::deleteUselessNodes ()
 		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
 		if (node->activations_counter == 0)
 			_graphptr->rmNode (i);
-		else
-			node->activations_counter = 0;
 		
 	}
 }
+
+/* \brief find node with less activations
+ */
+template<typename T, typename S>
+int LLBGNGAlgorithm<T,S>::findLessActivatedNode ()
+{
+	unsigned int min_value = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[0])->activations_counter;
+	int n = 0;
+	
+ 	for (unsigned int i=1; i < _graphptr->size(); i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
+		if (node->activations_counter < min_value)
+		{
+			min_value = node->activations_counter;
+			n = i;
+		}
+	}
+	return n;
+}
+
 
 /* \brief get maximal number of partitions
  */
@@ -564,6 +692,119 @@ unsigned int LLBGNGAlgorithm<T,S>::getMaxNodes () const
 	else
 		return max_nodes;
 }
+
+/* \brief set maximum nr of epochs after avg error reduction is expected
+   \param epochs maximum nr of epochs
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::setMaxEpochsErrorReduction (unsigned int epochs)
+{
+	max_epochs_error_reduction = epochs;
+}
+
+/* \brief set maximum nr of epochs after mdl reduction is expected
+   \param epochs maximum nr of epochs
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::setMaxEpochsMDLReduction (unsigned int epochs)
+{
+	max_epochs_mdl_reduction = epochs;
+}
+
+
+/* \brief check if minimal error for all nodes has not changed for more than \p max_epochs_error_reduction
+ */
+template<typename T, typename S>
+bool LLBGNGAlgorithm<T,S>::minimalAvgErrors ()
+{
+ 	for (unsigned int i=1; i < _graphptr->size(); i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
+		if (epoch - node->last_epoch_improvement < max_epochs_error_reduction)
+			return false;
+		
+	}
+	return true;
+}
+
+
+/* \brief update the graph with minimal description length
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
+{
+
+	std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
+
+	if (min_mdl > mdl )
+	{
+		min_mdl = mdl;
+		delete min_mdl_graphptr;
+		min_mdl_graphptr = new LLBGNGGraph<T,S>(*_graphptr);
+		last_epoch_mdl_reduction = epoch;
+	}
+	
+
+}
+
+/* \brief check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
+ */
+template<typename T, typename S>
+bool LLBGNGAlgorithm<T,S>::minimalMDL ()
+{
+	return (epoch - last_epoch_mdl_reduction >= max_epochs_mdl_reduction);
+}
+
+
+/* \brief mark the current graph as stable in order to stop the algorithm
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::markAsStableGraph ()
+{
+	delete _graphptr;
+	_graphptr = new LLBGNGGraph<T,S>(*min_mdl_graphptr);
+	this->graphptr = _graphptr;
+	this->_graphModulptr = _graphptr;
+	stable_graph = true;
+
+	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
+		std::cout << "node " << i << " age: " << node->age << std::endl;
+		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
+		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
+		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
+		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
+		// std::cout << "node " << i << " stddev avg e.: (";
+		// for (unsigned int j=0; j<this->getDimension(); j++)
+		// 	std::cout << node->dim_stddev_avgerror[j] << " "
+				;
+		// std::cout << ")" << std::endl;
+		// std::cout << "node " << i << " dim last avg e.: (";
+		// for (unsigned int j=0; j<this->getDimension(); j++)
+		// 	std::cout << node->dim_last_avgerror[j] << " ";
+		// std::cout << ")" << std::endl;
+		// std::cout << "node " << i << " receptive field: " << node->receptive_field << std::endl;
+		std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
+		// std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
+		std::cout << "node " << i << " insertion t.: " << node->insertion_threshold << std::endl;
+	}
+
+
+}
+
+/* \brief calculate value range of data
+ */
+template<typename T, typename S>
+void LLBGNGAlgorithm<T,S>::calculateValueRange ()
+{
+	for(unsigned int t = 0; t < this->size(); t++)
+		for (unsigned int i=0; i<this->getDimension(); i++)
+			value_range += (*this)[t][i];
+	value_range /= T (this->size());
+}
+
 
 } // namespace neuralgas
 
