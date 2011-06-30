@@ -39,6 +39,7 @@ struct LLBGNGNode : Base_Node<T,S>
 	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable error window
 	std::vector<T> errors;
+	// /// errors vector for each dimension
 	// std::vector<Vector<T> > dim_errors;
 	// calculate \p learning_quality measure
 	void calculateLearningQuality ();
@@ -64,9 +65,8 @@ struct LLBGNGNode : Base_Node<T,S>
 	unsigned int last_epoch_improvement;
 	// /// last mean error for each dimension
 	// Vector<T> dim_last_avgerror;
-	// /// last mean error standard deviation
-	// Vector<T> dim_stddev_avgerror;
-	// T receptive_field;
+	// /// last mean error variance 
+	// Vector<T> dim_var_avgerror;
 	/// inherited error calculating during node insertion
 	T inherited_error;
 	/// An insertion is only allowed if the long-term error exceeds this threshold
@@ -121,7 +121,7 @@ void LLBGNGNode<T,S>::calculateLearningQuality ()
 template<typename T, typename S>
 void LLBGNGNode<T,S>::calculateInsertionQuality (T& insertion_tolerance)
 {
-	insertion_quality = last_avgerror - insertion_threshold * (1 + insertion_tolerance);
+	insertion_quality = last_avgerror /*- insertion_threshold * (1 + insertion_tolerance)*/;
 
 
 }
@@ -223,22 +223,15 @@ void LLBGNGNode<T,S>::updateAvgError (T last_error/*, Vector<T>& dim_last_error*
 	// for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
 	// {
 	// 	dim_last_avgerror[i] = 0.0;
-	// 	dim_stddev_avgerror[i] = 0.0;
+	// 	dim_var_avgerror[i] = 0.0;
 	// 	for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
 	// 		dim_last_avgerror[i] += dim_errors[j][i];
 	// 	dim_last_avgerror[i] /= smoothing_last;
 
 	// 	for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
-	// 		dim_stddev_avgerror[i] += (dim_errors[j][i] - dim_last_avgerror[i])*(dim_errors[j][i] - dim_last_avgerror[i]);
-	// 	dim_stddev_avgerror[i] /= smoothing_last;
-	// 	dim_stddev_avgerror[i] = sqrt (dim_stddev_avgerror[i]);
+	// 		dim_var_avgerror[i] += (dim_errors[j][i] - dim_last_avgerror[i])*(dim_errors[j][i] - dim_last_avgerror[i]);
+	// 		dim_var_avgerror[i] /= smoothing_last;
 	// }
-
-	// receptive_field = 0;
-	// for (unsigned int i=0; i<dim_last_avgerror.size (); i++)
-	// 	receptive_field += dim_last_avgerror[i] * dim_last_avgerror[i] / dim_stddev_avgerror[i] * dim_stddev_avgerror[i];
-	// receptive_field = T (sqrt (receptive_field) );
-
 
 	
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));

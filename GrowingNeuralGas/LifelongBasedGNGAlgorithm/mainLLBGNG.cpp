@@ -55,12 +55,12 @@ int main (int argc, char* argv[])
 	llbgng->setInsertionTolerance (0.1);
 	llbgng->setDeletionThreshold (0.5);
 	llbgng->setMinimalNodeAge (1.001);
-	llbgng->setMaximalEdgeAge (50);
-	llbgng->setDataAccuracy (0.000000001);
+	llbgng->setMaximalEdgeAge (100);
+	llbgng->setDataAccuracy (0.001);
 	// llbgng->setMaxNodes (3);
 	llbgng->setStabilization (1.001);
 	llbgng->setMaxEpochsErrorReduction (5);
-	llbgng->setMaxEpochsMDLReduction (20);
+	llbgng->setMaxEpochsMDLReduction (60);
 
 	llbgng->setSamplingMode (randomly);
 	//llbgng->setStoppingCriterion (epochs);

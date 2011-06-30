@@ -65,8 +65,6 @@ public:
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
 	// find node with minimal value of deletion criterion
 	int minDeletionCriterionNode ();
-	// check graph stability as a stopping criterion
-	bool isGraphStable ();
 	// delete nodes that are not being activated
 	void deleteUselessNodes ();
 	// find node with less activations
@@ -79,6 +77,7 @@ public:
 	unsigned int getMaxNodes () const;
 	// calculate the Minimum Description Length of the current graph and dataset
 	T calculateMinimumDescriptionLength ();
+	T calculateApproxMinimumDescriptionLength ();
 	// set maximum nr of epochs after avg error reduction is expected
 	void setMaxEpochsErrorReduction (unsigned int);
 	// set maximum nr of epochs after mdl reduction is expected
@@ -147,6 +146,7 @@ LLBGNGAlgorithm<T,S>::LLBGNGAlgorithm(const unsigned int& dim, const unsigned in
 	data_accuracy = 0.001;
 	mdl = 1e10;
 	min_mdl = mdl;
+	min_mdl_graphptr = NULL;
 }
 
 /** \brief std dto
@@ -348,7 +348,7 @@ void LLBGNGAlgorithm<T,S>::run()
 					break;
 				epoch++;
 			}
-			while (/*!isGraphStable()*/true);
+			while (true);
 		}
 	}
 	else if (this->sampling_mode == randomly)
@@ -371,12 +371,11 @@ void LLBGNGAlgorithm<T,S>::run()
 						break;
 				}
 				// deleteUselessNodes();
-				// std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
 				if (stable_graph)
 					break;
 				epoch++;
 			}
-			while (/*!isGraphStable()*/true);
+			while (true);
 		}
 
 	}
@@ -417,38 +416,33 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//to be used for storing an index for a deleted node
 	// int d = -1;
 
-	if (i == (unsigned int)(insertion_rate - 1) && this->stopping_criterion == stability)
+	//calculate insertion quality
+	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
-		if (i > 0)
+		if (min_mdl_graphptr != NULL)
 			updateMinimalGraphMDL ();
 		else
 		{
 			std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
 			min_mdl = mdl;
 			min_mdl_graphptr = new LLBGNGGraph<T,S>(*_graphptr);
-			
+				
 		}
 		if (minimalMDL ())
 		{
 			markAsStableGraph ();
 			return;
 		}
-		
-	}
-
-	
-	//calculate insertion quality
-	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
-	{
-		for (unsigned int j=0; j<_graphptr->size(); j++)
-		{
-			_graphptr->calculateInsertionQuality (j);
-			_graphptr->calculateInsertionCriterion (j);
-		}
-		
-		//find node with maximal value of insertion criterion
+		//find node with maximal value of insertion criterion when the graph is not improving more
 		if (minimalAvgErrors ())
 		{
+
+			for (unsigned int j=0; j<_graphptr->size(); j++)
+			{
+				_graphptr->calculateInsertionQuality (j);
+				_graphptr->calculateInsertionCriterion (j);
+			}
+		
 			// if (min_mdl_graphptr->size() < _graphptr->size())
 			// {
 				int q = maxInsertionCriterionNode ();
@@ -492,7 +486,7 @@ void LLBGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		// for (unsigned int i=0; i<this->getDimension(); i++)
 		// 	dim_distances[i] = T(fabs ((*this)[t][i] - (*_graphptr)[b].weight[i]));
 		T min_error = _graphptr->getNodeMinLastAvgError (b);
-		_graphptr->updateAvgError (b, /*dim_distances,*/ getDistance ((*this)[t], b));
+		_graphptr->updateAvgError (b/*, dim_distances*/, getDistance ((*this)[t], b));
 		if (min_error > _graphptr->getNodeMinLastAvgError (b))
 			_graphptr->setLastEpochImprovement (b, epoch);
 		
@@ -604,14 +598,15 @@ T LLBGNGAlgorithm<T,S>::getWeightsAvgSimilarity ()
 template<typename T, typename S>
 T LLBGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 {
-	T k = 4;
+	T k = 1;
 	mdl = 0;
 	for(unsigned int t = 0; t < this->size(); t++)
 	{
 		//winners
 		unsigned int b, s;
 		this->getWinner(b,s,(*this)[t]);
-		mdl += max(log2(getDistance ((*this)[t], b) / data_accuracy), 1.0);
+		for (unsigned int i=0; i<this->getDimension(); i++)
+		 	mdl += max(log2(fabs((*this)[t][i] -  (*_graphptr)[b].weight[i]) / data_accuracy), 1.0);
 		
 	}
 	mdl *= k;
@@ -621,6 +616,27 @@ T LLBGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 	return mdl;
 
 }
+
+template<typename T, typename S>
+T LLBGNGAlgorithm<T,S>::calculateApproxMinimumDescriptionLength ()
+{
+	mdl = 0;
+	for(unsigned int i = 0; i < _graphptr->size(); i++)
+	{
+		LLBGNGNode<T,S>* node = static_cast<LLBGNGNode<T,S>* > (&(*_graphptr)[i]);
+
+		for (unsigned int k=0; k<this->getDimension(); k++)
+		 	mdl += max(log2(node->dim_last_avgerror[k] / data_accuracy), 1.0);
+		
+	}
+	mdl *= this->size() / (_graphptr->size() * this->getDimension());
+	int K = ceil (log2(value_range / data_accuracy));
+
+	mdl += _graphptr->size() * K + this->size() * log2 (_graphptr->size());
+	return mdl;
+
+}
+
 
 /* \brief find node with minimal value of deletion criterion
  */
@@ -734,15 +750,18 @@ template<typename T, typename S>
 void LLBGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 {
 
-	std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
+	std::cout << "mdl: " << calculateMinimumDescriptionLength ();
 
 	if (min_mdl > mdl )
 	{
+		std::cout << " <-- is minimal!" << std::endl;
 		min_mdl = mdl;
 		delete min_mdl_graphptr;
 		min_mdl_graphptr = new LLBGNGGraph<T,S>(*_graphptr);
 		last_epoch_mdl_reduction = epoch;
 	}
+	else
+		std::cout << std::endl;
 	
 
 }
