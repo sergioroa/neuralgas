@@ -2,6 +2,7 @@
 #define VORONOI_H
 
 #include <Qt/qimage.h>
+#include <Qt/qpainter.h>
 #include <vector>
 #include <iostream>
 #include <fstream>

@@ -195,7 +195,8 @@ void Voronoi::drawLine(float& x1, float& y1, float& x2, float& y2, QImage& image
 void Voronoi::save(const char* filename)
 {
     QImage image(_width, _height, QImage::Format_RGB32);
-
+    QPainter painter(&image);
+    
     QRgb value;
     //value = qRgb(255, 255, 255);
     //image.fill(value);
@@ -203,16 +204,25 @@ void Voronoi::save(const char* filename)
 
     // data
     value = qRgb(255, 255, 255); // 0xff7aa327
+    painter.setPen (value);
+    // painter.setBrush (QBrush(value));
     //value = qRgb(0, 0, 255);
     for(unsigned int i=0; i < _data.size();i++)
     {
-        image.setPixel(_data[i].x, _data[i].y, value);
+	    /*image.setPixel(_data[i].x, _data[i].y, value);
+        image.setPixel(_data[i].x+1, _data[i].y, value);
+        image.setPixel(_data[i].x-1, _data[i].y, value);
+        image.setPixel(_data[i].x, _data[i].y+1, value);
+        image.setPixel(_data[i].x, _data[i].y-1, value);*/
+	    painter.drawEllipse (_data[i].x, _data[i].y, 2, 2);
     }
     // neurons
     value = qRgb(255, 0, 0); // 0xffbd9527
+    painter.setPen (value);
+    painter.setBrush (QBrush(value));
     for(unsigned int i=0; i < _neurons.size();i++)
     {
-        image.setPixel(_neurons[i].x, _neurons[i].y, value);
+	    /*image.setPixel(_neurons[i].x, _neurons[i].y, value);
         image.setPixel(_neurons[i].x+1, _neurons[i].y, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y, value);
         image.setPixel(_neurons[i].x, _neurons[i].y+1, value);
@@ -220,7 +230,9 @@ void Voronoi::save(const char* filename)
         image.setPixel(_neurons[i].x+1, _neurons[i].y+1, value);
         image.setPixel(_neurons[i].x+1, _neurons[i].y-1, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y+1, value);
-        image.setPixel(_neurons[i].x-1, _neurons[i].y-1, value);
+        image.setPixel(_neurons[i].x-1, _neurons[i].y-1, value);*/
+	    painter.drawEllipse (_neurons[i].x, _neurons[i].y, 5, 5);
+
     }
     // voronoi lines
     float x1,y1,x2,y2;
