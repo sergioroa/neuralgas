@@ -78,7 +78,7 @@ public:
     //inline void             setMetric(T (*)(const Vector<T>& a,const Vector<T>& b));
     inline void             setMetric(Metric); 
     //assigns int depending functions to the parameters 
-    void                    setFuncArray(float (*)(const unsigned int&),const unsigned int&); 
+    void                    setFuncArray(T (*)(const unsigned int&),const unsigned int&); 
     //determines the maximal value within the given data set
     const T                 maxValue() const; 
     //determines the minimal value within the given data set
@@ -117,7 +117,7 @@ public:
     // zero element of unknown datatype T, is set in constructor
     T                       _zero;
     // functions for assigning an integer depending function to the parameters
-    float   (*_funcArray[NUM_PARAM])(const unsigned int&);
+    T (*_funcArray[NUM_PARAM])(const unsigned int&);
     // parameters for the algorithm
     float   params[NUM_PARAM];
     // sampling mode of learning instances
@@ -143,7 +143,7 @@ public:
 *   \param index is the index of the parameter to be assigned by a function
 */
 template<typename T,typename S> 
-void NeuralGas<T,S>::setFuncArray(float (*func)(const unsigned int& time),const unsigned int& index)
+void NeuralGas<T,S>::setFuncArray(T (*func)(const unsigned int& time),const unsigned int& index)
 {
  _funcArray[index]=func;
 }
