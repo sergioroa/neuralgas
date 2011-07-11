@@ -1,5 +1,5 @@
 #include <iostream>
-#include <GrowingNeuralGas/LifelongBasedGNGAlgorithm/LLBGNGAlgorithm.h>
+#include <GrowingNeuralGas/LifelongRobustGNGAlgorithm/LLRGNGAlgorithm.h>
 #include <DataGenerator/GaussianNoise.h>
 #include "GrowingNeuralGas/Testing/ErrorTesting.h"
 
@@ -10,9 +10,9 @@ using namespace neuralgas;
 int main(int argc, char *argv[])
 {
 	
-	LLBGNGAlgorithm<float, int>* llbgng = new LLBGNGAlgorithm<float, int>(2);
+	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
 	int size;
-	float whitenoise_prob = -1.0;
+	double whitenoise_prob = -1.0;
 	string dataset;
 	if (argc >= 3) {
 		size = atoi(argv[2]);
@@ -50,17 +50,17 @@ int main(int argc, char *argv[])
 	if (whitenoise_prob != -1.0)
 		gn.setWhiteNoiseProb (whitenoise_prob);
 	gn.generate(size);
-	vector<Vector<float>*>* data = gn.getData();
+	vector<Vector<double>*>* data = gn.getData();
 	
 	for (unsigned int i=0; i < data->size(); i++)
 		std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
 	gn.save("data.txt");
-	llbgng->setData(gn.getData());
-	Vector<float> mins = llbgng->minValues();
-	Vector<float> maxs = llbgng->maxValues();
-	// float min = llbgng->minValue();
-	// float max = llbgng->maxValue();
+	llrgng->setData(gn.getData());
+	Vector<double> mins = llrgng->minValues();
+	Vector<double> maxs = llrgng->maxValues();
+	// double min = llrgng->minValue();
+	// double max = llrgng->maxValue();
 	for (unsigned int i=0; i< mins.size(); i++)
 	{
 		cout << "min: " << mins[i] << endl;
@@ -69,36 +69,36 @@ int main(int argc, char *argv[])
 	// cout << "min: " << min << endl;
 	// cout << "max: " << max << endl;
 	
-	llbgng->setRefVectors(2,mins,maxs);
-	// llbgng->setRefVectors(2,mins,maxs);
+	llrgng->setRefVectors(2,mins,maxs);
+	// llrgng->setRefVectors(2,mins,maxs);
 
-	// llbgng->setTimeWindows (20, 100, 100);
-	llbgng->setTimeWindows (100, 60, 100);
-	llbgng->setLearningRates (0.1, 0.001, 0.1);
-	llbgng->setInsertionRate (size);
-	llbgng->setAdaptationThreshold (0.05);
-	llbgng->setInsertionTolerance (0.1);
-	llbgng->setDeletionThreshold (0.5);
-	llbgng->setMinimalNodeAge (0.001);
-	llbgng->setMaximalEdgeAge (100);
-	llbgng->setDataAccuracy (0.001);
-	//llbgng->setMaxNodes (5);
-	llbgng->setStabilization (0.99);
-	llbgng->setMaxEpochsErrorReduction (5);
-	llbgng->setMaxEpochsMDLReduction (80);
+	// llrgng->setTimeWindows (20, 100, 100);
+	llrgng->setTimeWindows (100, 60, 100);
+	llrgng->setLearningRates (0.1, 0.001, 0.1);
+	llrgng->setInsertionRate (size);
+	llrgng->setAdaptationThreshold (0.05);
+	llrgng->setInsertionTolerance (0.1);
+	llrgng->setDeletionThreshold (0.5);
+	llrgng->setMinimalNodeAge (0.001);
+	llrgng->setMaximalEdgeAge (100);
+	llrgng->setDataAccuracy (0.001);
+	//llrgng->setMaxNodes (5);
+	llrgng->setStabilization (0.99);
+	llrgng->setMaxEpochsErrorReduction (5);
+	llrgng->setMaxEpochsMDLReduction (80);
 	
-	llbgng->setSamplingMode (randomly);
-	//llbgng->setStoppingCriterion (epochs);
-	//llbgng->setMaxEpochs (1);
-	llbgng->setStoppingCriterion (stability);
+	llrgng->setSamplingMode (randomly);
+	//llrgng->setStoppingCriterion (epochs);
+	//llrgng->setMaxEpochs (1);
+	llrgng->setStoppingCriterion (stability);
 
-	llbgng->run(); 
-	llbgng->save("nodes.txt");
-	llbgng->showGraph ();
+	llrgng->run(); 
+	llrgng->save("nodes.txt");
+	llrgng->showGraph ();
 
-	ErrorTesting<float,int> et(llbgng);
-	float total_error=0.0;
-	std::vector<float> errors = et.getErrors(size-1);
+	ErrorTesting<double,int> et(llrgng);
+	double total_error=0.0;
+	std::vector<double> errors = et.getErrors(size-1);
 	for (unsigned int i =0; i < errors.size(); i++)
 		total_error += errors[i];
 	

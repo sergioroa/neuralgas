@@ -16,7 +16,7 @@
 
 namespace neuralgas {
 
-class GaussianNoise : public DataGenerator<float>
+class GaussianNoise : public DataGenerator<double>
 {
 public:
 	GaussianNoise();
@@ -25,18 +25,18 @@ public:
 	void setCanonicalDataset ();
 	void setCustomizedDataset ();
 	bool readCustomizedDataset (const char*);
-	void setWhiteNoiseProb(const float&);
-	void setLimits (float, float, float, float);
+	void setWhiteNoiseProb(const double&);
+	void setLimits (double, double, double, double);
 private:
-	virtual  Vector<float>* generate();
-	virtual  Vector<float>* next(){return generate();}
-	std::vector<Vector<float> > centers_params;
-	float min_x, min_y, max_x, max_y;
-	float whitenoise_prob;
+	virtual  Vector<double>* generate();
+	virtual  Vector<double>* next(){return generate();}
+	std::vector<Vector<double> > centers_params;
+	double min_x, min_y, max_x, max_y;
+	double whitenoise_prob;
 
 };
 
-GaussianNoise::GaussianNoise() : DataGenerator<float>(2)
+GaussianNoise::GaussianNoise() : DataGenerator<double>(2)
 {
 	srand( (unsigned)time( NULL ) );
 	whitenoise_prob = -1.0;
@@ -44,7 +44,7 @@ GaussianNoise::GaussianNoise() : DataGenerator<float>(2)
 
 void GaussianNoise::reset()
 {
-	DataGenerator<float>::reset();
+	DataGenerator<double>::reset();
 }
 
 void GaussianNoise::setCanonicalDataset ()
@@ -100,7 +100,7 @@ void GaussianNoise::setCustomizedDataset ()
 		std::cin >> centers_params[i][3];
 	}
 
-	float min_x, max_x, min_y, max_y;
+	double min_x, max_x, min_y, max_y;
 	std::cout << "Min x: ";
 	std::cin >> min_x;
 	std::cout << "Max x: ";
@@ -132,7 +132,7 @@ bool GaussianNoise::readCustomizedDataset (const char* filename)
 		
 	}
 
-	float min_x, max_x, min_y, max_y;
+	double min_x, max_x, min_y, max_y;
 	file >> min_x;
 	file >> max_x;
 	file >> min_y;
@@ -146,7 +146,7 @@ bool GaussianNoise::readCustomizedDataset (const char* filename)
 }
 
 
-void GaussianNoise::setLimits (float min_x, float max_x, float min_y, float max_y)
+void GaussianNoise::setLimits (double min_x, double max_x, double min_y, double max_y)
 {
 	this->min_x = min_x;
 	this->max_x = max_x;
@@ -156,7 +156,7 @@ void GaussianNoise::setLimits (float min_x, float max_x, float min_y, float max_
 }
 
 
-void GaussianNoise::setWhiteNoiseProb(const float& prob)
+void GaussianNoise::setWhiteNoiseProb(const double& prob)
 {
 	whitenoise_prob=prob;
 }
@@ -167,12 +167,12 @@ void GaussianNoise::generate(const int& number)
 	std::cout << "minx, maxx, miny, maxy: " << min_x << "," << max_x << "," << min_y << "," << max_y << std::endl;
 	for (int i=0; i< number; i++)
 	{
-		float whitenoise_rand = float (rand() % 1000) / 1000;
+		double whitenoise_rand = double (rand() % 1000) / 1000;
 		if (whitenoise_rand <= whitenoise_prob)
 		{
-			Vector<float>* whitenoise_point = new Vector<float>;
-			whitenoise_point->at(0) = (float)((rand() / (static_cast<float>(RAND_MAX) + 1.0)) * (max_x - min_x) + min_x);
-			whitenoise_point->push_back ((float)((rand() / (static_cast<float>(RAND_MAX) + 1.0)) * (max_y - min_y) + min_y));
+			Vector<double>* whitenoise_point = new Vector<double>;
+			whitenoise_point->at(0) = (double)((rand() / (static_cast<double>(RAND_MAX) + 1.0)) * (max_x - min_x) + min_x);
+			whitenoise_point->push_back ((double)((rand() / (static_cast<double>(RAND_MAX) + 1.0)) * (max_y - min_y) + min_y));
 			std::cout << "w: " << whitenoise_point->at(0) << ", " << whitenoise_point->at(1) << std::endl;
 			_data->push_back (whitenoise_point);
 		}
@@ -181,7 +181,7 @@ void GaussianNoise::generate(const int& number)
 	}
 }
 
-Vector<float>* GaussianNoise::generate()
+Vector<double>* GaussianNoise::generate()
 {
 	assert (centers_params.size() > 0);
 	int center = rand() % centers_params.size();

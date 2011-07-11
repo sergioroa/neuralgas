@@ -18,34 +18,34 @@ namespace neuralgas {
 
 enum noisyautomata_encoding { vectorial, symbolic };
 
-class NoisyAutomata : public DataGenerator<float>
+class NoisyAutomata : public DataGenerator<double>
 {
       public:
              NoisyAutomata();
              void generate(const int& number);
              virtual void reset();
-             void setSigma(const float&);
-             void setTransProb(const float&);
+             void setSigma(const double&);
+             void setTransProb(const double&);
              void setState(const int&);
              void openCrySSMExFile (const char*);
              void setInputFormat (unsigned int);
              void setOutputFormat (unsigned int);
       private:
-             virtual  Vector<float>* generate();
-             virtual  Vector<float>* next(){return generate();}
-             // Vector<float>* normal_distribution(const float&, const float&);
-             // float    approx_gauss(const float&);
-             // void     box_muller(float&,float&);
+             virtual  Vector<double>* generate();
+             virtual  Vector<double>* next(){return generate();}
+             // Vector<double>* normal_distribution(const double&, const double&);
+             // double    approx_gauss(const double&);
+             // void     box_muller(double&,double&);
              short    _state;
-             float    _sigma;
-             float    _transProb;
+             double    _sigma;
+             double    _transProb;
              std::ofstream crySSMExFile;
              unsigned int input_format;
              unsigned int output_format;
       
 };
 
-NoisyAutomata::NoisyAutomata() : DataGenerator<float>(2)
+NoisyAutomata::NoisyAutomata() : DataGenerator<double>(2)
 {
  srand( (unsigned)time( NULL ) );
  _state=0;
@@ -57,7 +57,7 @@ NoisyAutomata::NoisyAutomata() : DataGenerator<float>(2)
 
 void NoisyAutomata::reset()
 {
- DataGenerator<float>::reset();
+ DataGenerator<double>::reset();
  _state = 0;
  _transProb=0.5;
  _sigma=1;
@@ -69,12 +69,12 @@ void NoisyAutomata::setState(const int& state)
  _state = state;
 }
 
-void NoisyAutomata::setSigma(const float& sigma)
+void NoisyAutomata::setSigma(const double& sigma)
 {
  _sigma=sigma;
 }
 
-void NoisyAutomata::setTransProb(const float& transProb)
+void NoisyAutomata::setTransProb(const double& transProb)
 {
  _transProb=transProb;
 }
@@ -129,28 +129,28 @@ void NoisyAutomata::generate(const int& number)
     
     
   }
-  DataGenerator<float>::generate(number);
+  DataGenerator<double>::generate(number);
   if (crySSMExFile.is_open())
     crySSMExFile.close();
 }
 
-void write_vector (std::ofstream& file, const Vector<float>* v)
+void write_vector (std::ofstream& file, const Vector<double>* v)
 {
   for (unsigned int i=0; i<v->size(); i++)
     file << v->at(i) << "  ";
 }
 
-Vector<float>* NoisyAutomata::generate()
+Vector<double>* NoisyAutomata::generate()
 {
- float prob  =float (rand() % 1000) /1000;
+ double prob  =double (rand() % 1000) /1000;
  // states are coded as follows
  // 0 : ba
  // 1 : ab
  // 2 : ca
  // 3 : ac
 
- Vector<float>* previous_item;
- Vector<float>* current_item;
+ Vector<double>* previous_item;
+ Vector<double>* current_item;
 
  if (_data->size() == 0)
  {
