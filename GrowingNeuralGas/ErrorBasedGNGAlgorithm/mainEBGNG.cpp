@@ -39,7 +39,7 @@ float consteta(const unsigned int& time)
 {return 0.99995;}
 
 float consttheta(const unsigned int& time)
-{return 75;}
+{return 3;}
 
 float constlambda(const unsigned int& time)
 {return 600 ;}
@@ -64,7 +64,7 @@ float funclambda(const unsigned int& time)
 
 float functheta(const unsigned int& time)
 {
-      return 75;
+      return 3;
 }
 
 int main(int argc, char *argv[])
