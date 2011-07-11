@@ -16,13 +16,13 @@
 
 namespace neuralgas {
 
-float approx_gauss(const float& value)
+double approx_gauss(const double& value)
 {
-      float dz = 10E-5;
-      float integral = 0.0;
-      float z = 0.0;
+      double dz = 10E-5;
+      double integral = 0.0;
+      double z = 0.0;
     
-      float tmpvalue=(value >0 )? value : -value; 
+      double tmpvalue=(value >0 )? value : -value; 
  
       while ( integral < tmpvalue  )
       {
@@ -32,26 +32,26 @@ float approx_gauss(const float& value)
       return ( value > 0) ? z : -z;
 }
 
-void box_muller(float& a1, float& a2)
+void box_muller(double& a1, double& a2)
 {
-     float rho = sqrt( -2* (log(a1)));
-     float phi = 2*M_PI*a2;
+     double rho = sqrt( -2* (log(a1)));
+     double phi = 2*M_PI*a2;
      a1 = rho * cos(phi);
      a2 = rho * sin(phi);
 }
 
 
-Vector<float>* normal_distribution(const float& m1, const float& m2, const float& _sigma1, const float& _sigma2)
+Vector<double>* normal_distribution(const double& m1, const double& m2, const double& _sigma1, const double& _sigma2)
 {
- Vector<float>* v=new Vector<float>(2);
+ Vector<double>* v=new Vector<double>(2);
 
- //float a;
- float a1,a2;
+ //double a;
+ double a1,a2;
  do
  {
-  a1 = float(rand()%10000) / 10000;
+  a1 = double(rand()%10000) / 10000;
  }while(a1==0.0);
- a2 = float(rand()%10000) / 10000;
+ a2 = double(rand()%10000) / 10000;
  
  box_muller(a1,a2); 
  (*v)[0] = a1  * _sigma1 + m1; 
@@ -59,7 +59,7 @@ Vector<float>* normal_distribution(const float& m1, const float& m2, const float
 
  /*do
  {
-       a = _sqrtPI * ( float(rand()%10000) / 10000) - _sqrtPI / 2;
+       a = _sqrtPI * ( double(rand()%10000) / 10000) - _sqrtPI / 2;
  }
  while(a>0.88 or a <-0.88); 
 
@@ -67,7 +67,7 @@ Vector<float>* normal_distribution(const float& m1, const float& m2, const float
  
  do
  {
-       a = _sqrtPI * (float(rand()%10000) / 10000) - _sqrtPI / 2;
+       a = _sqrtPI * (double(rand()%10000) / 10000) - _sqrtPI / 2;
  }
  while(a>0.88 or a <-0.88); 
  
