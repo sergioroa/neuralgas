@@ -46,27 +46,17 @@ public:
 	// set input adaptation threshold
 	void setAdaptationThreshold (T);
 	// set initial learning rate constants
-	void setLearningRates (T, T, T);
+	void setLearningRates (T, T);
 	// set insertion rate
 	void setInsertionRate (T);
-	// set insertion tolerance
-	void setInsertionTolerance (T);
-	// set deletion threshold
-	void setDeletionThreshold (T);
-	// set minimal node age constant
-	void setMinimalNodeAge (T);
 	// set maximal edge age constant
 	void setMaximalEdgeAge (unsigned int);
-	// set stabilization constant
-	void setStabilization (T);
 	// set data accuracy (quantization) constant
 	void setDataAccuracy (T);
 	// find node with maximal value of insertion criterion
 	int maxInsertionCriterionNode ();
 	// find node with maximal value of insertion quality among some nodes
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
-	// find node with minimal value of deletion criterion
-	int minDeletionCriterionNode ();
 	// delete nodes that are not being activated
 	void deleteUselessNodes ();
 	// find node with less activations
@@ -79,16 +69,11 @@ public:
 	unsigned int getMaxNodes () const;
 	// calculate the Minimum Description Length of the current graph and dataset
 	T calculateMinimumDescriptionLength ();
-	// T calculateApproxMinimumDescriptionLength ();
 	// set maximum nr of epochs after avg error reduction is expected
 	void setMaxEpochsErrorReduction (unsigned int);
 	// set maximum nr of epochs after mdl reduction is expected
 	void setMaxEpochsMDLReduction (unsigned int);
 protected:
-	// calculate and return local similarity of weights for some node
-	T calculateWeightsLocalSimilarity (const int);
-	// return average similarity of weights
-	T getWeightsAvgSimilarity ();
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
 	// update the graph with minimal description length
@@ -99,37 +84,43 @@ protected:
 	void markAsStableGraph ();
 	// calculate value range of data
 	void calculateValueRange ();
-	//defines the update rule for the given node by using a given data vector index
-	void updateWeight(const unsigned int&,const unsigned int&);
+	// calculate initial restrictive distances for every node
+	void calculateInitialRestrictingDistances ();
+	//defines the update rule for the winner node by using a given data vector index
+	void updateWinnerWeight(const unsigned int&, const unsigned int&);
+	//defines the update rule for a neighboring node by using a given data vector index
+	void updateNeighborWeight(const unsigned int&, const unsigned int&, const unsigned int&, std::map<unsigned int, T>&);
 private:
 	/// Base_Graph casted pointer to thereof derived class GNGGraph
-	LLRGNGGraph<T,S>*           _graphptr;
+	LLRGNGGraph<T,S>* _graphptr;
 	//a learning cycle for instance
         void learning_loop ( unsigned int, unsigned int );
 	/// insertion rate constant
 	T insertion_rate;
 	/// maximal number of nodes if it is set (not obligatory)
 	unsigned int max_nodes;
-	/// current minimum description length value
-	T mdl;
 	/// accuracy constant
 	T data_accuracy;
 	/// current training epoch
 	unsigned int epoch;
+	/// current minimum description length value
+	T mdl;
+	/// current minimal mdl
+	T min_mdl;
+	/// current minimal graph (mdl criterion)
+	LLRGNGGraph<T,S>* min_mdl_graphptr;
 	/// maximal nr of epochs for checking for mean errors non-reduction
 	unsigned int max_epochs_error_reduction;
 	/// maximal nr of epochs for checking \p mdl reduction
 	unsigned int max_epochs_mdl_reduction;
 	/// last epoch when mdl reduction found
 	unsigned int last_epoch_mdl_reduction;
-	/// current minimal mdl
-	T min_mdl;
-	/// current minimal graph (mdl criterion)
-	LLRGNGGraph<T,S>* min_mdl_graphptr;
 	/// used as stopping criterion (graph stability)
 	bool stable_graph;
 	/// value range of data
 	T value_range;
+	/// repulsion constant for updating weights
+	T repulsion_constant;
 	
 };
 
@@ -139,16 +130,18 @@ private:
 */
 template<typename T,typename S>
 LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned int& window = 200):
-	GNGModul<T,S>(dim)
+	GNGModul<T,S>(dim),
+	max_nodes (0),
+	data_accuracy (0.001),
+	mdl (1e10),
+	min_mdl (mdl),
+	min_mdl_graphptr (NULL),
+	max_epochs_error_reduction (5),
+	max_epochs_mdl_reduction (80)
 {
 	_graphptr = new LLRGNGGraph<T,S>(dim, window);
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
-	max_nodes = 0;
-	data_accuracy = 0.001;
-	mdl = 1e10;
-	min_mdl = mdl;
-	min_mdl_graphptr = NULL;
 }
 
 /** \brief std dto
@@ -183,6 +176,8 @@ void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 	// random values
 	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
 
+	calculateInitialRestrictingDistances ();
+
 
 }
 
@@ -201,12 +196,11 @@ void LLRGNGAlgorithm<T,S>::setTimeWindows (unsigned int smoothing, unsigned int 
 /** \brief set initial learning rate constants
  *  \param winner_learning_rate initial winner learning rate constant
  *  \param neighbors_learning_rate initial winner-neighbors learning rate constant
- *  \param insertion_learning_rate insertion threshold learning rate constant
  */
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setLearningRates (T winner_learning_rate, T neighbors_learning_rate, T insertion_learning_rate)
+void LLRGNGAlgorithm<T,S>::setLearningRates (T winner_learning_rate, T neighbors_learning_rate)
 {
-	_graphptr->setLearningRates (winner_learning_rate, neighbors_learning_rate, insertion_learning_rate);
+	_graphptr->setLearningRates (winner_learning_rate, neighbors_learning_rate);
 }
 
 /** \brief set adaptation threshold
@@ -217,37 +211,12 @@ void LLRGNGAlgorithm<T,S>::setAdaptationThreshold (T adaptation_threshold)
 	_graphptr->setAdaptationThreshold (adaptation_threshold );	
 }
 
-/** \brief set insertion tolerance
-    \param insertion_tolerance insertion tolerances */
-template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setInsertionTolerance (T insertion_tolerance)
-{
-	_graphptr->setInsertionTolerance (insertion_tolerance);	
-}
-
 /** \brief set insertion rate
     \param rate insertion rate (used as factor of nr. of nodes) */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setInsertionRate (T rate)
 {
 	insertion_rate = rate;	
-}
-
-/** \brief set \p deletion_threshold
-    \param deletion_threshold given deletion threshold */
-template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setDeletionThreshold (T deletion_threshold)
-{
-	_graphptr->setDeletionThreshold (deletion_threshold);	
-}
-
-/* \brief set \p minimal_node_age constant
- * \param minimal_node_age minimal node age constant
- */
-template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setMinimalNodeAge (T minimal_node_age)
-{
-	_graphptr->setMinimalNodeAge (minimal_node_age);
 }
 
 /* \brief set maximal edge age constant
@@ -257,15 +226,6 @@ template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setMaximalEdgeAge (unsigned int maximal_edge_age)
 {
 	_graphptr->setMaximalEdgeAge (maximal_edge_age) ;
-}
-
-/* set \p stabilization constant
- * \param stabilization learning stabilization constant
- */
-template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setStabilization (T stabilization)
-{
-	_graphptr->setStabilization( stabilization );
 }
 
 /* set \p data_accuracy constant
@@ -296,22 +256,65 @@ T LLRGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& n
 	return metric( item, (*_graphptr)[node_index].weight);
 }
 
-
 /** \brief Defines the update rule for a node given by the second index 
-*
-*   The update rule depends on the current item. With that item a given
-*   topological neighbor is updated by an algorithmic dependent rule.
-*   w_j(new) = w_j(old) + epsilon_n * ( x_t - w_j(old) )
+*   See Qin and Suganthan (2004) update rule.
 *
 *   \param item_index is the data vector index that is used for updating 
 *   \param node_index is the index of topological neighbor that shall be updated
+*   \param distances_winner distances of winner neighbors (used only for neighbors updating as a repulsive force
 */
 template<typename T,typename S>
-void LLRGNGAlgorithm<T,S>::updateWeight(const unsigned int& item_index,const unsigned int& node_index)
+void LLRGNGAlgorithm<T,S>::updateWinnerWeight(const unsigned int& item_index,const unsigned int& node_index)
 {
 	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[node_index]);
+	T distance = getDistance ((*this)[item_index], node_index);
+	T amplitude;
+	if (distance >= node->prev_restricting_distance)
+		amplitude = node->restricting_distance;
+	else
+		amplitude = distance;
 	
-	node->weight  += node->learning_rate * ( (*this)[item_index]-node->weight);
+	node->weight += node->learning_rate * amplitude * ( (*this)[item_index]-node->weight) / distance;
+}
+
+/** \brief Defines the update rule for a node given by the second index 
+*
+*   See Qin and Suganthan (2004) update rule, taking into account
+*   repulsive forces.
+*
+*   \param item_index is the data vector index that is used for updating 
+*   \param node_index is the index of topological neighbor that shall be updated
+*   \param winner_index is the index of the winner node
+*   \param distances_winner distances of winner neighbors (used for repulsive force)
+*/
+template<typename T,typename S>
+void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,const unsigned int& node_index, const unsigned int& winner_index, std::map<unsigned int, T>& distances_winner)
+{
+	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[node_index]);
+	// LLRGNGNode<T,S>* winner = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[winner_index]);
+
+	T distance = getDistance ((*this)[item_index], node_index);
+	T amplitude;
+	if (distance >= node->prev_restricting_distance)
+		amplitude = node->restricting_distance;
+	else
+		amplitude = distance;
+	
+	node->weight += node->learning_rate * amplitude * ( (*this)[item_index]-node->weight) / distance;
+
+	T dist_avg;
+	typename std::map<unsigned int, T>::iterator it;
+	for (it = distances_winner.begin(); it != distances_winner.end(); it++)
+		dist_avg += it->second;
+	
+	dist_avg /= distances_winner.size();
+
+	/*T repulsion;
+	if (winner->last_avgerror >= 0.1)
+		repulsion = repulsion_constant;
+	else
+	repulsion = 0.5 * winner->last_avgerror;*/
+	node->weight += exp (-distances_winner[node_index] / repulsion_constant/*(0.5 * winner->last_avgerror)*/) * 2 * dist_avg * (node->weight - (*_graphptr)[winner_index].weight) / distances_winner[node_index];
 
 }
 
@@ -395,7 +398,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//second winner
 	unsigned int s = 0;
 	this->getWinner(b,s,(*this)[t]);
-	_graphptr->increaseActivationsCounter (b);
+	// _graphptr->increaseActivationsCounter (b);
 	
 	//learning rule for weight adaptation
 	//after calculating learning quality for best matching node b and neighbors
@@ -403,8 +406,10 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	_graphptr->calculateLearningQuality(b);
 	_graphptr->updateWinnerLearningRate (b);
 
-	updateWeight(t,b);
+	updateWinnerWeight(t,b);
 	std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
+	std::map<unsigned int, T> b_neighbors_distances = _graphptr->get1toMDistances (b, b_neighbors);
+	
 	
 	for(unsigned int j=0; j < b_neighbors.size();j++)
 	{
@@ -412,11 +417,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		_graphptr->calculateLearningQuality(b_neighbor);
 		_graphptr->updateNeighborLearningRate (b_neighbor);
 		
-		updateWeight(t,b_neighbor);
+		updateNeighborWeight(t,b_neighbor,b, b_neighbors_distances);
 	}
-
-	//to be used for storing an index for a deleted node
-	// int d = -1;
 
 	//calculate insertion quality
 	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
@@ -445,50 +447,34 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 				_graphptr->calculateInsertionCriterion (j);
 			}
 		
-			// if (min_mdl_graphptr->size() < _graphptr->size())
-			// {
-				int q = maxInsertionCriterionNode ();
+			int q = maxInsertionCriterionNode ();
 		
-				// find node among neighbours of q with maximal value of
-				//quality measure of insertion
-				if (q != -1)
-				{
-					std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
-					int f = maxInsertionQualityNode (q_neighbors);
-					if (f != -1)
-					{	
-						_graphptr->rmEdge (q, f);
-						_graphptr->addNode ();
-						int node_index = _graphptr->size()-1;
-						std::cout << "adding node " << node_index << "..." << std::endl;
-						_graphptr->calculateInheritedParams (node_index, q, f);
-						_graphptr->setAge(q,node_index,0.0);
-						_graphptr->setAge(f,node_index,0.0);
-					}
+			// find node among neighbours of q with maximal value of
+			//quality measure of insertion
+			if (q != -1)
+			{
+				std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
+				int f = maxInsertionQualityNode (q_neighbors);
+				if (f != -1)
+				{	
+					_graphptr->rmEdge (q, f);
+					_graphptr->addNode ();
+					int node_index = _graphptr->size()-1;
+					std::cout << "adding node " << node_index << "..." << std::endl;
+					_graphptr->calculateInheritedParams (node_index, q, f);
+					_graphptr->setAge(q,node_index,0.0);
+					_graphptr->setAge(f,node_index,0.0);
+					calculateInitialRestrictingDistances ();
 				}
-			// }
+			}
 		}
-		// find node with minimal value of deletion criterion
-		// d = minDeletionCriterionNode ();
-		
-		// if (d != -1) {
-		// 	std::cout << "deleting node " << d << std::endl;
-		// 	_graphptr->rmNode (d);
- 		// }
 		// _graphptr->resetActivationsCounters ();
-
-
-			
 	}
 
-	if (/*d != (int)b*/!stable_graph)
+	if (!stable_graph)
 	{
-		//update long-term and short-term error variables
-		// Vector<T> dim_distances (this->getDimension());
-		// for (unsigned int i=0; i<this->getDimension(); i++)
-		// 	dim_distances[i] = T(fabs ((*this)[t][i] - (*_graphptr)[b].weight[i]));
 		T min_error = _graphptr->getNodeMinLastAvgError (b);
-		_graphptr->updateAvgError (b/*, dim_distances*/, getDistance ((*this)[t], b));
+		_graphptr->updateAvgError (b, getDistance ((*this)[t], b));
 		if (min_error > _graphptr->getNodeMinLastAvgError (b))
 			_graphptr->setLastEpochImprovement (b, epoch);
 		
@@ -564,42 +550,13 @@ int LLRGNGAlgorithm<T,S>::maxInsertionQualityNode (const std::vector<unsigned in
 	return f;
 }
 
-/* \brief calculate and return local similarity of weights for some node
- * \param index node index
- */
-template<typename T, typename S>
-T LLRGNGAlgorithm<T,S>::calculateWeightsLocalSimilarity (const int index)
-{
-	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[index]);
-	std::vector<unsigned int> neighbors = _graphptr->getNeighbors(index);
-	node->local_similarity = this->_zero;
-	for(unsigned int i=0; i < neighbors.size();i++)
-		node->local_similarity += metric (node->weight, (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[neighbors[i]]))->weight);
-
-	node->local_similarity /= (T) neighbors.size();
-	return node->local_similarity;
-	
-}
-
-/* \brief return average similarity of weights. Uses \p calculateWeightsLocalSimilarity
-   to store the local weight similarities for all nodes, which will be used by
-   \p minDeletionCriterionNode
- */
-template<typename T, typename S>
-T LLRGNGAlgorithm<T,S>::getWeightsAvgSimilarity ()
-{
-	T similarity = this->_zero;
-	for(unsigned int i=0; i < _graphptr->size();i++)
-		similarity += calculateWeightsLocalSimilarity (i);
-	
-	similarity /= (T) _graphptr->size();
-	return similarity;
-	
-}
 
 template<typename T, typename S>
 T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 {
+	std::vector<unsigned int> items_per_winner (_graphptr->size());
+	std::vector<int> winner_per_item (this->size(), -1);
+	std::vector<T> mdl_per_item (this->size());
 	T k = 1;
 	mdl = 0;
 	for(unsigned int t = 0; t < this->size(); t++)
@@ -607,62 +564,38 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 		//winners
 		unsigned int b, s;
 		this->getWinner(b,s,(*this)[t]);
+		items_per_winner[b]++;
+		winner_per_item[t] = b;
 		for (unsigned int i=0; i<this->getDimension(); i++)
-		 	mdl += std::max(log2(fabs((*this)[t][i] -  (*_graphptr)[b].weight[i]) / data_accuracy), 1.0);
-		
+		{
+		 	mdl_per_item[t] += std::max(log2((fabs((*this)[t][i] -  (*_graphptr)[b].weight[i])) / data_accuracy), 1.0);
+		}
+		mdl += mdl_per_item[t];
 	}
+
 	mdl *= k;
 	int K = ceil (log2(value_range / data_accuracy));
-
-	mdl += _graphptr->size() * K + this->size() * log2 (_graphptr->size());
-	return mdl;
-
-}
-
-/*template<typename T, typename S>
-T LLRGNGAlgorithm<T,S>::calculateApproxMinimumDescriptionLength ()
-{
-	mdl = 0;
-	for(unsigned int i = 0; i < _graphptr->size(); i++)
+	T L_inliers = this->size() * log2 (_graphptr->size());
+	//verify outliers
+	unsigned int outliers;
+	for(unsigned int t = 0; t < this->size(); t++)
 	{
-		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-
-		for (unsigned int k=0; k<this->getDimension(); k++)
-		 	mdl += std::max(log2(node->dim_last_avgerror[k] / data_accuracy), 1.0);
+		bool alone = 0;
+		if (items_per_winner[winner_per_item[t]] == 1) alone = 1;
 		
+		if ( ((this->size()-1)*log2(_graphptr->size()-alone) + K) - (L_inliers + mdl_per_item[t]) - alone * K < 0)
+			outliers++;
 	}
-	mdl *= this->size() / (_graphptr->size() * this->getDimension());
-	int K = ceil (log2(value_range / data_accuracy));
-
-	mdl += _graphptr->size() * K + this->size() * log2 (_graphptr->size());
+	// //reestimate inliers
+	// L_inliers -= outliers * log2 (_graphptr->size());
+	
+	mdl += _graphptr->size() * K + L_inliers + outliers * K;
+	std::cout << "K: " << K << std::endl;
+	std::cout << "L_inliers: " << L_inliers << std::endl;
+	std::cout << "outliers: " << outliers << std::endl;
+	std::cout << "errors: " << mdl - (_graphptr->size() * K + L_inliers + outliers) << std::endl;
 	return mdl;
 
-}*/
-
-
-/* \brief find node with minimal value of deletion criterion
- */
-template<typename T, typename S>
-int LLRGNGAlgorithm<T,S>::minDeletionCriterionNode ()
-{
-	assert (_graphptr->size());
-	T avg_similarity = getWeightsAvgSimilarity ();
-	T min_value = _graphptr->getDeletionThreshold ();
-	int d = -1;
-	for (unsigned int i=0; i < _graphptr->size(); i++)
-	{
-		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (_graphptr->getNeighborsSize(i) >= 1 /*&& node->age < _graphptr->getMinimalNodeAge()*/ && node->learning_quality < _graphptr->getStabilization())
-		{
-			T deletion_criterion = node->local_similarity / avg_similarity;
-			if (min_value > deletion_criterion)
-			{
-				min_value = deletion_criterion;
-				d = i;
-			}
-		}
-	}
-	return d;
 }
 
 /* \brief delete nodes that are not being activated
@@ -752,6 +685,19 @@ template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 {
 
+	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
+		// std::cout << "node " << i << " age: " << node->age << std::endl;
+		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
+		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
+		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
+		// std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
+		std::cout << "node " << i << " learning rate: " << node->learning_rate << std::endl;
+		// std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
+	}
+
 	std::cout << "mdl: " << calculateMinimumDescriptionLength ();
 
 	if (min_mdl > mdl )
@@ -774,6 +720,7 @@ template<typename T, typename S>
 bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 {
 	return (epoch - last_epoch_mdl_reduction >= max_epochs_mdl_reduction);
+
 }
 
 
@@ -788,31 +735,6 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;
 
-	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
-	for (unsigned int i=0; i < _graphptr->size(); i++)
-	{
-		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		std::cout << "node " << i << " age: " << node->age << std::endl;
-		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
-		std::cout << "node " << i << " inherited e.: " << node->inherited_error << std::endl;
-		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
-		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
-		// std::cout << "node " << i << " stddev avg e.: (";
-		// for (unsigned int j=0; j<this->getDimension(); j++)
-		// 	std::cout << node->dim_stddev_avgerror[j] << " "
-				;
-		// std::cout << ")" << std::endl;
-		// std::cout << "node " << i << " dim last avg e.: (";
-		// for (unsigned int j=0; j<this->getDimension(); j++)
-		// 	std::cout << node->dim_last_avgerror[j] << " ";
-		// std::cout << ")" << std::endl;
-		// std::cout << "node " << i << " receptive field: " << node->receptive_field << std::endl;
-		std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
-		// std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
-		std::cout << "node " << i << " insertion t.: " << node->insertion_threshold << std::endl;
-	}
-
-
 }
 
 /* \brief calculate value range of data
@@ -820,10 +742,34 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 {
+	T avg_values;
 	for(unsigned int t = 0; t < this->size(); t++)
 		for (unsigned int i=0; i<this->getDimension(); i++)
-			value_range += (*this)[t][i];
-	value_range /= T (this->size());
+			avg_values += (*this)[t][i];
+	avg_values /= T (this->size());
+	value_range = avg_values - _graphptr->getLowLimit ();
+	repulsion_constant = value_range / 25;
+
+	std::cout << "value range: " << value_range << std::endl;
+
+}
+
+/** \brief calculate initial restrictive distances for every node
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::calculateInitialRestrictingDistances ()
+{
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
+		node->restricting_distance = 0;
+		for (unsigned int t=0; t<this->size(); t++)
+			node->restricting_distance += 1.0 / metric (node->weight, (*this)[t]);
+		node->restricting_distance /= this->size();
+		node->restricting_distance = 1.0 / node->restricting_distance;
+		node->prev_restricting_distance = node->restricting_distance;
+	}
+	
 }
 
 

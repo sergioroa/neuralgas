@@ -17,7 +17,6 @@
 #include <vector>
 #include <limits>
 #include <Graphs/Base_Graph.h>
-#include <tools/metrics.h>
 
 /// Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
 namespace neuralgas {
@@ -341,7 +340,11 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vec
 //{_metric_to_use=metric_to_use;}  
 
 template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(Metric metric_to_use=NULL )
-{_metric_to_use=metric_to_use;}  
+{
+  _metric_to_use=metric_to_use;
+  graphptr->setMetric (metric_to_use);
+
+}  
 
 
 /** \brief standard is the pre-specified L2 euclidean metric

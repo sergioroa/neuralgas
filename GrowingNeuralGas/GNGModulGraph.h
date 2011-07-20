@@ -56,6 +56,11 @@ public:
    Vector<T> getLowLimits() const{return low_limits;}
    /// returns the maximal limit values
    Vector<T> getHighLimits() const{return high_limits;}
+   /// returns minimal limit value
+   T getLowLimit() const{return low_limit;}
+   /// returns maximal limit value
+   T getHighLimit() const{return high_limit;}
+   
 
 protected:
    /// low limit min value for the random initializiation of the context vector

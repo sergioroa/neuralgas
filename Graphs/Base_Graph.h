@@ -12,10 +12,12 @@
 #define BASE_GRAPH_H
 
 #include <vector>
+#include <map>
 #include <fstream>
 #include "Vector.h"
 #include <iostream>
 #include <cstdlib>
+#include <tools/metrics.h>
 
 namespace neuralgas {
 
@@ -117,13 +119,12 @@ template < typename T , typename S> struct Base_Edge
 * \param _nodes array of pointer to the nodes of the graph
 * \param _dimNode dimension of the node's weight vectors
 * \param _dimEdge dimension of the edge's weight vectors
-* \param _dummy dummy variable for operator[] if index is out of range
-* \param _dummyV dummy vector for getNeigbbors() if index is out of range
 */
 
 template<typename T, typename S> class Base_Graph
 {
       public:
+	     typedef T (Base_Graph::*Metric)(const Vector<T>&,const Vector<T>&) const;
              //cto creating a graph with the same dimension for node and edge weight vectors
              Base_Graph(const unsigned int&);
              //dummy copy constructor. Copying procedures should be done in derived classes
@@ -164,7 +165,14 @@ template<typename T, typename S> class Base_Graph
              inline void                         update();
              //returns the number of nodes currently in the graph
              inline unsigned int                 size(void) const;
-                          
+	     //sets a user defined metric, used as distance of reference and data vector 
+             inline void                         setMetric(Metric); 
+             // pre-specified metric is the standard L2 euclidean metric
+             virtual T                           metric(const Vector<T>&, const Vector<T>&) const;
+
+             // Returns distances from a node to a set of nodes
+             std::map<unsigned int, T>           get1toMDistances (const unsigned int&, std::vector<unsigned int>&);
+
              void                                showGraph();
       protected:
              //returns a pointer to a node of a type that is currently used by the graph
@@ -178,12 +186,10 @@ template<typename T, typename S> class Base_Graph
              unsigned int                        _dimNode;
              // dimension of the edge's weight vectors
              unsigned int                        _dimEdge;
+             //user specified metric
+             Metric _metric_to_use;
+	//private:
 
-      // private:
-      //        // dummy variable for operator[]
-      //        Base_Node<T,S>                      _dummy;
-      //        // dummy vector for getNeigbbors()
-      //        std::vector< unsigned int >         _dummyV;
 };
 
 template < typename T , typename S> void Base_Graph<T,S>::showGraph()
@@ -216,6 +222,7 @@ template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& 
 { 
   _dimNode = dim;
   _dimEdge = dim;
+  _metric_to_use  = NULL;   // no user defined metric is used, std metric is used
   ::srand( (unsigned)time( NULL ) );                    //inits the random function 
 }
 
@@ -254,10 +261,7 @@ template<typename T,typename S> Base_Graph<T,S>::~Base_Graph()
 template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const unsigned int& index)
 {
   assert (index < size () );
-  // if ( index < size() )
-    return *(_nodes[index]);
-  // else
-  //   return _dummy;
+  return *(_nodes[index]);
 }  
 
 /** \brief returning a const reference to the node indexed by the given index
@@ -267,10 +271,7 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
 template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](const unsigned int& index) const
 {
   assert (index < size());
-  // if ( index < size() )
-    return *(_nodes[index]);
-  // else
-  //   return _dummy;
+  return *(_nodes[index]);
 }
 
 
@@ -453,14 +454,13 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const unsigned int&
 */
 template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNeighbors(const unsigned int& index) const
 {
- unsigned int nsize = size();
- assert (index < nsize );
- // if ( index < nsize )
- // {
+  unsigned int nsize = size();
+  assert (index < nsize );
+
   std::vector<unsigned int> result_v;
   int num_of_neighbors = _nodes[index]->num_connections;
   int found_neighbors = 0;
-  
+ 
   for (unsigned int i=0; i < nsize /*&& found_neighbors < num_of_neighbors*/; i++)
     if( _nodes[index]->edges[i] !=NULL && index!=i)
     {
@@ -470,9 +470,6 @@ template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNe
   //if the following is false, something must be wrong
   assert (found_neighbors <= num_of_neighbors);
   return result_v;
- // }
- // else
- //     return _dummyV;
 }
 
 /** \brief Returns neighbors set cardinality for some node
@@ -492,6 +489,22 @@ template<typename T,typename S> int Base_Graph<T,S>::getNeighborsSize(const unsi
 
   return found_neighbors;
 
+}
+
+/** \brief Returns distances from a node to a set of nodes
+ *  \param index index of the node
+ *  \param indices indices of the set of nodes
+ */
+template<typename T, typename S> std::map<unsigned int, T> Base_Graph<T,S>::get1toMDistances (const unsigned int& index, std::vector<unsigned int>& indices)
+{
+  assert ( index < size() );
+  for (unsigned int i=0; i < indices.size(); i++ )
+    assert ( indices[i] < size() );
+
+  std::map<unsigned int, T> distances;
+  for (unsigned int i=0; i < indices.size(); i++)
+    distances[indices[i]] = metric (_nodes[index]->weight, _nodes[indices[i]]->weight);
+  return distances;
 }
 
 /** \brief Returns whether the node of the given index has neighbors
@@ -567,6 +580,38 @@ template<typename T, typename S > inline unsigned int Base_Graph<T,S>::size(void
 {
  return _nodes.size();
 }
+
+/** \brief standard is the pre-specified L2 euclidean metric
+*
+* \param x first vector
+* \param y second vector
+*/
+template< typename T, typename S> T Base_Graph<T,S>::metric(const Vector<T>& x, const Vector<T>& y) const
+{
+ if (_metric_to_use==NULL) // is a non-standard metric set ?
+   return euclidean<T,S> (x, y);
+ else
+   return (this->*_metric_to_use)(x,y);   // use the non-standard user defined metric
+}  
+
+/** \brief Sets an user defined metric, used as distance of reference and data vector.
+*
+* The user can define an own metric to measure the distance or distortion of the reference vectors and the data vectors. 
+* The metric has to be of the form
+*
+* T user_metric(const Vector<T>&,const Vector<T>&)
+*
+* Implicitly this defines a topology.
+* The default value of the function pointer is NULL, this allows after an user defined metric
+* was given to call the function with no parameter which effects that the default implemented
+* metric is going to be used.
+* \param *metric_to_use is function ptr to an user defined metric
+*/
+template < typename T, typename S > inline void Base_Graph<T,S>::setMetric(Metric metric_to_use=NULL )
+{
+  _metric_to_use=metric_to_use;
+}
+
 
 } //namespace neuralgas
 

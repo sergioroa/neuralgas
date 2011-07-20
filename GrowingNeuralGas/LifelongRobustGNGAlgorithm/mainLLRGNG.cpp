@@ -48,17 +48,14 @@ int main (int argc, char* argv[])
 	// llrgng->setRefVectors(2,mins,maxs);
 
 	// llrgng->setTimeWindows (20, 100, 100);
-	llrgng->setTimeWindows (100, 60, 100);
-	llrgng->setLearningRates (0.1, 0.001, 0.1);
+	llrgng->setTimeWindows (100, 60, 80*size);
+	llrgng->setLearningRates (0.1, 0.001);
 	llrgng->setInsertionRate (size);
-	llrgng->setAdaptationThreshold (0.05);
-	llrgng->setInsertionTolerance (0.1);
-	llrgng->setDeletionThreshold (0.5);
-	llrgng->setMinimalNodeAge (0.001);
+	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (100);
 	llrgng->setDataAccuracy (0.001);
+	// llrgng->setDataAccuracy (0.00000000001);
 	// llrgng->setMaxNodes (3);
-	llrgng->setStabilization (1.001);
 	llrgng->setMaxEpochsErrorReduction (5);
 	llrgng->setMaxEpochsMDLReduction (60);
 

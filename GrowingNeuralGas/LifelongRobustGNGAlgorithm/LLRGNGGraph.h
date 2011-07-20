@@ -12,7 +12,6 @@
 #define LLRGNGGRAPH_H
 
 #include <GrowingNeuralGas/GNGModulGraph.h>
-#include <queue>
 #include <tools/metrics.h>
 
 namespace neuralgas {
@@ -39,14 +38,12 @@ struct LLRGNGNode : Base_Node<T,S>
 	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable error window
 	std::vector<T> errors;
-	// /// errors vector for each dimension
-	// std::vector<Vector<T> > dim_errors;
 	// calculate \p learning_quality measure
 	void calculateLearningQuality ();
 	/// quality measure for learning
 	T learning_quality;
 	// calculate \p insertion_quality measure
-	void calculateInsertionQuality (T&);
+	void calculateInsertionQuality ();
 	/// quality measure for insertion
 	T insertion_quality;
 	// calculate \p insertion_criterion
@@ -54,23 +51,19 @@ struct LLRGNGNode : Base_Node<T,S>
 	/// insertion criterion
 	T insertion_criterion;
 	// calculate \p prev_avgerror and \p last_avgerror
-	void updateAvgError (T/*, Vector<T>&*/, const unsigned int&, const unsigned int&, const unsigned int&);
+	void updateAvgError (T, const unsigned int&, const unsigned int&, const unsigned int&);
 	/// previous mean error counter
 	T prev_avgerror;
 	/// last mean error counter
 	T last_avgerror;
+	/// restricting distance parameter to avoid outlier influence
+	T restricting_distance;
+	/// previous restricting distance parameter
+	T prev_restricting_distance;
 	/// last minimal mean error counter found
 	T min_last_avgerror;
 	/// last epoch where avg error was reduced
 	unsigned int last_epoch_improvement;
-	// /// last mean error for each dimension
-	// Vector<T> dim_last_avgerror;
-	// /// last mean error variance 
-	// Vector<T> dim_var_avgerror;
-	/// inherited error calculating during node insertion
-	T inherited_error;
-	/// An insertion is only allowed if the long-term error exceeds this threshold
-	T insertion_threshold;
 	// decrease node age
 	void decreaseAge (unsigned int);
 	/// age of the node
@@ -79,8 +72,6 @@ struct LLRGNGNode : Base_Node<T,S>
 	void updateLearningRate (T&, T&);
 	/// learning rate of the node
 	T learning_rate;
-	/// local similarity of weights
-	T local_similarity;
 	// update activations counter
 	void increaseActivationsCounter ();
 	/// counter for the nr. of activations in a training epoch
@@ -90,10 +81,8 @@ struct LLRGNGNode : Base_Node<T,S>
 /// \brief default \p LLRGNGNode cto
 template<typename T, typename S>
 LLRGNGNode<T,S>::LLRGNGNode () :
-	insertion_threshold (0),
 	age (1),
 	learning_rate (0),
-	local_similarity (0),
 	activations_counter (0)
 {
 }
@@ -102,10 +91,7 @@ LLRGNGNode<T,S>::LLRGNGNode () :
 template<typename T, typename S>
 LLRGNGNode<T,S>::~LLRGNGNode ()
 {
-	// longterm_errors.clear ();
-	// shortterm_errors.clear ();
 	errors.clear ();
-	// dim_errors.clear ();
 }
 
 
@@ -113,16 +99,16 @@ LLRGNGNode<T,S>::~LLRGNGNode ()
 template<typename T, typename S>
 void LLRGNGNode<T,S>::calculateLearningQuality ()
 {
-	learning_quality = (last_avgerror + 1) / (prev_avgerror + 1);
+	learning_quality = (last_avgerror /*+ 1*/) / (prev_avgerror /*+ 1*/);
+	// learning_quality = - (last_avgerror - prev_avgerror);
 
 }
 
 /// \brief calculate \p insertion_quality measure
 template<typename T, typename S>
-void LLRGNGNode<T,S>::calculateInsertionQuality (T& insertion_tolerance)
+void LLRGNGNode<T,S>::calculateInsertionQuality ()
 {
-	insertion_quality = last_avgerror /*- insertion_threshold * (1 + insertion_tolerance)*/;
-
+	insertion_quality = last_avgerror;
 
 }
 
@@ -144,7 +130,7 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 
 	T rate_decision_boundary;
 
-	rate_decision_boundary = learning_quality / (1 + adaptation_threshold) /*+ age -1*/;
+	rate_decision_boundary = learning_quality / (1 + adaptation_threshold) /*+ age*/;
 
 	if (rate_decision_boundary < 0)
 		learning_rate = 0;
@@ -156,21 +142,18 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 
 
 /** \brief calculate \p last_avgerror and \p prev_avgerror,
- *         using the strategy in Oudeyer et al.
+ *         using the strategy in Oudeyer et al. Harmonic
+ *         distances are used.
  *  \param last_error last calculated distance to some data item
  *  \param smoothing smoothing window constant
  *  \param timewindow error time window constant
  */
 template<typename T, typename S>
-void LLRGNGNode<T,S>::updateAvgError (T last_error/*, Vector<T>& dim_last_error*/, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
+void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
 {
 	errors.push_back (last_error);
-	// dim_errors.push_back (dim_last_error);
 	if (errors.size() > max_errors_size)
-	{
 		errors.erase (errors.begin());
-		// dim_errors.erase (dim_errors.begin());
-	}
 
 
 	unsigned int errors_size = errors.size();
@@ -210,29 +193,24 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error/*, Vector<T>& dim_last_error*
 
 	
 	for (unsigned int i=windowbegin_last_avgerror; i < errors_size; i++) 
-		last_avgerror += errors[i];
+		last_avgerror += 1.0 / errors[i];
 	for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
-		prev_avgerror += errors[i];	
+		prev_avgerror += 1.0 / errors[i];	
 	
 	prev_avgerror /= smoothing_prev;
 	last_avgerror /= smoothing_last;
+	prev_avgerror = 1.0 / prev_avgerror;
+	last_avgerror = 1.0 / last_avgerror;
 
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
-	// for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
-	// {
-	// 	dim_last_avgerror[i] = 0.0;
-	// 	dim_var_avgerror[i] = 0.0;
-	// 	for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
-	// 		dim_last_avgerror[i] += dim_errors[j][i];
-	// 	dim_last_avgerror[i] /= smoothing_last;
-
-	// 	for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
-	// 		dim_var_avgerror[i] += (dim_errors[j][i] - dim_last_avgerror[i])*(dim_errors[j][i] - dim_last_avgerror[i]);
-	// 		dim_var_avgerror[i] /= smoothing_last;
-	// }
-
+	//update restricting distance
+	prev_restricting_distance = restricting_distance;
+	if (last_error >= restricting_distance)
+		restricting_distance = 1 / (0.5 * (1.0 / restricting_distance + 1.0 / last_error));
+	else
+		restricting_distance = 0.5 * (restricting_distance + last_error);
 	
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
@@ -280,7 +258,7 @@ public:
 	// calculate inherited variables for a node to be inserted between two nodes
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
-	void updateAvgError (const unsigned int/*, Vector<T>&*/, T last_error);
+	void updateAvgError (const unsigned int, T last_error);
 	// calculate learning quality for some node
 	void calculateLearningQuality (const unsigned int);
 	// calculate insertion quality for some node
@@ -293,26 +271,12 @@ public:
 	void updateNeighborLearningRate (const unsigned int);
 	// set input adaptation threshold
 	void setAdaptationThreshold (T&);
-	// set insertion tolerance
-	void setInsertionTolerance (T&);
 	// set initial learning rate constants
-	void setLearningRates (T&, T&, T&);
-	// set deletion threshold
-	void setDeletionThreshold (T&);
-	// get deletion_threshold
-	T getDeletionThreshold () const;
-	// set minimal node age constant
-	void setMinimalNodeAge (T&);
-	// set minimal node age constant
-	T getMinimalNodeAge () const;
+	void setLearningRates (T&, T&);
 	// set maximal edge age constant
 	void setMaximalEdgeAge (unsigned int&);
 	// get maximal edge age constant
 	unsigned int getMaximalEdgeAge () const;
-	// set stabilization constant
-	void setStabilization (T&);
-	// get stabilization constant
-	T getStabilization () const;
 	// decrease age of some node
 	void decreaseNodeAge (const unsigned int);
 	// update activations counter for some node
@@ -328,22 +292,12 @@ private:
 	virtual LLRGNGNode<T,S>* newNode(void);	
 	/// adaptation threshold constant
 	T adaptation_threshold;
-	/// insertion tolerance constant
-	T insertion_tolerance;
 	/// initial winner learning rate constant
 	T winner_learning_rate;
 	/// initial winner-neighbors learning rate constant
 	T neighbors_learning_rate;
-	/// initial learning rate constant of the insertion threshold
-	T insertion_learning_rate;
-	/// minimal node age constant
-	T minimal_node_age;
 	/// maximal edge age constant
 	unsigned int maximal_edge_age;
-	/// stabilization constant
-	T stabilization;
-	/// deletion threshold
-	T deletion_threshold;
 	/// smoothing window constant
 	unsigned int smoothing_window;
 	/// error time window constant
@@ -364,14 +318,9 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_
 	TGraph<T,S>(dim),
 	GNGModulGraph<T,S>(dim),
 	adaptation_threshold (0),
-	insertion_tolerance (0),
 	winner_learning_rate (0),
 	neighbors_learning_rate (0),
-	insertion_learning_rate (0),
-	minimal_node_age (0),
 	maximal_edge_age (0),
-	stabilization (0),
-	deletion_threshold (0),
 	smoothing_window (1),
 	error_time_window (1),
 	age_time_window (1),
@@ -390,14 +339,9 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 	TGraph<T,S>(g),
 	GNGModulGraph<T,S>(g),
 	adaptation_threshold (g.adaptation_threshold),
-	insertion_tolerance (g.insertion_tolerance),
 	winner_learning_rate (g.winner_learning_rate),
 	neighbors_learning_rate (g.neighbors_learning_rate),
-	insertion_learning_rate (g.insertion_learning_rate),
-	minimal_node_age (g.minimal_node_age),
 	maximal_edge_age (g.maximal_edge_age),
-	stabilization (g.stabilization),
-	deletion_threshold (g.deletion_threshold),
 	smoothing_window (g.smoothing_window),
 	error_time_window (g.error_time_window),
 	age_time_window (g.age_time_window),
@@ -406,6 +350,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 
 	this->_dimNode = g._dimNode;
 	this->_dimEdge = g._dimEdge;
+	this->_metric_to_use = g._metric_to_use;
 	unsigned int gsize = g.size();
 	
 	for (unsigned int i=0; i < gsize; i++)
@@ -433,13 +378,11 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->insertion_criterion = copynode->insertion_criterion;
 		node->prev_avgerror = copynode->prev_avgerror;
 		node->last_avgerror = copynode->last_avgerror;
+		node->restricting_distance = copynode->restricting_distance;
 		node->min_last_avgerror = copynode->min_last_avgerror;
 		node->last_epoch_improvement = copynode->last_epoch_improvement;
-		node->inherited_error = copynode->inherited_error;
-		node->insertion_threshold = copynode->insertion_threshold;
 		node->age = copynode->age;
 		node->learning_rate = copynode->learning_rate;
-		node->local_similarity = copynode->local_similarity;
 		node->activations_counter = copynode->activations_counter;
 		node->errors = copynode->errors;
 	}
@@ -454,20 +397,13 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 {
 	LLRGNGNode<T,S>* n = new LLRGNGNode<T,S>;
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
-		n->inherited_error = euclidean<T,S> (this->high_limits, this->low_limits);
+		n->last_avgerror = metric (this->high_limits, this->low_limits);
 	else
-		n->inherited_error = (this->high_limit - this->low_limit) * (this->high_limit - this->low_limit);		
+		n->last_avgerror = (this->high_limit - this->low_limit) * (this->high_limit - this->low_limit);		
 	//default inherited errors (used when initializing reference vectors)
-	n->prev_avgerror = n->inherited_error;
-	n->last_avgerror = n->inherited_error;
-	n->errors.push_back (n->inherited_error);
+	n->prev_avgerror = n->last_avgerror;
+	n->errors.push_back (n->last_avgerror);
 	n->min_last_avgerror = n->last_avgerror;
-	// n->dim_last_avgerror.resize (this->_dimNode);
-	// n->dim_stddev_avgerror.resize (this->_dimNode);
-	// n->dim_errors.resize (1);
-	// n->dim_errors[0].resize (this->_dimNode);
-	// for (unsigned int i=0; i<this->_dimNode; i++)
-	// 	n->dim_errors[0][i] = (this->high_limits[i] - this->low_limits[i])*(this->high_limits[i] - this->low_limits[i]);
 	return n; 
 }
 
@@ -497,35 +433,15 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[index]);
 	LLRGNGNode<T,S>* first_node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[first_index]);
 	LLRGNGNode<T,S>* snd_node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[snd_index]);
-	
-	node->weight = (first_node->weight + snd_node->weight) / (T)2;
-	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / (T)2;
-	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / (T)2;
-	node->inherited_error = (first_node->inherited_error + snd_node->inherited_error) / (T)2;
-	node->insertion_threshold = (first_node->insertion_threshold + snd_node->insertion_threshold) / (T)2;
 
-	//check if insertion is successful
-	if (first_node->last_avgerror >= first_node->inherited_error * (1 - insertion_tolerance)) {
-		first_node->insertion_threshold += insertion_learning_rate * (first_node->last_avgerror - first_node->insertion_threshold * (1 - insertion_tolerance));
-   		// std::cout << "1st i.t.: " << first_node->insertion_threshold << std::endl;
-	}
-	
-	if (snd_node->last_avgerror >= snd_node->inherited_error * (1 - insertion_tolerance)) {
-		snd_node->insertion_threshold += insertion_learning_rate * (snd_node->last_avgerror - snd_node->insertion_threshold * (1 - insertion_tolerance));
-		// std::cout << "2nd i.t.: " << snd_node->insertion_threshold << std::endl;
-	}
-	if(node->last_avgerror >= node->inherited_error * (1 - insertion_tolerance)) {
-		node->insertion_threshold += insertion_learning_rate * (node->last_avgerror - node->insertion_threshold * (1 - insertion_tolerance));
-		// std::cout << "node i.t.: " << node->insertion_threshold << std::endl;		
-	}
-	first_node->inherited_error = first_node->last_avgerror;
-	snd_node->inherited_error = snd_node->last_avgerror;
-	node->inherited_error = node->last_avgerror;
+	// node->weight = first_node->weight + (snd_node->weight - node->weight) * 0.25;
+	// node->weight = 2 * first_node->weight + snd_node->weight / 3;
+	node->weight = 2 * first_node->weight + snd_node->weight / -3;
+	// node->weight = (first_node->weight + snd_node->weight) / 2;
+	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
+	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
+
 	node->min_last_avgerror = node->last_avgerror;
-
-	// std::cout << "1st i.e.: " << first_node->inherited_error << std::endl;
-	// std::cout << "2nd i.e.: " << snd_node->inherited_error << std::endl;
-	// std::cout << "node i.e.: " << node->inherited_error << std::endl;
 	
 	assert (node->errors.size() == 1);
 	node->errors.front() = node->last_avgerror;
@@ -538,9 +454,9 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 /** \brief calculate last and previous mean error for a given node
     \param index node index */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index/*, Vector<T>& dim_last_error*/, T last_error)
+void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
 {
-	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error/*, dim_last_error*/, smoothing_window, error_time_window, max_errors_size);
+	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error, smoothing_window, error_time_window, max_errors_size);
 
 }
 
@@ -558,7 +474,7 @@ void LLRGNGGraph<T,S>::calculateLearningQuality (const unsigned int index)
 template<typename T, typename S>
 void LLRGNGGraph<T,S>::calculateInsertionQuality (const unsigned int index)
 {
-	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->calculateInsertionQuality(insertion_tolerance);
+	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->calculateInsertionQuality();
 	
 }
 
@@ -574,14 +490,12 @@ void LLRGNGGraph<T,S>::calculateInsertionCriterion (const unsigned int index)
 /** \brief set initial learning rate constants
  *  \param winner initial winner learning rate constant
  *  \param neighbors initial winner-neighbors learning rate constant
- *  \param insertion_threshold learning rate constant
  */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::setLearningRates (T& winner, T& neighbors, T& insertion_threshold)
+void LLRGNGGraph<T,S>::setLearningRates (T& winner, T& neighbors)
 {
 	winner_learning_rate = winner;
 	neighbors_learning_rate = neighbors;
-	insertion_learning_rate = insertion_threshold;
 }
 
 
@@ -612,48 +526,6 @@ void LLRGNGGraph<T,S>::setAdaptationThreshold (T& threshold)
 	adaptation_threshold = threshold;	
 }
 
-/** \brief set insertion tolerance
-    \param tolerance insertion tolerances */
-template<typename T, typename S>
-void LLRGNGGraph<T,S>::setInsertionTolerance (T& tolerance)
-{
-	insertion_tolerance = tolerance;
-}
-
-/** \brief set \p deletion_threshold
-    \param threshold given deletion threshold */
-template<typename T, typename S>
-void LLRGNGGraph<T,S>::setDeletionThreshold (T& threshold)
-{
-	deletion_threshold = threshold;
-}
-
-/** \brief get \p deletion_threshold
- */
-template<typename T, typename S>
-T LLRGNGGraph<T,S>::getDeletionThreshold () const
-{
-	return deletion_threshold;
-}
-
-
-/* \brief set \p minimal_node_age constant
- * \param age minimal node age constant
- */
-template<typename T, typename S>
-void LLRGNGGraph<T,S>::setMinimalNodeAge (T& age)
-{
-	minimal_node_age = age;
-}
-
-/* \brief get \p minimal_node_age constant
- */
-template<typename T, typename S>
-T LLRGNGGraph<T,S>::getMinimalNodeAge () const
-{
-	return minimal_node_age;
-}
-
 /* \brief set maximal edge age constant
  * \param age maximal edge age constant
  */
@@ -669,24 +541,6 @@ template<typename T, typename S>
 unsigned int LLRGNGGraph<T,S>::getMaximalEdgeAge () const
 {
 	return maximal_edge_age;
-}
-
-
-/* set \p stabilization constant
- * \param s stabilization constant
- */
-template<typename T, typename S>
-void LLRGNGGraph<T,S>::setStabilization (T& s)
-{
-	stabilization = s;
-}
-
-/* get \p stabilization constant
- */
-template<typename T, typename S>
-T LLRGNGGraph<T,S>::getStabilization () const
-{
-	return stabilization;
 }
 
 /* \brief decrease age of a node
@@ -731,8 +585,6 @@ void LLRGNGGraph<T,S>::setLastEpochImprovement (const unsigned int index, unsign
 {
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->last_epoch_improvement = epoch;
 }
-
-
 
 } // namespace neuralgas
 
