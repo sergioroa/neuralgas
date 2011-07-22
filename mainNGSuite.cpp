@@ -69,15 +69,28 @@ double functheta(const unsigned int& time)
 }
 
 enum _algorithm { _gng, _ebgng, _mgng, _cdn, _llbgng };
+enum _dataset {_mg, _na };
+
+void display_error_msg (char *argv[])
+{
+      cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn/llrgng mg/na size" << endl;
+      exit(1);
+}
 
 int main(int argc, char *argv[])
 {
 
-    if (argc < 2) {
-      cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn/llbgng" << endl;
-      exit(1);
-    }
+    if (argc < 4)
+	    display_error_msg (argv);
 
+    unsigned int dataset;
+    if (string(argv[2]) == "mg")
+	    dataset = _mg;
+    else if (string(argv[2]) == "na")
+	    dataset = _na;
+    else
+	    display_error_msg (argv);
+    
     GNGModul<double, int> *gng;
     unsigned int algorithm;
     //MGNGAlgorithm<double,int>* mgng    = new MGNGAlgorithm<double,int>(1);
@@ -86,62 +99,76 @@ int main(int argc, char *argv[])
     //CDNAlgorithm<double,int>* cdn      = new CDNAlgorithm<double,int>(1);
     if (string(argv[1]) == "gng")
     {
-	    gng = new GNGAlgorithm<double,int>(2);
-        algorithm = _gng;
+	    gng = new GNGAlgorithm<double,int>(dataset + 1);
+	    algorithm = _gng;
     }
     else if (string(argv[1]) == "ebgng")
     {
-	    gng = new EBGNGAlgorithm<double,int>(2);
-        algorithm = _ebgng;
+	    gng = new EBGNGAlgorithm<double,int>(dataset + 1);
+	    algorithm = _ebgng;
     }
     else if (string(argv[1]) == "mgng")
     {
-        gng = new MGNGAlgorithm<double,int>(2);
-        algorithm = _mgng;
+	    gng = new MGNGAlgorithm<double,int>(dataset + 1);
+	    algorithm = _mgng;
     }
     else if (string(argv[1]) == "cdn")
     {
-        gng = new CDNAlgorithm<double,int>(2);
-        algorithm = _cdn;
+	    gng = new CDNAlgorithm<double,int>(dataset + 1);
+	    algorithm = _cdn;
     }
-    else if (string(argv[1]) == "llbgng")
+    else if (string(argv[1]) == "llrgng")
     {
-        gng = new LLRGNGAlgorithm<double,int>(2);
-        algorithm = _llbgng;
+	    gng = new LLRGNGAlgorithm<double,int>(dataset + 1);
+	    algorithm = _llbgng;
     }
     else
-    {
-        cerr << "Usage: " << argv[0] << " gng/ebgng/mgng/cdn/llbgng" << endl;
-        exit(1);
-    }
-
-    int sizeofdata=10000;
+	    display_error_msg (argv);
+       
+    int sizeofdata=atoi (argv[3]);
     
     NeuralGasSuite<double,int> ng;
+    DataGenerator<double> *dG;
 
+    if (dataset == _mg)
+    {
+	    dG = new MackeyGlass;
+	    static_cast<MackeyGlass*>(dG)->setPastTimeSteps(17);
+	    static_cast<MackeyGlass*>(dG)->setBoundary(0.4);
+	    static_cast<MackeyGlass*>(dG)->setPower(10);
+    }
+    else if (dataset == _na)
+    {
+	    dG = new NoisyAutomata;
+	    double sigma, transprob;
+	    cout << "Sigma: ";
+	    cin >> sigma;
+	    cout << "Transition prob.: ";
+	    cin >> transprob;
+	    static_cast<NoisyAutomata*>(dG)->setSigma (sigma);
+	    static_cast<NoisyAutomata*>(dG)->setTransProb (transprob);
+    }
     
-    // MackeyGlass* mg = new MackeyGlass;
-    // mg->setPastTimeSteps(17);
-    // mg->setBoundary(0.4);
-    // mg->setPower(10);
-    NoisyAutomata* na = new NoisyAutomata;
-    na->setSigma (0.1);
-    na->setTransProb (0.1);
+    
+    ng.setDataGenerator(dG);
+    //ng.setDataGenerator(na);
     
     
-    //ng.setDataGenerator(mg);
-    ng.setDataGenerator(na);
-    
-    
-    //mg->generate(sizeofdata);
-    na->generate(sizeofdata);
-    vector<Vector<double>*>* data = na->getData();
-    //vector<Vector<double>*>* data = mg->getData();
+    dG->generate(sizeofdata);
+    //na->generate(sizeofdata);
+    //vector<Vector<double>*>* data = na->getData();
+    vector<Vector<double>*>* data = dG->getData();
     
     for (unsigned int i=0; i < data->size(); i++)
-	    std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
+    {
+	    std::cout <<data->operator[](i)->operator[](0);
+	    if (dataset == _na)
+		    std::cout << " "<< data->operator[](i)->operator[](1);
+	    std::cout << std::endl;
+    }
 
     ng.add(gng);
+    ng.setData();
     ng.setRefVectors(2);
    
     for(int i=0; i < NUM_PARAM; i++)
@@ -204,14 +231,14 @@ int main(int argc, char *argv[])
         gng->setStoppingCriterion (epochs);
         gng->setMaxEpochs (100);
         gng->setSamplingMode(randomly);
-        //(dynamic_cast<GNGAlgorithm<double,int>*>(gng))->setMinGlobalError (0.01);
+        //(static_cast<GNGAlgorithm<double,int>*>(gng))->setMinGlobalError (0.01);
     }
     else if (algorithm == _ebgng)
     {
     // ebgng->setFuncArray(constgamma,3);
     // ebgng->setFuncArray(functheta,7);
     // ebgng->setFuncArray(funclambda,8);
-	dynamic_cast<EBGNGAlgorithm<double,int>*>(gng)->setErrorThreshold(0.03);
+	static_cast<EBGNGAlgorithm<double,int>*>(gng)->setErrorThreshold(0.03);
         gng->setFuncArray(constgamma,3);
         gng->setFuncArray(functheta,7);
         gng->setFuncArray(funclambda,8);
@@ -222,21 +249,30 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == _llbgng)
     {
-	    dynamic_cast<LLRGNGAlgorithm<double,int>*>(gng)->setTimeWindows (20, 100, 100);
-	    dynamic_cast<LLRGNGAlgorithm<double,int>*>(gng)->setLearningRates (0.1, 0.001);
-	    dynamic_cast<LLRGNGAlgorithm<double,int>*>(gng)->setInsertionRate (sizeofdata);
-	    dynamic_cast<LLRGNGAlgorithm<double,int>*>(gng)->setAdaptationThreshold (0.05);
-	    dynamic_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaximalEdgeAge (50);
-	    dynamic_cast<LLRGNGAlgorithm<double,int>*>(gng)->setSamplingMode (randomly);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setTimeWindows (100, 60, sizeofdata);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setLearningRates (0.1, 0.001);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setInsertionRate (sizeofdata);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setAdaptationThreshold (0.0);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaximalEdgeAge (50);
+	    // static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.001);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.00000000001);
+	    if (dataset == _na)
+		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelComplexityConst (1.0);
+	    else if (dataset == _mg)
+		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelComplexityConst (1.3);		    
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsErrorReduction (5);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsMDLReduction (80);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setSamplingMode (randomly);
 	    //gng->setStoppingCriterion (epochs);
 	    //gng->setMaxEpochs (100);
-	    //(dynamic_cast<LLBGNGAlgorithm<double,int>*>(gng))->setMaxNodes(5);
+	    //(static_cast<LLBGNGAlgorithm<double,int>*>(gng))->setMaxNodes(5);
 	    gng->setStoppingCriterion (stability);
+
     }
    
-    //(dynamic_cast< CDNAlgorithm<double,int>* > (ng[1]))->setEnergy(0.1);
-    na->save("data.txt");
-    //mg->save("data.txt");
+    //(static_cast< CDNAlgorithm<double,int>* > (ng[1]))->setEnergy(0.1);
+    //na->save("data.txt");
+    dG->save("data.txt");
     ng.run();
     std::vector<double> errors;
     for (int i=0; i < ng.size(); i++)
@@ -252,14 +288,14 @@ int main(int argc, char *argv[])
          //       std::cout << errors [j] << " ";
                 total_error+=errors[j];
         }
-        std::cout << "Gesamtfehler "<< total_error / sizeofdata <<std::endl;
+        std::cout << "Total error: "<< total_error / sizeofdata <<std::endl;
     
         std::cout << std::endl;
     }
 
     std::cout << std::endl;
-    //delete mg;
-    delete na;
+    delete dG;
+    //delete na;
     
     return EXIT_SUCCESS;
 }

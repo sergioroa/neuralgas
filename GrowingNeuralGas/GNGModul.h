@@ -47,7 +47,7 @@ protected:
         //virtual           T      getDistance(const Vector<T>&,const unsigned int&)=0;
         virtual           T      getDistance(const Vector<T>&,const unsigned int&) const=0;
         // func determines for the current time step / data item the two most similar nodes       
-        virtual           void   getWinner( unsigned int&, unsigned int&, const Vector<T>&) const;
+        virtual           T      getWinner( unsigned int&, unsigned int&, const Vector<T>&) const;
         //template <typename F> void   getWinner( int&, int&, F Functor);
         //func determines the two most similar nodes
         // removes all edges that have an age greater than the given value
@@ -100,7 +100,7 @@ template<typename T,typename S> void GNGModul<T,S>::setMaxEpochs (unsigned int v
 *   \param time is the current time step reflecting the current data to be processed
 */
 
-template<typename T,typename S> void GNGModul<T,S>::getWinner(unsigned int& first_winner, unsigned int& second_winner, const Vector<T>& item) const
+template<typename T,typename S> T GNGModul<T,S>::getWinner(unsigned int& first_winner, unsigned int& second_winner, const Vector<T>& item) const
 {
    // init with zero
    T distance      = this->_zero;
@@ -119,6 +119,7 @@ template<typename T,typename S> void GNGModul<T,S>::getWinner(unsigned int& firs
      best_distance              =       distance;
     }       
    }
+   return best_distance;
 }
 
 

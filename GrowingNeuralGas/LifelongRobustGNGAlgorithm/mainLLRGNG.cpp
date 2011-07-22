@@ -28,6 +28,7 @@ int main (int argc, char* argv[])
 	na.setSigma(sigma);
 	na.setTransProb(transProb);
 	na.setInputFormat (vectorial);
+	na.setOutputFormat (vectorial);
 	na.openCrySSMExFile ();
 	na.generate(size);
 	na.save("data.txt");
@@ -52,7 +53,7 @@ int main (int argc, char* argv[])
 	llrgng->setLearningRates (0.1, 0.001);
 	llrgng->setInsertionRate (size);
 	llrgng->setAdaptationThreshold (0.0);
-	llrgng->setMaximalEdgeAge (100);
+	llrgng->setMaximalEdgeAge (50);
 	llrgng->setDataAccuracy (0.001);
 	// llrgng->setDataAccuracy (0.00000000001);
 	// llrgng->setMaxNodes (3);

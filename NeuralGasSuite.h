@@ -28,6 +28,7 @@ template <typename T,typename S> class NeuralGasSuite
          void                 rm(GNGModul<T,S>*);
          void                 rm(const int&);
          void                 setDataGenerator(DataGenerator<T>*);
+         void                 setData();
          void                 run();
          std::vector<T>       getErrors(const int&,const int&, const bool&);
          std::vector<T>       getErrors(GNGModul<T,S>*,const int&, const bool& );
@@ -73,14 +74,22 @@ template <typename T,typename S> void NeuralGasSuite<T,S>::rm(const int& index)
 {_algos.erase(_algos.begin() + index);}
 
 template <typename T,typename S> void NeuralGasSuite<T,S>::setDataGenerator(DataGenerator<T>* dg)
-{_dg=dg;}
+{
+	_dg=dg;
+}
+
+template <typename T,typename S> void NeuralGasSuite<T,S>::setData()
+{
+         for (unsigned int i=0; i <_algos.size();i++)
+             _algos[i]->setData(_dg->getData());
+}
+
 
 template <typename T,typename S> void NeuralGasSuite<T,S>::run()
 {
          for (unsigned int i=0; i <_algos.size();i++)
          {
              std::cout << "Starting run "<<i <<std::endl;
-             _algos[i]->setData(_dg->getData());
              _algos[i]->run();
              std::cout << "Run "<<i <<" done"<<std::endl;
          }

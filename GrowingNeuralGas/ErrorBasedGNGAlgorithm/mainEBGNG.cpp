@@ -13,70 +13,70 @@ using namespace std;
 using namespace neuralgas;
 
 
-float func(const unsigned int& time)
+double func(const unsigned int& time)
 {return 0.5 ;}
 
 
-float constalpha(const unsigned int& time)
+double constalpha(const unsigned int& time)
 {return 0.5;}
 
-float constbeta(const unsigned int& time)
+double constbeta(const unsigned int& time)
 {return 0.75;}
 
-float constgamma(const unsigned int& time)
+double constgamma(const unsigned int& time)
 {return 88;}
 
-float constepsilonw(const unsigned int& time)
+double constepsilonw(const unsigned int& time)
 {return 0.05;}
 
-float constepsilonn(const unsigned int& time)
+double constepsilonn(const unsigned int& time)
 {return 0.0006;}
 
-float constdelta(const unsigned int& time)
+double constdelta(const unsigned int& time)
 {return 0.5;}
 
-float consteta(const unsigned int& time)
+double consteta(const unsigned int& time)
 {return 0.99995;}
 
-float consttheta(const unsigned int& time)
+double consttheta(const unsigned int& time)
 {return 3;}
 
-float constlambda(const unsigned int& time)
+double constlambda(const unsigned int& time)
 {return 600 ;}
 
-float funcalpha(const unsigned int& time)
+double funcalpha(const unsigned int& time)
 {
-      float random_alpha = float(rand()) / float(50000);
+      double random_alpha = double(rand()) / double(50000);
       return random_alpha;
 }
 
 
-float funcbeta(const unsigned int& time)
+double funcbeta(const unsigned int& time)
 {
      return 0.75 ;
 }
 
-float funcgamma(const unsigned int& time)
+double funcgamma(const unsigned int& time)
 {return 1+sqrt(time);}
 
-float funclambda(const unsigned int& time)
+double funclambda(const unsigned int& time)
 {return 3 ;}
 
-float functheta(const unsigned int& time)
+double functheta(const unsigned int& time)
 {
       return 3;
 }
 
 int main(int argc, char *argv[])
 {
-    EBGNGAlgorithm<float,int>* eb= new EBGNGAlgorithm<float,int>(/*2*/1);
+    EBGNGAlgorithm<double,int>* eb= new EBGNGAlgorithm<double,int>(/*2*/1);
     
     eb->setFuncArray(constgamma,3);
     eb->setFuncArray(func,4);
     eb->setFuncArray(functheta,7);
 
     int size;
-    float sigma, transProb;
+    double sigma, transProb;
     if (argc == 4) {
 	    size = atoi(argv[1]);
 	    sigma = atof(argv[2]);
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     //Mackey Glass testing
     
    
-    ErrorTesting<float,int> et(eb);
+    ErrorTesting<double,int> et(eb);
     MackeyGlass *mg = new MackeyGlass;
     mg->setPastTimeSteps(17);
     mg->setBoundary(0.4);
@@ -113,15 +113,15 @@ int main(int argc, char *argv[])
         
     eb->setData(mg->getData());
 
-    vector<Vector<float>*>* data = mg->getData();
+    vector<Vector<double>*>* data = mg->getData();
     
     for (unsigned int i=0; i < data->size(); i++)
 	    std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
-    Vector<float> mins = eb->minValues();
-    Vector<float> maxs = eb->maxValues();
-    // float min = eb->minValue();
-    // float max = eb->maxValue();
+    Vector<double> mins = eb->minValues();
+    Vector<double> maxs = eb->maxValues();
+    // double min = eb->minValue();
+    // double max = eb->maxValue();
     // eb->setRefVectors(2,min,max);
     eb->setRefVectors(2,mins,maxs);
     eb->setErrorThreshold(0.01);
@@ -133,8 +133,8 @@ int main(int argc, char *argv[])
 
     eb->run(); 
     // eb->save("nodes.txt");
-    float total_error=0.0;
-    std::vector<float> errors = et.getErrors(50);
+    double total_error=0.0;
+    std::vector<double> errors = et.getErrors(50);
     for (unsigned int i =0; i < errors.size(); i++)
         total_error += errors[i];
     

@@ -16,23 +16,23 @@
 
 namespace neuralgas {
 
-class ProbMackeyGlass : public DataGenerator<float>
+class ProbMackeyGlass : public DataGenerator<double>
 {
       public:
              ProbMackeyGlass();
              void random(const bool&, const int&);
              void generate(const int& );
-             virtual  Vector<float>*  next();
+             virtual  Vector<double>*  next();
   
       private:
-              virtual  Vector<float>* generate();
+              virtual  Vector<double>* generate();
               std::vector<MackeyGlass*> v_mg;
               int _number;
               bool _random;
               short _r_index;
 };
 
-ProbMackeyGlass::ProbMackeyGlass():DataGenerator<float>(1)
+ProbMackeyGlass::ProbMackeyGlass():DataGenerator<double>(1)
 {
  _r_index=0;
  _random=true;
@@ -56,12 +56,12 @@ void ProbMackeyGlass::random(const bool& random, const int& number=0)
      _number=number;
 }
 
-Vector<float>* ProbMackeyGlass::generate()
+Vector<double>* ProbMackeyGlass::generate()
 {
  return v_mg[_r_index]->next();
 }
 
-Vector<float>* ProbMackeyGlass::next()
+Vector<double>* ProbMackeyGlass::next()
 {
  return generate();
 }

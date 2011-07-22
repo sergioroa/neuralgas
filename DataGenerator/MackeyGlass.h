@@ -15,26 +15,26 @@
 
 namespace neuralgas {
 
-class MackeyGlass : public DataGenerator<float>
+class MackeyGlass : public DataGenerator<double>
 {
       public:
              MackeyGlass();
              ~MackeyGlass();
              void setPower(const int&);
-             void setBoundary(const float&);
+             void setBoundary(const double&);
              void setPastTimeSteps(const int&);
-             void generate(const int& number){DataGenerator<float>::generate(number);}
-             virtual  Vector<float>*  next();
+             void generate(const int& number){DataGenerator<double>::generate(number);}
+             virtual  Vector<double>*  next();
       private:
               void  alloc(const int&);
-              virtual  Vector<float>* generate();
+              virtual  Vector<double>* generate();
               int   _pastTimeSteps;
               int   _power;
-              float* _memory;
+              double* _memory;
               int    _time;
 };
 
-MackeyGlass::MackeyGlass() : DataGenerator<float>(1)
+MackeyGlass::MackeyGlass() : DataGenerator<double>(1)
 {
  setPastTimeSteps(0);
  setBoundary(0.0);
@@ -52,7 +52,7 @@ MackeyGlass::~MackeyGlass()
 void MackeyGlass::setPower(const int& power)
 {_power=power;}
 
-void MackeyGlass::setBoundary(const float& boundary)
+void MackeyGlass::setBoundary(const double& boundary)
 {_memory[0]=boundary;}
 
 void MackeyGlass::setPastTimeSteps(const int& pastTimeSteps)
@@ -61,19 +61,19 @@ void MackeyGlass::setPastTimeSteps(const int& pastTimeSteps)
      _pastTimeSteps=pastTimeSteps;
 }
 
-Vector<float>* MackeyGlass::next()
+Vector<double>* MackeyGlass::next()
 {return generate();}
 
 void MackeyGlass::alloc(const int& size)
 {
      if (_memory!=NULL)
         delete _memory;
-     _memory = new float[size];
+     _memory = new double[size];
 }
 
-Vector<float>* MackeyGlass::generate()
+Vector<double>* MackeyGlass::generate()
 {
- float dx = 0.0;
+ double dx = 0.0;
  
  int frame;
 
@@ -91,7 +91,7 @@ Vector<float>* MackeyGlass::generate()
  
  _time++;
  
- Vector<float> * v = new Vector<float>(1);
+ Vector<double> * v = new Vector<double>(1);
  (*v)[0] = _memory[frame];
  return v;
 }
