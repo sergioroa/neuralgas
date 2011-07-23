@@ -101,9 +101,10 @@ LLRGNGNode<T,S>::~LLRGNGNode ()
 template<typename T, typename S>
 void LLRGNGNode<T,S>::calculateLearningQuality ()
 {
-	learning_quality = (last_avgerror /*+ 1*/) / (prev_avgerror /*+ 1*/);
-	// learning_quality = - (last_avgerror - prev_avgerror);
-
+	// learning_quality = (last_avgerror /*+ 1*/) / (prev_avgerror /*+ 1*/);
+	// learning_quality = (last_avgerror - prev_avgerror);
+	// learning_quality = (last_avgerror / prev_avgerror - 1) * (last_avgerror / prev_avgerror - 1);
+	learning_quality = exp (last_avgerror / prev_avgerror - 1);
 }
 
 /// \brief calculate \p insertion_quality measure
@@ -133,13 +134,19 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 	T rate_decision_boundary;
 
 	rate_decision_boundary = learning_quality / (1 + adaptation_threshold) /*+ age*/;
+	// rate_decision_boundary = learning_quality;
 
-	if (rate_decision_boundary < 0)
-		learning_rate = 0;
-	else if (rate_decision_boundary <= 1)
-		learning_rate = rate_decision_boundary * default_rate;
-	else
+	// if (rate_decision_boundary < 0)
+	// 	learning_rate = 0;
+	// else if (rate_decision_boundary <= 1)
+	// 	learning_rate = rate_decision_boundary * default_rate;
+	// else
+	//         learning_rate = default_rate;
+	if (rate_decision_boundary > 1)
 		learning_rate = default_rate;
+	else
+		learning_rate = rate_decision_boundary * default_rate;
+	
 }
 
 

@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
 	//llrgng->setMaxNodes (5);
 	llrgng->setMaxEpochsErrorReduction (5);
 	llrgng->setMaxEpochsMDLReduction (80);
+	llrgng->setModelComplexityConst (1);
 	
 	llrgng->setSamplingMode (randomly);
 	//llrgng->setStoppingCriterion (epochs);
