@@ -177,7 +177,8 @@ void Voronoi::drawLine(float& x1, float& y1, float& x2, float& y2, QImage& image
     float m= (y2-y1)/(x2-x1);
     QRgb value;
 
-    value = qRgb(237, 187, 51); // 0xffedba31
+    //value = qRgb(237, 187, 51); // 0xffedba31
+    value = qRgb(0, 0, 255); // 0xffedba31
 
     int range = int(x2-x1);
     for(int i =0; i <= range; i++)
@@ -198,23 +199,25 @@ void Voronoi::save(const char* filename)
     QPainter painter(&image);
     
     QRgb value;
-    //value = qRgb(255, 255, 255);
+    // value = qRgb(255, 255, 255);
     //image.fill(value);
-    image.fill(0);
+    //image.fill(0);
+    image.fill (Qt::transparent);
 
     // data
     value = qRgb(255, 255, 255); // 0xff7aa327
+    //value = qRgb(0, 0, 0);
     painter.setPen (value);
-    // painter.setBrush (QBrush(value));
+    painter.setBrush (QBrush(value));
     //value = qRgb(0, 0, 255);
     for(unsigned int i=0; i < _data.size();i++)
     {
-	    /*image.setPixel(_data[i].x, _data[i].y, value);
+	/*image.setPixel(_data[i].x, _data[i].y, value);
         image.setPixel(_data[i].x+1, _data[i].y, value);
         image.setPixel(_data[i].x-1, _data[i].y, value);
         image.setPixel(_data[i].x, _data[i].y+1, value);
         image.setPixel(_data[i].x, _data[i].y-1, value);*/
-	    painter.drawEllipse (_data[i].x, _data[i].y, 2, 2);
+	painter.drawEllipse (_data[i].x, _data[i].y, 2, 2);
     }
     // neurons
     value = qRgb(255, 0, 0); // 0xffbd9527
@@ -222,7 +225,7 @@ void Voronoi::save(const char* filename)
     painter.setBrush (QBrush(value));
     for(unsigned int i=0; i < _neurons.size();i++)
     {
-	    /*image.setPixel(_neurons[i].x, _neurons[i].y, value);
+	/*image.setPixel(_neurons[i].x, _neurons[i].y, value);
         image.setPixel(_neurons[i].x+1, _neurons[i].y, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y, value);
         image.setPixel(_neurons[i].x, _neurons[i].y+1, value);
@@ -231,16 +234,21 @@ void Voronoi::save(const char* filename)
         image.setPixel(_neurons[i].x+1, _neurons[i].y-1, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y+1, value);
         image.setPixel(_neurons[i].x-1, _neurons[i].y-1, value);*/
-	    painter.drawEllipse (_neurons[i].x, _neurons[i].y, 5, 5);
+	painter.drawEllipse (_neurons[i].x, _neurons[i].y, 5, 5);
 
     }
     // voronoi lines
+    //value = qRgb(237, 187, 51); // 0xffedba31
+    value = qRgb(0, 0, 255); // 0xffedba31
+    painter.setPen (value);
+
     float x1,y1,x2,y2;
     while(_vdg.getNext(x1,y1,x2,y2))
     {
-        drawLine(x1,y1,x2,y2,image);
+        // drawLine(x1,y1,x2,y2,image);
+	painter.drawLine (x1, y1, x2, y2);
     }
-    image.save(filename);
+    image.save(filename, "JPG");
 }
 
 } // namespace neuralgas

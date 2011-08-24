@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     //v.showData();
     //v.setSize(500,1000);
     v.getNeurons(filename_neurons);
-    v.setSizefromData(5000);
+    v.setSizefromData(1600);
     v.calcVoronoi();
     v.save(output);
     std::cout <<"run done"<<std::endl;

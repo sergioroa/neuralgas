@@ -3,7 +3,7 @@
 * \author Sergio Roa
 * \author Manuel Noll
 * 
-*  Copyright(c) 2010 Manuel Noll - All rights reserved
+*  Copyright(c) 2011 Sergio Roa - All rights reserved
 *  \version 1.0
 *  \date    2011
 */
@@ -52,6 +52,7 @@ struct LLRGNGNode : Base_Node<T,S>
 	T insertion_criterion;
 	// calculate \p prev_avgerror and \p last_avgerror
 	void updateAvgError (T, const unsigned int&, const unsigned int&, const unsigned int&);
+	void updateRestrictingDistance (T);
 	/// previous mean error counter
 	T prev_avgerror;
 	/// last mean error counter
@@ -214,15 +215,8 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
-	//update restricting distance
-	prev_restricting_distance = restricting_distance;
-	if (last_error >= restricting_distance)
-		restricting_distance = 1 / (0.5 * (1.0 / restricting_distance + 1.0 / last_error));
-	else
-		restricting_distance = 0.5 * (restricting_distance + last_error);
-
 	repulsion = last_avgerror * 0.2;
-	
+
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
 	
@@ -230,7 +224,20 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	// cout << "\t" << learningProgressHistory.back() << endl;
 
 }
-	
+
+template<typename T, typename S>
+void LLRGNGNode<T,S>::updateRestrictingDistance (T last_error)
+{
+	//update restricting distance
+	prev_restricting_distance = restricting_distance;
+	if (last_error >= restricting_distance)
+		restricting_distance = 1 / (0.5 * (1.0 / restricting_distance + 1.0 / last_error));
+	else
+		restricting_distance = 0.5 * (restricting_distance + last_error);
+
+
+}
+
 /** \brief decrease node age
  *  \param age_time_window time window parameter
  */
@@ -269,7 +276,8 @@ public:
 	// calculate inherited variables for a node to be inserted between two nodes
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
-	void updateAvgError (const unsigned int, T last_error);
+	void updateAvgError (const unsigned int, T);
+	void updateRestrictingDistance (const unsigned int, T);
 	// calculate learning quality for some node
 	void calculateLearningQuality (const unsigned int);
 	// calculate insertion quality for some node
@@ -474,6 +482,14 @@ void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error, smoothing_window, error_time_window, max_errors_size);
 
 }
+
+template<typename T, typename S>
+void LLRGNGGraph<T,S>::updateRestrictingDistance (const unsigned int index, T last_error)
+{
+	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateRestrictingDistance(last_error);
+
+}
+
 
 /** \brief calculate learning quality for a node
     \param index node index */

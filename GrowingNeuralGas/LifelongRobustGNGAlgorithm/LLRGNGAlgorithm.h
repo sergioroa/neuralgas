@@ -3,7 +3,6 @@
 * \author Sergio Roa
 * 
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
-*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2011
 */
@@ -482,7 +481,13 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	if (!stable_graph)
 	{
 		T min_error = _graphptr->getNodeMinLastAvgError (b);
-		_graphptr->updateAvgError (b, getDistance ((*this)[t], b));
+		T distance = getDistance ((*this)[t], b);
+		_graphptr->updateAvgError (b, distance);
+		_graphptr->updateRestrictingDistance (b, distance);
+		std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
+
+		//for (unsigned int j=0; j < b_neighbors.size(); j++)
+		//_graphptr->updateRestrictingDistance (j, getDistance((*this)[t], j));
 		if (min_error > _graphptr->getNodeMinLastAvgError (b))
 			_graphptr->setLastEpochImprovement (b, epoch);
 		

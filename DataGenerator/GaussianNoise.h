@@ -49,7 +49,7 @@ void GaussianNoise::reset()
 
 void GaussianNoise::setCanonicalDataset ()
 {
-	setLimits (-5,5,-5,5);
+	setLimits (-3,3,-3,3);
 	centers_params.resize (5);
 	for (int i=0; i<5; i++)
 		centers_params[i].resize (4);

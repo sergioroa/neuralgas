@@ -118,7 +118,8 @@ INSTALL(FILES ${DATAGENERATOR_HEADERS} DESTINATION include/NeuralGas/DataGenerat
 
 SET(VORONOIDIAGRAMM_HEADERS
 	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiDiagramGenerator.h
-	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.h)
+	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.h
+	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiWidget.h)
 INSTALL(FILES ${VORONOIDIAGRAMM_HEADERS} DESTINATION include/NeuralGas/VoronoiDiagramm/)
 
 SET(TOOLS_HEADERS
@@ -126,9 +127,16 @@ SET(TOOLS_HEADERS
 	${NEURALGAS_ROOT}/tools/math_helpers.h)
 INSTALL(FILES ${TOOLS_HEADERS} DESTINATION include/NeuralGas/tools/)
 
+SET(VORONOIDIAGRAMM_MOC_HEADERS
+	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiWidget.h
+)
+QT4_WRAP_CPP(VORONOIDIAGRAMM_GEN_MOC ${VORONOIDIAGRAMM_MOC_HEADERS} )
+
 SET(VORONOIDIAGRAMM_SOURCES
 	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiDiagramGenerator.cpp
-	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.cpp)
+	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.cpp
+	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiWidget.cpp
+	${VORONOIDIAGRAMM_GEN_MOC})
 
 SET(HEADERS
 	${NEURALGAS_ROOT}/NeuralGas.h
@@ -152,6 +160,9 @@ SET(GAUSSIANNOISE
 
 SET(VORONOIDIAGRAMM
         ${NEURALGAS_ROOT}/VoronoiDiagramm/main.cpp)
+
+SET(VORONOIWIDGET
+        ${NEURALGAS_ROOT}/VoronoiDiagramm/mainVoronoiWidget.cpp)
 
 SET(LLRGNG
         ${NEURALGAS_ROOT}/GrowingNeuralGas/LifelongRobustGNGAlgorithm/mainLLRGNG.cpp)
@@ -190,6 +201,7 @@ ADD_EXECUTABLE(ProbMackeyGlass ${PROBMACKEYGLASS})
 ADD_EXECUTABLE(NoisyAutomata ${NOISYAUTOMATA})
 ADD_EXECUTABLE(GaussianNoise ${GAUSSIANNOISE})
 ADD_EXECUTABLE(VoronoiDiagramm ${VORONOIDIAGRAMM})
+ADD_EXECUTABLE(VoronoiWidget ${VORONOIWIDGET})
 ADD_EXECUTABLE(GNG ${GNG})
 ADD_EXECUTABLE(LLRGNG ${LLRGNG})
 ADD_EXECUTABLE(EBGNG ${EBGNG})

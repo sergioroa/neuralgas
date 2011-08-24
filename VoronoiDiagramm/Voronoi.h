@@ -27,6 +27,7 @@ public:
     void setSize(const int&, const int&);
     void setSizefromData(const int&);
     void showData();
+    friend class VoronoiWidget;
 protected:
     void addNeuron(const std::string&);
     void addData(const std::string&);
