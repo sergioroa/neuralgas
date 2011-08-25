@@ -16,10 +16,10 @@ int main(int argc, char *argv[])
 
     Voronoi v;
     v.getData(filename_data);
-    //v.showData();
+    v.showData();
     //v.setSize(500,1000);
     v.getNeurons(filename_neurons);
-    v.setSizefromData(1600);
+    v.setSizefromData(500);
     v.calcVoronoi();
     v.save(output);
     std::cout <<"run done"<<std::endl;

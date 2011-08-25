@@ -14,7 +14,6 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QScrollArea>
-#include <QLabel>
 #include <QVBoxLayout>
 #include <QtGui/QMainWindow>
 #include <VoronoiDiagramm/Voronoi.h>
@@ -53,14 +52,23 @@ protected:
 
 };
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
 
-public:
-    MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-    VoronoiWidget* vw;
+class VoronoiMainWindow : public QMainWindow
+{
+	Q_OBJECT
+
+	public:
+	//! \brief constructor
+	/*! 
+	  
+	  \param parent QWidget parent 
+	*/
+	VoronoiMainWindow(QWidget *parent = 0);
+
+	//! \brief destructor
+	~VoronoiMainWindow();
+	//! The widget to print Voronoi diagrams
+	VoronoiWidget* vw;
 
 private:
 };

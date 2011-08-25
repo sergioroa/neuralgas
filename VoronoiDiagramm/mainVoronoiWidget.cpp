@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    MainWindow m;
+    VoronoiMainWindow m;
 
     char* filename_data=new char[255];
     char* filename_neurons=new char[255];
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     m.vw->voronoi->getData(filename_data);
     m.vw->voronoi->getNeurons(filename_neurons);
-    m.vw->voronoi->setSizefromData(1600);
+    m.vw->voronoi->setSizefromData(5000);
     m.vw->voronoi->calcVoronoi();
 
     m.vw->setImageSize ();

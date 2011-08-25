@@ -8,14 +8,10 @@
 #include <fstream>
 #include <string>
 #include "VoronoiDiagramGenerator.h"
+#include <Graphs/Vector.h>
+#include <Graphs/Base_Graph.h>
 
 namespace neuralgas {
-
-struct point
-{
-    float x;
-    float y;
-};
 
 class Voronoi
 {
@@ -34,15 +30,15 @@ protected:
     void getMaxMinValue();
     void discretize();
     void setNeurons();
-    void drawLine(float&, float&, float&, float&, QImage&);
+    void drawLine(double&, double&, double&, double&, QImage&);
 private:
     VoronoiDiagramGenerator _vdg;
-    float* _xValues;
-    float* _yValues;
+    double* _xValues;
+    double* _yValues;
     int _height, _width;
-    float _maxX, _maxY, _minX, _minY;
-    std::vector< point > _data;
-    std::vector< point > _neurons;
+    double _maxX, _maxY, _minX, _minY;
+    std::vector < Vector<double>* >* _data; 
+    std::vector < Base_Node<double, int>* >* _neurons;
 };
 
 } // namespace neuralgas

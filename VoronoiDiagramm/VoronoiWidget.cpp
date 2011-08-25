@@ -42,21 +42,21 @@ void VoronoiWidget::paintEvent (QPaintEvent *event)
 	painter.setPen (value);
 	painter.setBrush (QBrush(value));
 	//value = qRgb(0, 0, 255);
-	for(unsigned int i=0; i < voronoi->_data.size();i++)
-		painter.drawEllipse (voronoi->_data[i].x, voronoi->_data[i].y, 2, 2);
+	for(unsigned int i=0; i < voronoi->_data->size();i++)
+		painter.drawEllipse (voronoi->_data->at(i)->at(0), voronoi->_data->at(i)->at(1), 2, 2);
 	// neurons
 	value = qRgb(255, 0, 0); // 0xffbd9527
 	painter.setPen (value);
 	painter.setBrush (QBrush(value));
-	for(unsigned int i=0; i < voronoi->_neurons.size();i++)
-		painter.drawEllipse (voronoi->_neurons[i].x, voronoi->_neurons[i].y, 5, 5);
+	for(unsigned int i=0; i < voronoi->_neurons->size();i++)
+		painter.drawEllipse (voronoi->_neurons->at(i)->weight[0], voronoi->_neurons->at(i)->weight[1], 5, 5);
 
 	// voronoi lines
 	//value = qRgb(237, 187, 51); // 0xffedba31
 	value = qRgb(0, 0, 255); // 0xffedba31
 	painter.setPen (value);
 	
-	float x1,y1,x2,y2;
+	double x1,y1,x2,y2;
 	while(voronoi->_vdg.getNext(x1,y1,x2,y2))
 		painter.drawLine (x1, y1, x2, y2);
 	voronoi->_vdg.resetIterator();
@@ -72,7 +72,7 @@ void VoronoiWidget::setImageSize ()
 
 }
 
-MainWindow::MainWindow(QWidget *parent)
+VoronoiMainWindow::VoronoiMainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
 
@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
    
 }
 
-MainWindow::~MainWindow()
+VoronoiMainWindow::~VoronoiMainWindow()
 {
 }
 
