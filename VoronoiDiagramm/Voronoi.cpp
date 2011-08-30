@@ -93,26 +93,19 @@ void Voronoi::getNeurons(const char* filename)
 
 }
 
-
-void Voronoi::discretize()
+void Voronoi::discretizeData()
 {
-    double rangeX = _maxX - _minX;
-    double rangeY = _maxY - _minY;
- 
-
-    double factorX = double (_width) / rangeX;
-    double factorY = double (_height) / rangeY;
-    double minX = factorX * _minX;
-    double minY = factorY * _minY;
-    std::cout << "minX "<<_minX <<" rescaled minX "<<minX<<" minY "<<_minY<<" rescaled minY "<<minY<<std::endl;
 
     for(unsigned int i=0; i < _data->size(); i++)
     {
         (*(*_data)[i])[0]=( (*(*_data)[i])[0] * factorX - minX );
 	(*(*_data)[i])[1]=( (*(*_data)[i])[1] * factorY - minY);
-
     }
 
+}
+
+void Voronoi::discretizeNeurons()
+{
     for(unsigned int i=0; i < _neurons->size(); i++)
     {
         (*_neurons)[i]->weight[0] =( (*_neurons)[i]->weight[0] * factorX - minX);
@@ -120,31 +113,50 @@ void Voronoi::discretize()
     }
 }
 
+
 void Voronoi::setSize(const int& height, const int& width)
 {
     _height = height;
     _width = width;
+
+    rangeX = _maxX - _minX;
+    rangeY = _maxY - _minY;
+ 
+    factorX = _width / rangeX;
+    factorY = _height / rangeY;
+
+    minX = factorX * _minX;
+    minY = factorY * _minY;
+
+    std::cout << "minX "<<_minX <<" rescaled minX "<<minX<<" minY "<<_minY<<" rescaled minY "<<minY<<std::endl;
+
 }
 
 void Voronoi::setSizefromData(const int& somesideSize)
 {
-    double rangeX = _maxX - _minX;
-    double rangeY = _maxY - _minY;
+    rangeX = _maxX - _minX;
+    rangeY = _maxY - _minY;
 
     if (rangeX > rangeY) {
 	    _width = somesideSize;
-	    double factorX = double (_width) / rangeX;
+	    factorX = _width / rangeX;
 	    _height = ceil(factorX * rangeY);
+	    factorY = _height / rangeY;
     }
     else {
 	    _height = somesideSize;
-	    double factorY = double (_height) / rangeY;
+	    factorY = _height / rangeY;
 	    _width = ceil(factorY * rangeX);
+	    factorX = _width / rangeX;
     }
 
     std::cout << "width: " << _width << std::endl;
     std::cout << "height: " << _height << std::endl;
 
+    minX = factorX * _minX;
+    minY = factorY * _minY;
+
+    std::cout << "minX "<<_minX <<" rescaled minX "<<minX<<" minY "<<_minY<<" rescaled minY "<<minY<<std::endl;
 
 }
 
@@ -162,7 +174,7 @@ void Voronoi::setNeurons()
 
 void Voronoi::calcVoronoi()
 {
-    discretize();
+    // discretize();
     setNeurons();
     _vdg.generateVoronoi(_xValues,_yValues,_neurons->size(), 0,_width,0,_height,0);
     _vdg.resetIterator();
@@ -206,5 +218,26 @@ void Voronoi::save(const char* filename)
 
     image.save(filename, "JPG");
 }
+
+void Voronoi::setData (const SeqData* d)
+{
+    _data = new SeqData ();
+    for (unsigned int i=0; i<d->size(); i++)
+    {
+	Vector<double>* point = new Vector<double>(*d->at(i));
+	_data->push_back (point);
+    }
+}
+
+void Voronoi::setNeurons (const SeqNeurons* n)
+{
+    _neurons = new SeqNeurons ();
+    for (unsigned int i=0; i<n->size(); i++)
+    {
+	Base_Node<double, int>* neuron = new Base_Node<double, int>(*n->at(i));
+	_neurons->push_back (neuron);
+    }
+}
+
 
 } // namespace neuralgas

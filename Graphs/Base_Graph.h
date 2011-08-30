@@ -26,6 +26,8 @@ namespace neuralgas {
 template < typename T , typename S > struct Base_Node;
 template < typename T , typename S> struct Base_Edge;
 
+template< typename T, typename S > class NeuralGas;
+
 /** \brief The basis node
 *
 * \param num_connections number of connected nodes to this node
@@ -174,6 +176,10 @@ template<typename T, typename S> class Base_Graph
              std::map<unsigned int, T>           get1toMDistances (const unsigned int&, std::vector<unsigned int>&);
 
              void                                showGraph();
+
+	     // get nodes vector
+	     inline std::vector< Base_Node<T,S>* >* getNodes ();
+
       protected:
              //returns a pointer to a node of a type that is currently used by the graph
              virtual Base_Node<T,S>*             newNode();
@@ -580,6 +586,16 @@ template<typename T, typename S > inline unsigned int Base_Graph<T,S>::size(void
 {
  return _nodes.size();
 }
+
+//!
+/*! 
+  \return the vector of nodes
+*/
+template< typename T, typename S> inline std::vector< Base_Node<T,S>* >* Base_Graph<T,S>::getNodes ()
+{
+	return &_nodes;
+}
+
 
 /** \brief standard is the pre-specified L2 euclidean metric
 *

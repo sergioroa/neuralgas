@@ -306,7 +306,8 @@ public:
 	T getNodeMinLastAvgError (const unsigned int);
 	// set last epoch where an error reduction for a node was achieved
 	void setLastEpochImprovement (const unsigned int, unsigned int);
-private:
+
+protected:
 	// returns a pointer to a edge of a type that is currently used by the graph
 	virtual LLRGNGNode<T,S>* newNode(void);	
 	/// adaptation threshold constant

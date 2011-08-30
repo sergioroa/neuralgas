@@ -13,6 +13,9 @@
 
 namespace neuralgas {
 
+typedef std::vector < Vector<double>* > SeqData;
+typedef std::vector < Base_Node<double, int>* > SeqNeurons;
+
 class Voronoi
 {
 public:
@@ -23,22 +26,28 @@ public:
     void setSize(const int&, const int&);
     void setSizefromData(const int&);
     void showData();
+    SeqData* getData () { return _data; }
+    void setData (const SeqData* d);
+    void setNeurons (const SeqNeurons* neurons);
+    SeqNeurons* getNeurons () { return _neurons; }
+    void getMaxMinValue();
+    void discretizeData();
+    void discretizeNeurons();
     friend class VoronoiWidget;
+    friend class VoronoiMainWindow;
 protected:
     void addNeuron(const std::string&);
     void addData(const std::string&);
-    void getMaxMinValue();
-    void discretize();
     void setNeurons();
-    void drawLine(double&, double&, double&, double&, QImage&);
 private:
     VoronoiDiagramGenerator _vdg;
     double* _xValues;
     double* _yValues;
     int _height, _width;
-    double _maxX, _maxY, _minX, _minY;
-    std::vector < Vector<double>* >* _data; 
-    std::vector < Base_Node<double, int>* >* _neurons;
+    double _maxX, _maxY, _minX, _minY, minX, minY;
+    double rangeX, rangeY, factorX, factorY;
+    SeqData* _data; 
+    SeqNeurons* _neurons;
 };
 
 } // namespace neuralgas

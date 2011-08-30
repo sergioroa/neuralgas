@@ -66,7 +66,8 @@ public:
     //std dto
     ~NeuralGas(void);               
     //sets the data to be processed
-    inline void             setData(std::vector< Vector<T>* >*);  
+    inline void             setData(std::vector< Vector<T>* >*);
+	
     //adds a single datum
     inline void             addData(Vector<T>*);
     //adds an arbitrary number of data
@@ -124,7 +125,7 @@ public:
     // stopping criterion
     unsigned int stopping_criterion;
  
-  private:
+  protected:
     //dimension of the vectors
     unsigned int _dimension; 
     // ptr to the input data

@@ -13,9 +13,11 @@
 #include <QWidget>
 #include <QPixmap>
 #include <QPainter>
+#include <QEvent>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QtGui/QMainWindow>
+#include <QtGui/QApplication>
 #include <VoronoiDiagramm/Voronoi.h>
 
 namespace neuralgas {
@@ -53,6 +55,44 @@ protected:
 };
 
 
+class ResizeEvent : public QEvent
+{
+public:
+
+	int width;
+	int height;
+	ResizeEvent(int w, int h) :
+		QEvent ((QEvent::Type)1001),
+		width(w),
+		height(h)
+	{
+	}
+	
+};
+
+class ShowEvent : public QEvent
+{
+public:
+	ShowEvent() : QEvent ((QEvent::Type)1002) { }
+
+};
+
+class UpdateDataEvent : public QEvent
+{
+public:
+	int region;
+	//const SeqData data;
+	const SeqNeurons neurons;
+	UpdateDataEvent(/*const SeqData d, */const SeqNeurons n) :
+		QEvent ((QEvent::Type)1003),
+		// data (d),
+		neurons (n)
+	{
+	}
+
+};
+
+
 class VoronoiMainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -67,12 +107,25 @@ class VoronoiMainWindow : public QMainWindow
 
 	//! \brief destructor
 	~VoronoiMainWindow();
+
+	//! \brief handle events like resize, update data, show
+	/*! 
+	  
+	  \param e Event
+	*/
+	virtual void customEvent(QEvent* e);
+
+	void updateData ( /*const SeqData& data, */const SeqNeurons& neurons) {
+		QApplication::postEvent(this, new UpdateDataEvent(/*data,*/ neurons) );
+
+	}
+
+	
 	//! The widget to print Voronoi diagrams
 	VoronoiWidget* vw;
 
 private:
 };
-
 
 
 

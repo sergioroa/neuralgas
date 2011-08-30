@@ -83,9 +83,6 @@ VoronoiMainWindow::VoronoiMainWindow(QWidget *parent)
 	layout->addWidget(vw);
 	scroll->setWidget (vw);
 	setCentralWidget( scroll );
-
-
-
    
 }
 
@@ -93,6 +90,31 @@ VoronoiMainWindow::~VoronoiMainWindow()
 {
 }
 
+void VoronoiMainWindow::customEvent(QEvent* e) {
+	if (e->type() == 1001) {
+		std::cout << "resizing..." << std::endl;
+		ResizeEvent* rev = dynamic_cast<ResizeEvent*>(e);
+		resize (rev->width, rev->height);
+	}
+	else if (e->type() == 1002) {
+		std::cout << "showing..." << std::endl;
+		show ();
+	}
+	else if (e->type() == 1003) {
+		std::cout << "updating..." << std::endl;
+		UpdateDataEvent* ue = dynamic_cast<UpdateDataEvent*>(e);
+		// vw->voronoi->_data = ue->data;
+		// vw->voronoi->_neurons = new SeqNeurons (ue->neurons);
+		vw->voronoi->setNeurons (&ue->neurons);
+		// vw->voronoi->getMaxMinValue();
+		// vw->voronoi->setSizefromData(1000);
+		// vw->setImageSize ();
+		vw->voronoi->discretizeNeurons ();
+		vw->voronoi->calcVoronoi ();
+		vw->repaint ();
+	}
+	
+}
 
 
 } // namespace neuralgas

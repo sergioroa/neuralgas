@@ -14,8 +14,55 @@
 #include <GrowingNeuralGas/GNGGraph.h>
 #include "LLRGNGGraph.h"
 #include <algorithm>
+#include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
+#include <VoronoiDiagramm/VoronoiWidget.h>
 
 namespace neuralgas {
+
+//! \brief This class is used to provide threading facilities
+class LLRGNGThread : public QThread {
+	//protected:
+public:
+	LLRGNGThread ();
+	~LLRGNGThread ();
+	//virtual void run () = 0;
+	void setVoronoiMainWindow (VoronoiMainWindow*);
+	void begin ();
+	VoronoiMainWindow *vWindow;
+	QMutex mutex;
+	QWaitCondition condition;
+
+};
+
+LLRGNGThread::LLRGNGThread ()
+{
+	vWindow = NULL;
+	// vWindow = new VoronoiMainWindow;
+}
+
+LLRGNGThread::~LLRGNGThread () {
+	mutex.lock();
+	condition.wakeOne();
+	mutex.unlock();
+}
+
+void LLRGNGThread::begin ()
+{
+	if (!isRunning ()) {
+		start(LowPriority);
+	}
+	// else {
+	// 	condition.wakeOne();
+	// }
+
+}
+
+void LLRGNGThread::setVoronoiMainWindow (VoronoiMainWindow* w)
+{
+	vWindow = w;
+}
 
 /** \brief Class implements some techniques based on the algorithms explained in 
  * Robust growing neural gas algorithm with application in cluster analysis
@@ -25,7 +72,7 @@ namespace neuralgas {
  *  In this new algorithm, there is no output layer. The learning process is unsupervised. There are stopping criteria based on Minimum Description Length and Learning progress.
 */
 template<typename T, typename S>
-class LLRGNGAlgorithm : public GNGModul<T,S>
+class LLRGNGAlgorithm : public GNGModul<T,S>, public LLRGNGThread
 {
 public:
 
@@ -36,6 +83,7 @@ public:
 
 	// run the algorithm
 	void run ();
+
 	//sets the number of initial reference vectors
 	virtual void setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
 	// algorithmic dependent distance function
@@ -91,7 +139,7 @@ protected:
 	void updateWinnerWeight(const unsigned int&, const unsigned int&, T& distance);
 	//defines the update rule for a neighboring node by using a given data vector index
 	void updateNeighborWeight(const unsigned int&, const unsigned int&, const unsigned int&, std::map<unsigned int, T>&);
-private:
+protected:
 	/// Base_Graph casted pointer to thereof derived class GNGGraph
 	LLRGNGGraph<T,S>* _graphptr;
 	//a learning cycle for instance
@@ -181,6 +229,21 @@ void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 
 	calculateInitialRestrictingDistances ();
 
+	if (vWindow != NULL)
+	{
+		vWindow->vw->voronoi->setData (this->_data);
+		vWindow->vw->voronoi->getMaxMinValue();
+		vWindow->vw->voronoi->setSizefromData(1000);
+		vWindow->vw->voronoi->discretizeData ();
+		vWindow->vw->voronoi->setNeurons (_graphptr->getNodes());
+		vWindow->vw->voronoi->discretizeNeurons ();
+		vWindow->vw->voronoi->calcVoronoi ();
+		// vWindow->updateData (/*this->_data,*/ *_graphptr->getNodes());
+		// vWindow->repaint ();
+		vWindow->vw->setImageSize ();
+		vWindow->resize (vWindow->vw->width(), vWindow->vw->height());
+
+	}
 
 }
 
@@ -334,7 +397,8 @@ void LLRGNGAlgorithm<T,S>::run()
 	//setRefVectors() must be called before
 	assert (_graphptr);
 	assert (insertion_rate);
-	
+
+
 	unsigned int tsize = this->size();
 	if (this->sampling_mode == sequential)
 	{
@@ -386,6 +450,14 @@ void LLRGNGAlgorithm<T,S>::run()
 				if (stable_graph)
 					break;
 				epoch++;
+				if (vWindow != NULL)
+				{
+					mutex.lock ();
+					vWindow->updateData (/*this->_data,*/ *_graphptr->getNodes());
+					// condition.wakeAll ();
+					mutex.unlock ();
+				}
+				
 			}
 			while (true);
 		}
@@ -476,6 +548,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			}
 		}
 		// _graphptr->resetActivationsCounters ();
+		
 	}
 
 	if (!stable_graph)
@@ -743,11 +816,15 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 {
+	//mutex.lock();
 	delete _graphptr;
 	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;
+	vWindow->updateData (/*this->_data,*/ *_graphptr->getNodes());
+	//condition.wakeAll();
+	//mutex.unlock();
 
 }
 

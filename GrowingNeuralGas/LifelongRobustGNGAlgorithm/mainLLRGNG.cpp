@@ -9,7 +9,11 @@ using namespace neuralgas;
 
 int main (int argc, char* argv[])
 {
+	QApplication a(argc, argv);
+
 	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
+	VoronoiMainWindow m;
+	llrgng->setVoronoiMainWindow (&m);
 
 	int size;
 	double sigma, transProb;
@@ -46,7 +50,7 @@ int main (int argc, char* argv[])
 	// cout << "max: " << max << endl;
 	
 	llrgng->setRefVectors(2,mins,maxs);
-	// llrgng->setRefVectors(2,mins,maxs);
+	// llrgng->setRefVectors(2,min,max);
 
 	// llrgng->setTimeWindows (20, 100, 100);
 	llrgng->setTimeWindows (100, 60, 80*size);
@@ -66,7 +70,14 @@ int main (int argc, char* argv[])
 	//llrgng->setMaxEpochs (100);
 	llrgng->setStoppingCriterion (stability);
 
-	llrgng->run(); 
+
+	llrgng->vWindow->vw->setImageSize ();
+	
+	llrgng->begin();
+	// llrgng->run ();
+	llrgng->vWindow->show();
+	a.exec();
+	llrgng->wait ();
 	llrgng->save("nodes.txt");
 	llrgng->showGraph ();
 

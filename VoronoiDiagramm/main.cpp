@@ -19,7 +19,10 @@ int main(int argc, char *argv[])
     v.showData();
     //v.setSize(500,1000);
     v.getNeurons(filename_neurons);
+    v.getMaxMinValue ();
     v.setSizefromData(500);
+    v.discretizeData ();
+    v.discretizeNeurons ();
     v.calcVoronoi();
     v.save(output);
     std::cout <<"run done"<<std::endl;
