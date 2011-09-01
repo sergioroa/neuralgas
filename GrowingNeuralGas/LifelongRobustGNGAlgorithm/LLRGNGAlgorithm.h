@@ -21,16 +21,20 @@
 
 namespace neuralgas {
 
-//! \brief This class is used to provide threading facilities
+//! \brief This class (interface) is used to provide threading facilities
 class LLRGNGThread : public QThread {
-	//protected:
 public:
 	LLRGNGThread ();
 	~LLRGNGThread ();
-	//virtual void run () = 0;
-	void setVoronoiMainWindow (VoronoiMainWindow*);
+	virtual void run () = 0;
+	void allocGUI (int argc, char *argv[], unsigned int sidesize);
 	void begin ();
+	VoronoiMainWindow* getVWindow ();
+	QApplication* getApp ();
+protected:
 	VoronoiMainWindow *vWindow;
+	QApplication *a;
+	unsigned int sidesize;
 	QMutex mutex;
 	QWaitCondition condition;
 
@@ -39,7 +43,6 @@ public:
 LLRGNGThread::LLRGNGThread ()
 {
 	vWindow = NULL;
-	// vWindow = new VoronoiMainWindow;
 }
 
 LLRGNGThread::~LLRGNGThread () {
@@ -53,15 +56,28 @@ void LLRGNGThread::begin ()
 	if (!isRunning ()) {
 		start(LowPriority);
 	}
-	// else {
-	// 	condition.wakeOne();
-	// }
+	else {
+		condition.wakeOne();
+	}
 
 }
 
-void LLRGNGThread::setVoronoiMainWindow (VoronoiMainWindow* w)
+void LLRGNGThread::allocGUI (int argc, char *argv[], unsigned int size = 1000)
 {
-	vWindow = w;
+	a = new QApplication (argc, argv);
+	vWindow = new VoronoiMainWindow;
+	sidesize = size;
+}
+
+VoronoiMainWindow* LLRGNGThread::getVWindow ()
+{
+	return vWindow;
+}
+
+QApplication* LLRGNGThread::getApp ()
+{
+	assert (a);
+	return a;
 }
 
 /** \brief Class implements some techniques based on the algorithms explained in 
@@ -233,15 +249,13 @@ void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 	{
 		vWindow->vw->voronoi->setData (this->_data);
 		vWindow->vw->voronoi->getMaxMinValue();
-		vWindow->vw->voronoi->setSizefromData(1000);
+		vWindow->vw->voronoi->setSizefromData(sidesize);
 		vWindow->vw->voronoi->discretizeData ();
 		vWindow->vw->voronoi->setNeurons (_graphptr->getNodes());
 		vWindow->vw->voronoi->discretizeNeurons ();
 		vWindow->vw->voronoi->calcVoronoi ();
-		// vWindow->updateData (/*this->_data,*/ *_graphptr->getNodes());
-		// vWindow->repaint ();
 		vWindow->vw->setImageSize ();
-		vWindow->resize (vWindow->vw->width(), vWindow->vw->height());
+		vWindow->resize (vWindow->vw->width()+10, vWindow->vw->height()+10);
 
 	}
 
@@ -446,17 +460,10 @@ void LLRGNGAlgorithm<T,S>::run()
 					if (stable_graph)
 						break;
 				}
-				// deleteUselessNodes();
+				deleteUselessNodes();
 				if (stable_graph)
 					break;
 				epoch++;
-				if (vWindow != NULL)
-				{
-					mutex.lock ();
-					vWindow->updateData (/*this->_data,*/ *_graphptr->getNodes());
-					// condition.wakeAll ();
-					mutex.unlock ();
-				}
 				
 			}
 			while (true);
@@ -477,7 +484,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//second winner
 	unsigned int s = 0;
 	T distance = this->getWinner(b,s,(*this)[t]);
-	// _graphptr->increaseActivationsCounter (b);
+	_graphptr->increaseActivationsCounter (b);
 	
 	//learning rule for weight adaptation
 	//after calculating learning quality for best matching node b and neighbors
@@ -548,6 +555,12 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			}
 		}
 		// _graphptr->resetActivationsCounters ();
+		if (vWindow != NULL)
+		{
+			mutex.lock ();
+			vWindow->updateData (_graphptr->getNodes());
+			mutex.unlock ();
+		}
 		
 	}
 
@@ -586,11 +599,12 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			_graphptr->setAge (b, s, 0.0);
 	}
 
+
 	//remove all edges older than the maximal value for age
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
 
 	//remove nodes without any edge
-	this->rmNotConnectedNodes(); 
+	this->rmNotConnectedNodes();
 
 }
 
@@ -816,15 +830,17 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 {
-	//mutex.lock();
 	delete _graphptr;
 	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;
-	vWindow->updateData (/*this->_data,*/ *_graphptr->getNodes());
-	//condition.wakeAll();
-	//mutex.unlock();
+	if (vWindow != NULL)
+	{
+		mutex.lock();
+		vWindow->updateData ( _graphptr->getNodes());
+		mutex.unlock();
+	}
 
 }
 

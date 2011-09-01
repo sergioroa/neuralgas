@@ -234,9 +234,27 @@ void Voronoi::setNeurons (const SeqNeurons* n)
     _neurons = new SeqNeurons ();
     for (unsigned int i=0; i<n->size(); i++)
     {
-	Base_Node<double, int>* neuron = new Base_Node<double, int>(*n->at(i));
+	Base_Node<double, int>* neuron = new Base_Node<double, int>();
+	neuron->weight = n->at(i)->weight;
+	for(unsigned int k=0; k < n->size(); k++)
+	    neuron->edges.push_back(NULL);
+
 	_neurons->push_back (neuron);
     }
+
+    for (unsigned int i=0; i<n->size(); i++)
+    	for (unsigned int j=0; j<n->at(i)->edges.size(); j++)
+    	    if ( n->at(i)->edges[j] != NULL )
+		if (_neurons->at(i)->edges[j] == NULL)
+		{
+		    Base_Edge<int, double>* new_edge = new Base_Edge <int, double>;
+		    new_edge->in = _neurons->at(i);
+		    new_edge->out = _neurons->at(j);
+		    _neurons->at(i)->edges[j] = new_edge;
+		    _neurons->at(j)->edges[i] = new_edge;
+		    _neurons->at(i)->num_connections++;
+		    _neurons->at(j)->num_connections++;
+		}
 }
 
 

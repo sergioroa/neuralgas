@@ -2,6 +2,8 @@
 #include "LLRGNGAlgorithm.h"
 #include <DataGenerator/NoisyAutomata.h>
 #include "GrowingNeuralGas/Testing/ErrorTesting.h"
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
 
 
 using namespace std;
@@ -9,24 +11,38 @@ using namespace neuralgas;
 
 int main (int argc, char* argv[])
 {
-	QApplication a(argc, argv);
-
-	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
-	VoronoiMainWindow m;
-	llrgng->setVoronoiMainWindow (&m);
-
 	int size;
 	double sigma, transProb;
-	if (argc == 4) {
-		size = atoi(argv[1]);
-		sigma = atof(argv[2]);
-		transProb = atof(argv[3]);
-	}
-	else {
-		cerr << "Usage: " << argv[0] << " size sigma transition_prob" << endl;
-		return 1;
-	}
+
+	po::options_description desc("Allowed parameters:");
+	desc.add_options()
+		("help,h", "produce help message")
+		("debug,d", "debug using a Qt Widget for Voronoi visualization")
+		("size", po::value (&size)->default_value (1000), "dataset size")
+		("sigma", po::value (&sigma)->default_value (0.1), "sigma std dev parameter")
+		("transprob,p", po::value (&transProb)->default_value (0.1), "transition probability parameter");
     
+	// Declare an options description instance which will include
+	// all the options
+	po::options_description all("Basic usage:");
+	all.add(desc);
+  
+	po::variables_map vm;
+	po::store(po::command_line_parser(argc, argv).
+		  options(all).run(), vm);
+	po::notify(vm);
+
+	if (vm.count("help")) {
+		cout << desc << "\n";
+		return 0;
+	}
+
+	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
+	if (vm.count("debug"))
+		llrgng->allocGUI (argc, argv);
+
+	cout << sigma << "," << transProb << endl;
+  
 	// noisy automata testing
 	NoisyAutomata na;
 	na.setSigma(sigma);
@@ -70,13 +86,13 @@ int main (int argc, char* argv[])
 	//llrgng->setMaxEpochs (100);
 	llrgng->setStoppingCriterion (stability);
 
-
-	llrgng->vWindow->vw->setImageSize ();
-	
 	llrgng->begin();
-	// llrgng->run ();
-	llrgng->vWindow->show();
-	a.exec();
+
+	if (vm.count("debug"))
+	{
+		llrgng->getVWindow()->show();
+		llrgng->getApp()->exec();
+	}
 	llrgng->wait ();
 	llrgng->save("nodes.txt");
 	llrgng->showGraph ();

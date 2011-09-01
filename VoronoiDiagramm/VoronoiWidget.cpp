@@ -105,7 +105,7 @@ void VoronoiMainWindow::customEvent(QEvent* e) {
 		UpdateDataEvent* ue = dynamic_cast<UpdateDataEvent*>(e);
 		// vw->voronoi->_data = ue->data;
 		// vw->voronoi->_neurons = new SeqNeurons (ue->neurons);
-		vw->voronoi->setNeurons (&ue->neurons);
+		vw->voronoi->setNeurons (ue->neurons);
 		// vw->voronoi->getMaxMinValue();
 		// vw->voronoi->setSizefromData(1000);
 		// vw->setImageSize ();

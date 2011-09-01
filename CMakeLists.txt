@@ -20,7 +20,7 @@ GET_FILENAME_COMPONENT(CMAKE_SOURCE_DIR . ABSOLUTE CACHE INTERNAL "")
 
 SET(Boost_MAJOR_VERSION 1)
 SET(Boost_MINOR_VERSION 39)
-FIND_PACKAGE( Boost 1.39 )
+FIND_PACKAGE( Boost 1.39 COMPONENTS program_options )
 
 # Single output directory for building all NeuralGas libraries
 SET(LIBRARY_OUTPUT_PATH ${NEURALGAS_ROOT}/lib/linux CACHE PATH "Single output directory for building all NeuralGas libraries")
@@ -45,7 +45,7 @@ INCLUDE( ${QT_USE_FILE} )
 # ADD_DEFINITIONS(-DLINUX -fpermissive)
 ADD_DEFINITIONS(-Wall -DLINUX)
 
-LINK_LIBRARIES(NeuralGasVoronoiDiagramm ${QT_LIBRARIES}
+LINK_LIBRARIES(NeuralGasVoronoiDiagramm ${QT_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY}
   # pthread rt GL glut GLU qwt-qt4 Ice IceUtil
 )
 

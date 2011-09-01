@@ -82,8 +82,8 @@ class UpdateDataEvent : public QEvent
 public:
 	int region;
 	//const SeqData data;
-	const SeqNeurons neurons;
-	UpdateDataEvent(/*const SeqData d, */const SeqNeurons n) :
+	SeqNeurons* neurons;
+	UpdateDataEvent(/*const SeqData& d, */SeqNeurons* n) :
 		QEvent ((QEvent::Type)1003),
 		// data (d),
 		neurons (n)
@@ -115,7 +115,7 @@ class VoronoiMainWindow : public QMainWindow
 	*/
 	virtual void customEvent(QEvent* e);
 
-	void updateData ( /*const SeqData& data, */const SeqNeurons& neurons) {
+	void updateData ( /*const SeqData& data, */SeqNeurons* neurons) {
 		QApplication::postEvent(this, new UpdateDataEvent(/*data,*/ neurons) );
 
 	}
