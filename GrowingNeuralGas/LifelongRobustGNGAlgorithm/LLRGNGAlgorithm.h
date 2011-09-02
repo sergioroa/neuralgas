@@ -460,7 +460,6 @@ void LLRGNGAlgorithm<T,S>::run()
 					if (stable_graph)
 						break;
 				}
-				deleteUselessNodes();
 				if (stable_graph)
 					break;
 				epoch++;
@@ -526,6 +525,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		//find node with maximal value of insertion criterion when the graph is not improving more
 		if (minimalAvgErrors ())
 		{
+			if (_graphptr->size() > 2)
+				deleteUselessNodes();
 
 			for (unsigned int j=0; j<_graphptr->size(); j++)
 			{
@@ -551,10 +552,11 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					_graphptr->setAge(q,node_index,0.0);
 					_graphptr->setAge(f,node_index,0.0);
 					calculateInitialRestrictingDistances ();
+					_graphptr->resetActivationsCounters ();
+
 				}
 			}
 		}
-		// _graphptr->resetActivationsCounters ();
 		if (vWindow != NULL)
 		{
 			mutex.lock ();
@@ -706,7 +708,10 @@ void LLRGNGAlgorithm<T,S>::deleteUselessNodes ()
 	{
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
 		if (node->activations_counter == 0)
+		{
 			_graphptr->rmNode (i);
+			i--;
+		}
 		
 	}
 }

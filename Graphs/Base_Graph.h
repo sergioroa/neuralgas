@@ -427,29 +427,27 @@ template<typename T,typename S> void Base_Graph<T,S>::rmNode(const unsigned int&
   // checks whether the neighbors have an (directed) edge to index and deletes them
   // deletes node in the _nodes array  
  
- unsigned int     nsize=size();
- if ( index < nsize )
- {
-   std::vector<unsigned int> neighbors = getNeighbors(index);
-   
-   for(unsigned int i=0; i < neighbors.size(); i++)
+  unsigned int     nsize=size();
+  assert ( index < nsize );
+  std::vector<unsigned int> neighbors = getNeighbors(index);
+  
+  for(unsigned int i=0; i < neighbors.size(); i++)
     if ( _nodes[ neighbors[i] ]->edges[index]!=NULL ) // edge from i to index
     {
       delete  _nodes[  neighbors[i] ]->edges[index];
       _nodes[ neighbors[i] ]->edges[index]=NULL;   
       _nodes[ neighbors[i] ]->num_connections--;
     }  
-   
-   for(unsigned int i=0; i < nsize; i++)
-   {
-     _nodes[ i ]->edges.erase( _nodes[ i ]->edges.begin() + index ); 
-   }
-   
-   delete _nodes[index];                                 // delete ptrs to the nodes
-   _nodes[index] = NULL;             
-   
-   _nodes.erase(_nodes.begin() + index);                 // erase node within the array 
- } 
+  
+  for(unsigned int i=0; i < nsize; i++)
+  {
+    _nodes[ i ]->edges.erase( _nodes[ i ]->edges.begin() + index ); 
+  }
+  
+  delete _nodes[index];                                 // delete ptrs to the nodes
+  _nodes[index] = NULL;             
+  
+  _nodes.erase(_nodes.begin() + index);                 // erase node within the array 
  
 }
 
@@ -466,7 +464,7 @@ template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNe
   std::vector<unsigned int> result_v;
   int num_of_neighbors = _nodes[index]->num_connections;
   int found_neighbors = 0;
- 
+  
   for (unsigned int i=0; i < nsize /*&& found_neighbors < num_of_neighbors*/; i++)
     if( _nodes[index]->edges[i] !=NULL && index!=i)
     {

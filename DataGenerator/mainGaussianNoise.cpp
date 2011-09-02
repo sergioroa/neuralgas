@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 	desc.add_options()
 		("help,h", "produce help message")
 		("debug,d", "debug using a Qt Widget for Voronoi visualization")
-		("size", po::value (&size)->default_value (1000), "dataset size")
+		("size,s", po::value (&size)->default_value (1000), "dataset size")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter");
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 	llrgng->setDataAccuracy (0.0001);
 	// llrgng->setDataAccuracy (0.00000000001);
 	//llrgng->setMaxNodes (5);
-	llrgng->setMaxEpochsErrorReduction (5);
+	llrgng->setMaxEpochsErrorReduction (3);
 	llrgng->setMaxEpochsMDLReduction (400);
 	if (dataset == "1")
 		llrgng->setModelComplexityConst (1);

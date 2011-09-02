@@ -52,6 +52,7 @@ struct LLRGNGNode : Base_Node<T,S>
 	T insertion_criterion;
 	// calculate \p prev_avgerror and \p last_avgerror
 	void updateAvgError (T, const unsigned int&, const unsigned int&, const unsigned int&);
+	// update \p restricting_distance
 	void updateRestrictingDistance (T);
 	/// previous mean error counter
 	T prev_avgerror;
@@ -225,6 +226,8 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 
 }
 
+/** \brief update \p restricting_distance
+ */
 template<typename T, typename S>
 void LLRGNGNode<T,S>::updateRestrictingDistance (T last_error)
 {
@@ -271,6 +274,8 @@ public:
 	LLRGNGGraph (const LLRGNGGraph&);
 	/// std dto
 	~LLRGNGGraph(){}
+	// removes the node given by the index, removes its edges and updates the number of connections of its neighbors
+	virtual void rmNode(const unsigned int&); 
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
 	// calculate inherited variables for a node to be inserted between two nodes
@@ -429,6 +434,54 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	n->min_last_avgerror = n->last_avgerror;
 	return n; 
 }
+
+/** \brief Removes the node given by the index, removes its edges and updates the number 
+ * of connections of its neighbors
+ *
+ * \param index is the node that shall be deleted
+ */
+template<typename T,typename S>
+void LLRGNGGraph<T,S>::rmNode(const unsigned int& index)
+{
+	// function does as follows
+	// checks whether the neighbors have an (directed) edge to index and deletes them
+	// deletes node in the _nodes array  
+ 
+	unsigned int     nsize=this->size();
+	assert ( index < nsize );
+	std::vector<unsigned int> neighbors = this->getNeighbors(index);
+   
+	for(unsigned int i=0; i < neighbors.size(); i++)
+		if ( this->_nodes[ neighbors[i] ]->edges[index]!=NULL ) // edge from i to index
+		{
+			delete  this->_nodes[  neighbors[i] ]->edges[index];
+			this->_nodes[ neighbors[i] ]->edges[index]=NULL; // (really needed?)
+			this->_nodes[ neighbors[i] ]->num_connections--;
+		}  
+   
+	for(unsigned int i=0; i < nsize; i++)
+		this->_nodes[ i ]->edges.erase( this->_nodes[ i ]->edges.begin() + index ); 
+   
+	delete this->_nodes[index];                                 // delete ptrs to the nodes (really needed?)
+	this->_nodes[index] = NULL;  // (really needed?)
+   
+	this->_nodes.erase(this->_nodes.begin() + index);                 // erase node within the array
+
+	//reindex
+	for(unsigned int i=0; i < neighbors.size(); i++)
+		if (i > index)
+			neighbors[i] = neighbors[i] - 1;
+	
+	// connect all neighbor nodes
+	for(unsigned int i=0; i < neighbors.size(); i++)
+		for(unsigned int j=0; j < neighbors.size(); j++)
+			if (i != j)
+			{
+				this->addEdge (neighbors[i], neighbors[j]);
+				this->setAge (neighbors[i], neighbors[j], 0.0);
+			}
+}
+
 
 /** \brief set window constants. This function should only
     be called once when creating the graph
