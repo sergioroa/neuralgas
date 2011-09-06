@@ -74,10 +74,10 @@ struct LLRGNGNode : Base_Node<T,S>
 	void updateLearningRate (T&, T&);
 	/// learning rate of the node
 	T learning_rate;
-	// update activations counter
-	void increaseActivationsCounter ();
-	/// counter for the nr. of activations in a training epoch
-	unsigned int activations_counter;
+	// update items counter
+	void increaseItemsCounter ();
+	/// counter for the nr. of items in the receptive field of this node
+	unsigned int items_counter;
 	/// repulsion constant for updating weights
 	T repulsion;
 };
@@ -87,7 +87,7 @@ template<typename T, typename S>
 LLRGNGNode<T,S>::LLRGNGNode () :
 	age (1),
 	learning_rate (0),
-	activations_counter (0)
+	items_counter (0)
 {
 }
 
@@ -250,12 +250,12 @@ void LLRGNGNode<T,S>::decreaseAge (unsigned int age_time_window)
 	age = exp (-1/(T) age_time_window) * age;
 }
 
-/** \brief update \p activations_counter
+/** \brief update \p items_counter in the receptive field
  */
 template<typename T, typename S>
-void LLRGNGNode<T,S>::increaseActivationsCounter ()
+void LLRGNGNode<T,S>::increaseItemsCounter ()
 {
-	activations_counter++;
+	items_counter++;
 }
 
 /** \brief LLRGNGGraph provides some additional learning strategies, some of them proposed in
@@ -304,9 +304,9 @@ public:
 	// decrease age of some node
 	void decreaseNodeAge (const unsigned int);
 	// update activations counter for some node
-	void increaseActivationsCounter (const unsigned int);
+	void increaseItemsCounter (const unsigned int);
 	// reset activations counters for all nodes
-	void resetActivationsCounters ();
+	void resetItemsCounters ();
 	// get last stored minimal average error for some node
 	T getNodeMinLastAvgError (const unsigned int);
 	// set last epoch where an error reduction for a node was achieved
@@ -410,7 +410,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->last_epoch_improvement = copynode->last_epoch_improvement;
 		node->age = copynode->age;
 		node->learning_rate = copynode->learning_rate;
-		node->activations_counter = copynode->activations_counter;
+		node->items_counter = copynode->items_counter;
 		node->errors = copynode->errors;
 	}
 }
@@ -436,7 +436,7 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 }
 
 /** \brief Removes the node given by the index, removes its edges and updates the number 
- * of connections of its neighbors
+ * of connections of its neighbors. Connects the nodes that were its neighbors.
  *
  * \param index is the node that shall be deleted
  */
@@ -469,17 +469,14 @@ void LLRGNGGraph<T,S>::rmNode(const unsigned int& index)
 
 	//reindex
 	for(unsigned int i=0; i < neighbors.size(); i++)
-		if (i > index)
-			neighbors[i] = neighbors[i] - 1;
+		if (neighbors[i] > index)
+			neighbors[i]--;
 	
 	// connect all neighbor nodes
 	for(unsigned int i=0; i < neighbors.size(); i++)
 		for(unsigned int j=0; j < neighbors.size(); j++)
 			if (i != j)
-			{
-				this->addEdge (neighbors[i], neighbors[j]);
 				this->setAge (neighbors[i], neighbors[j], 0.0);
-			}
 }
 
 
@@ -636,21 +633,21 @@ void LLRGNGGraph<T,S>::decreaseNodeAge (const unsigned int index)
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->decreaseAge (age_time_window);
 }
 
-/** \brief update activations counter for some node
+/** \brief update items counter for the receptive field of some node
  */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::increaseActivationsCounter (const unsigned int index)
+void LLRGNGGraph<T,S>::increaseItemsCounter (const unsigned int index)
 {
-	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->increaseActivationsCounter ();
+	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->increaseItemsCounter ();
 }
 
-/** \brief reset activations counter for all nodes
+/** \brief reset items counter for all nodes
  */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::resetActivationsCounters ()
+void LLRGNGGraph<T,S>::resetItemsCounters ()
 {
 	for (unsigned int i=0; i < this->size(); i++)
-		static_cast<LLRGNGNode<T,S>* > (this->_nodes[i])->activations_counter = 0;
+		static_cast<LLRGNGNode<T,S>* > (this->_nodes[i])->items_counter = 0;
 }
 
 /* \brief get last stored minimal average error for some node

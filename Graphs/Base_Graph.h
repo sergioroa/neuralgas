@@ -166,7 +166,7 @@ template<typename T, typename S> class Base_Graph
              //calls the update function declared within the node struct
              inline void                         update();
              //returns the number of nodes currently in the graph
-             inline unsigned int                 size(void) const;
+             unsigned int                        size(void) const;
 	     //sets a user defined metric, used as distance of reference and data vector 
              inline void                         setMetric(Metric); 
              // pre-specified metric is the standard L2 euclidean metric

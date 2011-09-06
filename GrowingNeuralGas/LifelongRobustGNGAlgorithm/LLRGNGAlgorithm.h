@@ -122,10 +122,10 @@ public:
 	int maxInsertionCriterionNode ();
 	// find node with maximal value of insertion quality among some nodes
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
-	// delete nodes that are not being activated
-	void deleteUselessNodes ();
-	// find node with less activations
-	int findLessActivatedNode ();
+	// delete nodes that do not have items in their receptive fields
+	void deleteUselessNodes (unsigned int&, unsigned int&);
+	// find node with less items in their receptive fields
+	int findLessItemsNode ();
 	/// show graph for visualization
 	void showGraph(){_graphptr->showGraph();}
 	// sets a maximal partition
@@ -433,7 +433,6 @@ void LLRGNGAlgorithm<T,S>::run()
 					if (stable_graph)
 						break;
 				}
-				// deleteUselessNodes();
 				if (stable_graph)
 					break;
 				epoch++;
@@ -483,7 +482,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//second winner
 	unsigned int s = 0;
 	T distance = this->getWinner(b,s,(*this)[t]);
-	_graphptr->increaseActivationsCounter (b);
+	// _graphptr->increaseItemsCounter (b);
 	
 	//learning rule for weight adaptation
 	//after calculating learning quality for best matching node b and neighbors
@@ -526,7 +525,11 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		if (minimalAvgErrors ())
 		{
 			if (_graphptr->size() > 2)
-				deleteUselessNodes();
+			{
+				mutex.lock ();
+				deleteUselessNodes(b, s);
+				mutex.unlock ();
+			}
 
 			for (unsigned int j=0; j<_graphptr->size(); j++)
 			{
@@ -543,7 +546,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 				std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
 				int f = maxInsertionQualityNode (q_neighbors);
 				if (f != -1)
-				{	
+				{
+					mutex.lock ();
 					_graphptr->rmEdge (q, f);
 					_graphptr->addNode ();
 					int node_index = _graphptr->size()-1;
@@ -551,8 +555,9 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					_graphptr->calculateInheritedParams (node_index, q, f);
 					_graphptr->setAge(q,node_index,0.0);
 					_graphptr->setAge(f,node_index,0.0);
+					mutex.unlock();
 					calculateInitialRestrictingDistances ();
-					_graphptr->resetActivationsCounters ();
+					// _graphptr->resetItemsCounters ();
 
 				}
 			}
@@ -572,7 +577,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		T distance = getDistance ((*this)[t], b);
 		_graphptr->updateAvgError (b, distance);
 		_graphptr->updateRestrictingDistance (b, distance);
-		std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
+		b_neighbors = _graphptr->getNeighbors(b);
 
 		//for (unsigned int j=0; j < b_neighbors.size(); j++)
 		//_graphptr->updateRestrictingDistance (j, getDistance((*this)[t], j));
@@ -602,11 +607,14 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	}
 
 
+	mutex.lock ();
 	//remove all edges older than the maximal value for age
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
 
 	//remove nodes without any edge
 	this->rmNotConnectedNodes();
+	mutex.unlock ();
+
 
 }
 
@@ -656,22 +664,25 @@ int LLRGNGAlgorithm<T,S>::maxInsertionQualityNode (const std::vector<unsigned in
 template<typename T, typename S>
 T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 {
-	std::vector<unsigned int> items_per_winner (_graphptr->size());
-	std::vector<int> winner_per_item (this->size(), -1);
-	std::vector<T> mdl_per_item (this->size());
+	// items_per_winner = std::vector<unsigned int> (_graphptr->size());
+	//std::vector<int> winner_per_item (this->size(), -1);
+	// std::vector<T> mdl_per_item (this->size());
+	_graphptr->resetItemsCounters ();
 	mdl = 0;
 	for(unsigned int t = 0; t < this->size(); t++)
 	{
 		//winners
 		unsigned int b, s;
 		this->getWinner(b,s,(*this)[t]);
-		items_per_winner[b]++;
-		winner_per_item[t] = b;
+		// items_per_winner[b]++;
+		_graphptr->increaseItemsCounter (b);
+		// winner_per_item[t] = b;
 		for (unsigned int i=0; i<this->getDimension(); i++)
 		{
-		 	mdl_per_item[t] += std::max(log2((fabs((*this)[t][i] -  (*_graphptr)[b].weight[i])) / data_accuracy), 1.0);
+		 	// mdl_per_item[t] += std::max(log2((fabs((*this)[t][i] -  (*_graphptr)[b].weight[i])) / data_accuracy), 1.0);
+			mdl += std::max(log2((fabs((*this)[t][i] -  (*_graphptr)[b].weight[i])) / data_accuracy), 1.0);
 		}
-		mdl += mdl_per_item[t];
+		// mdl += mdl_per_item[t];
 	}
 
 	mdl *= model_complexity_const;
@@ -699,27 +710,33 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 
 }
 
-/* \brief delete nodes that are not being activated
+/* \brief delete nodes that are do not have items in their receptive fields
+   \param winner winner node index that needs to be reindexed if necessary
+   \param snd_winner winner node index that needs to be reindexed if necessary
  */
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::deleteUselessNodes ()
+void LLRGNGAlgorithm<T,S>::deleteUselessNodes (unsigned int& winner, unsigned int& snd_winner)
 {
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (node->activations_counter == 0)
+		if (node->items_counter == 0)
 		{
 			_graphptr->rmNode (i);
+			if (winner > i)
+				winner--;
+			if (snd_winner > i)
+				snd_winner--;
 			i--;
 		}
 		
 	}
 }
 
-/* \brief find node with less activations
+/* \brief find node with less items in their receptive fields
  */
 template<typename T, typename S>
-int LLRGNGAlgorithm<T,S>::findLessActivatedNode ()
+int LLRGNGAlgorithm<T,S>::findLessItemsNode ()
 {
 	unsigned int min_value = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[0])->activations_counter;
 	int n = 0;
@@ -727,9 +744,9 @@ int LLRGNGAlgorithm<T,S>::findLessActivatedNode ()
  	for (unsigned int i=1; i < _graphptr->size(); i++)
 	{
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (node->activations_counter < min_value)
+		if (node->items_counter < min_value)
 		{
-			min_value = node->activations_counter;
+			min_value = node->items_counter;
 			n = i;
 		}
 	}
