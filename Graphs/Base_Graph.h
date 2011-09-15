@@ -49,7 +49,7 @@ template < typename T , typename S > struct Base_Node
     for(int i = 0; i < esize; i++)
         if (edges[i]!=NULL)
         {
-              //  delete edges[i];
+		// delete edges[i];
                 edges[i] = NULL;
         }  
     
@@ -166,7 +166,7 @@ template<typename T, typename S> class Base_Graph
              //calls the update function declared within the node struct
              inline void                         update();
              //returns the number of nodes currently in the graph
-             unsigned int                        size(void) const;
+             inline unsigned int                 size(void) const;
 	     //sets a user defined metric, used as distance of reference and data vector 
              inline void                         setMetric(Metric); 
              // pre-specified metric is the standard L2 euclidean metric
@@ -625,7 +625,6 @@ template < typename T, typename S > inline void Base_Graph<T,S>::setMetric(Metri
 {
   _metric_to_use=metric_to_use;
 }
-
 
 } //namespace neuralgas
 

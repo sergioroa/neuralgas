@@ -186,7 +186,7 @@ template < typename T, typename S > const T ErrorTesting<T,S>::getShortestDistan
    {
        for (unsigned int j = 0; j < _gngptr->graphptr->size(); j++)
        {
-        distance = _gngptr->getDistance((*_gngptr)[index],j);
+	distance = dynamic_cast<GNGModulGraph<T,S>* >(_gngptr->graphptr)->getDistance((*_gngptr)[index],j);
     
         if (distance < best_distance)
         {

@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
 	llrgng->setMaxEpochsErrorReduction (3);
 	llrgng->setMaxEpochsMDLReduction (400);
 	if (dataset == "1")
-		llrgng->setModelComplexityConst (1);
+		llrgng->setModelEfficiencyConst (1);
 	else
-		llrgng->setModelComplexityConst (1.3);
+		llrgng->setModelEfficiencyConst (1.3);
 	
 	llrgng->setSamplingMode (randomly);
 	//llrgng->setStoppingCriterion (epochs);

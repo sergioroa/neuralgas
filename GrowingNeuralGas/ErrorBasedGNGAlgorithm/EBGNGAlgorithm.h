@@ -34,8 +34,6 @@ public:
 	bool isGraphStable ();
 	/// show graph for visualization
 	void    showGraph(){_graphptr->showGraph();}
-	// algorithmic dependent distance function
-	T       getDistance(const Vector<T>&,const unsigned int&) const;
 	// set error threshold constant
 	void setErrorThreshold (T);
 private:        
@@ -111,23 +109,6 @@ void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const
 	// vectors and number of ref vectors initilized with 
 	// random values
 	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
-}
-
-/** \brief Algorithmic dependent distance function
-*
-*   This function returns the distance of the given datum and the given node. 
-*   The distance is a algorithmic dependent function that is either
-*   just the setted metric or a combination thereof.
-*   Currently dist  = metric(x_t,w_j) where x_t is the data vector and w_j the node vector,
-*
-*   \param item data vector
-*   \param node_index is the node where to the distance shall be determined
-*/
-template<typename T,typename S> T EBGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
-{
-    // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
-    // since this accelerates the calculation but does not change the result
-	return metric( item, (*_graphptr)[node_index].weight);
 }
 
 /** \brief Defines the update rule for the neighbor given by the second index 
@@ -238,11 +219,10 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::learning_loop ( unsign
   //params[6] lambda number of iterations after a new node is added
   //params[7] w_max maximal number of reference vectors / maximal size of cookbook
       
-  this->getWinner(first_winner,second_winner,(*this)[t]);
+  _graphptr->getWinner(first_winner,second_winner,(*this)[t]);
 
-  //   T distance = pow(getDistance((*this)[t],first_winner),2);
-  T distance = getDistance((*this)[t],first_winner);
-
+  //   T distance = pow(_graphptr->getDistance((*this)[t],first_winner),2);
+  T distance = _graphptr->getDistance((*this)[t],first_winner);
   
 
   if ( _graphptr->size() < this->params[7] &&  distance >= average_error)

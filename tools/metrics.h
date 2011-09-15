@@ -18,7 +18,7 @@ namespace neuralgas
 {
 
 template<typename T, typename S>
-T euclidean (const Vector<T>& x, const Vector<T>& y)
+inline T euclidean (const Vector<T>& x, const Vector<T>& y)
 {
 	T result;
 	T value;

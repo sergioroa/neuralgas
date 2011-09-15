@@ -87,8 +87,6 @@ public:
         
                 
 	void    showGraph(){_graphptr->showGraph();}
-	// algorithmic dependent distance function
-	T getDistance(const Vector<T>&,const unsigned int&) const;
 private:        
 	/// Base_Graph casted pointer to thereof derived class GNGGraph
 	GNGGraph<T,S>*           _graphptr;
@@ -154,23 +152,6 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const unsi
 template<typename T,typename S> void GNGAlgorithm<T,S>::setMinGlobalError (T value)
 {
   min_global_error = value;
-}
-
-/** \brief Algorithmic dependent distance function
-*
-*   This function returns the distance of the given item and the given node. 
-*   The distance is a algorithmic dependent function that is either
-*   just the setted metric or a combination thereof.
-*   Currently dist  = metric(x_t,w_j) where x_t is the data vector and w_j the node vector,
-*
-*   \param item data vector
-*   \param node_index is the node where to the distance shall be determined
-*/
-template<typename T,typename S> T GNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
-{
-    // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
-    // since this accelerates the calculation but does not change the result 
-    return metric( item, (*_graphptr)[node_index].weight);
 }
 
 /** \brief Defines the update rule for the neighbor given by the second index 
@@ -297,9 +278,9 @@ template<typename T,typename S> void GNGAlgorithm<T,S>::learning_loop ( unsigned
     this->params[j] =((*this)._funcArray[j])(t);
   }
     
-  this->getWinner(first_winner,second_winner,(*this)[t]);
+  _graphptr->getWinner(first_winner,second_winner,(*this)[t]);
 
-  T distance = pow(getDistance((*this)[t],first_winner),2);
+  T distance = pow(_graphptr->getDistance((*this)[t],first_winner),2);
 
   if ( _graphptr->size() < this->params[7] &&  distance >= this->params[2] )
   {

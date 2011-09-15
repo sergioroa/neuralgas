@@ -257,9 +257,9 @@ int main(int argc, char *argv[])
 	    // static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.001);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.00000000001);
 	    if (dataset == _na)
-		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelComplexityConst (1.0);
+		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelEfficiencyConst (1.0);
 	    else if (dataset == _mg)
-		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelComplexityConst (1.3);		    
+		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelEfficiencyConst (1.3);		    
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsErrorReduction (5);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsMDLReduction (80);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setSamplingMode (randomly);

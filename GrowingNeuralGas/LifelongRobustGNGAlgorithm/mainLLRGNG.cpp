@@ -74,12 +74,12 @@ int main (int argc, char* argv[])
 	llrgng->setInsertionRate (size);
 	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (50);
-	llrgng->setDataAccuracy (0.0001);
+	llrgng->setDataAccuracy (0.001);
 	// llrgng->setDataAccuracy (0.00000000001);
 	// llrgng->setMaxNodes (3);
 	llrgng->setMaxEpochsErrorReduction (5);
 	llrgng->setMaxEpochsMDLReduction (60);
-	llrgng->setModelComplexityConst (1);
+	llrgng->setModelEfficiencyConst (1);
 
 	llrgng->setSamplingMode (randomly);
 	//llrgng->setStoppingCriterion (epochs);

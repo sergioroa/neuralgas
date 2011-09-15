@@ -2,7 +2,7 @@
 * \class MGNGAlgorithm
 * \author Manuel Noll
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -108,7 +108,7 @@ public:
 	void    showGraph(){_graphptr->showGraph();}
 	// stores the graph in myfile , just for internal use
 	void    storeGraph(const unsigned int& );
-	T       getDistance(const Vector<T>&,const unsigned int&) const;
+	friend class MGNGGraph<T,S>;
 protected:
 	virtual void updateNeighbor(const unsigned int&,const unsigned int&);
 	virtual void updateWinner(const unsigned int&,const unsigned int&);
@@ -175,6 +175,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const uns
   //_graphptr       = dynamic_cast< MGNGGraph<T,S> * >(this->_graphModulptr);
   this->graphptr      = _graphptr;
   this->_graphModulptr = _graphptr;
+  _graphptr->setAlgorithm (this);
 
   // sets the min values for the init of the context vector
   _graphptr->setLowLimits(low_limits);
@@ -188,27 +189,6 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const uns
       (*_graphptr).setBirthday(i,0);
 }
 
-/** \brief Algorithmic dependent distance function
-*
-*   This function returns the distance of the given datum and the given node. 
-*   The distance is a algorithmic dependent function that is either
-*   just the setted metric or a combination thereof.
-*   Currently dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2 where
-*   x_t is the data vector and w_j the node vector, C the global and c_j the local
-*   context vector where the latter one belongs to w_j.
-*   
-*   \param item datum
-*   \param node_index is the node where to the distance shall be determined
-*/
-template<typename T,typename S> T MGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
-{
-    // dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2
-    T distance = (1 - this->params[0]);
-    distance*=pow(metric( item, (*_graphptr)[node_index].weight),2);
-    distance+=this->params[0]*pow(metric(globalContextV,(*_graphptr).context(node_index)) ,2);
-
-    return distance;
-}
 
 /** \brief Defines the update rule for the in the second index given neighbor 
 *
@@ -287,7 +267,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
     }
 
     // line 6
-    this->getWinner(first_winner,second_winner,(*this)[t]);
+    _graphptr->getWinner(first_winner,second_winner,(*this)[t]);
     // line 7
     Vector<T> vec = (*_graphptr).context(first_winner);
     // C_t = (1 - beta) * w_r +beta * c_r

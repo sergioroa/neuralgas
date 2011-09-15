@@ -16,6 +16,8 @@
 
 namespace neuralgas {
 
+template<typename T, typename S> class MGNGAlgorithm;
+
 /** \brief The derived node for a MGNGGraph
 *
 *   The node permits having a counter implementing the algorithm described in 
@@ -76,12 +78,12 @@ template<typename T,typename S> struct MGNGNode : Base_Node<T,S>
 template<typename T,typename S> class MGNGGraph : public GNGModulGraph<T,S>
 {
  public:
-                  //cto creating a graph with the same dimension for node and edge weight vectors
-                  MGNGGraph(const int& dim) :  Base_Graph<T,S>(dim),UGraph<T,S>(dim),TGraph<T,S>(dim),GNGModulGraph<T,S>(dim){}
-                   //cto creating a graph with the different dimension for node and edge weight vectors
-                  MGNGGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
-                  // std dto
-                  ~MGNGGraph(){}
+   //cto creating a graph with the same dimension for node and edge weight vectors
+   MGNGGraph(const int& dim) :  Base_Graph<T,S>(dim),UGraph<T,S>(dim),TGraph<T,S>(dim),GNGModulGraph<T,S>(dim){}
+   //cto creating a graph with the different dimension for node and edge weight vectors
+   MGNGGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
+   // std dto
+   ~MGNGGraph(){}
    // sets a new counter value for the given node
    void inline setCounter(const int&, const float&);
    // decreases the counter by one
@@ -91,7 +93,7 @@ template<typename T,typename S> class MGNGGraph : public GNGModulGraph<T,S>
    // gets the counter value for the given node
    float inline getCounter(const int&) const;
    // returns a reference to the given context vector
-   Vector<T>& context(const int&);
+   Vector<T>& context(const int&) const;
    
    int getBirthday(const int& index) const 
    {return (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->getBirthday();}
@@ -103,6 +105,14 @@ template<typename T,typename S> class MGNGGraph : public GNGModulGraph<T,S>
    {return (dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->getTemp();}
    void setTemp(const int& index,const float& temp)
    {(dynamic_cast< MGNGNode<T,S>* > (this->_nodes[index]))->setTemp(temp);}
+   // set algorithm to use its parameters for, e.g., distance calculation
+   void setAlgorithm (MGNGAlgorithm<T,S>* alg) { algorithm = alg; }
+   // Algorithmic dependent distance function
+   T getDistance(const Vector<T>&,const unsigned int&) const;
+
+protected:
+   // pointer to algorithm
+   MGNGAlgorithm<T,S>* algorithm;
 
     
  private:
@@ -176,10 +186,33 @@ template<typename T,typename S> void inline MGNGGraph<T,S>::incCounter(const int
 * \param index is the index of the node wherefore the context is desired
 */
   
-template<typename T,typename S> Vector<T>& MGNGGraph<T,S>::context(const int& index)
+template<typename T,typename S> Vector<T>& MGNGGraph<T,S>::context(const int& index) const
 {
 return (static_cast< MGNGNode<T,S>* > (this->_nodes[index]))->context;
 }
+
+/** \brief Algorithmic dependent distance function
+*
+*   This function returns the distance of the given datum and the given node. 
+*   The distance is a algorithmic dependent function that is either
+*   just the setted metric or a combination thereof.
+*   Currently dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2 where
+*   x_t is the data vector and w_j the node vector, C the global and c_j the local
+*   context vector where the latter one belongs to w_j.
+*   
+*   \param item datum
+*   \param node_index is the node where to the distance shall be determined
+*/
+template<typename T,typename S> T MGNGGraph<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
+{
+    // dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2
+    T distance = (1 - algorithm->params[0]);
+    distance*=pow(metric( item, this->_nodes[node_index]->weight),2);
+    distance+=algorithm->params[0]*pow(metric(algorithm->globalContextV,context(node_index)) ,2);
+
+    return distance;
+}
+
 
 } // namespace neuralgas
 

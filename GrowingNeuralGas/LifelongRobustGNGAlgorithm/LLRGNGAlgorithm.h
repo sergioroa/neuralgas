@@ -102,8 +102,6 @@ public:
 
 	//sets the number of initial reference vectors
 	virtual void setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
-	// algorithmic dependent distance function
-	T getDistance(const Vector<T>&,const unsigned int&) const;
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
 	// set input adaptation threshold
@@ -116,16 +114,13 @@ public:
 	void setMaximalEdgeAge (unsigned int);
 	// set data accuracy (quantization) constant
 	void setDataAccuracy (T);
-	// set model complexity contribution constant
-	void setModelComplexityConst (T);
+	// set model efficiency contribution constant
+	void setModelEfficiencyConst (T);
 	// find node with maximal value of insertion criterion
 	int maxInsertionCriterionNode ();
+	std::vector<int> maxInsertionCriterionNodes ();
 	// find node with maximal value of insertion quality among some nodes
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
-	// delete nodes that do not have items in their receptive fields
-	void deleteUselessNodes (unsigned int&, unsigned int&);
-	// find node with less items in their receptive fields
-	int findLessItemsNode ();
 	/// show graph for visualization
 	void showGraph(){_graphptr->showGraph();}
 	// sets a maximal partition
@@ -145,6 +140,11 @@ protected:
 	void updateMinimalGraphMDL ();
 	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
 	bool minimalMDL ();
+	// find nodes that are not properly located according to MDL principle
+	std::vector<unsigned int> findDislocatedNodes ();
+	LLRGNGGraph<T,S>* findDislocatedNodeGraph (unsigned int&, unsigned int&, unsigned int&);
+	// calculate model efficiency (error) of a graph
+	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph);
 	// mark the current graph as stable in order to stop the algorithm
 	void markAsStableGraph ();
 	// calculate value range of data
@@ -155,11 +155,12 @@ protected:
 	void updateWinnerWeight(const unsigned int&, const unsigned int&, T& distance);
 	//defines the update rule for a neighboring node by using a given data vector index
 	void updateNeighborWeight(const unsigned int&, const unsigned int&, const unsigned int&, std::map<unsigned int, T>&);
-protected:
 	/// Base_Graph casted pointer to thereof derived class GNGGraph
 	LLRGNGGraph<T,S>* _graphptr;
 	//a learning cycle for instance
         void learning_loop ( unsigned int, unsigned int );
+	// update params like age, avg errors, etc.
+	void updateParams (unsigned int&, unsigned int&, unsigned int&);
 	/// insertion rate constant
 	T insertion_rate;
 	/// maximal number of nodes if it is set (not obligatory)
@@ -184,9 +185,13 @@ protected:
 	bool stable_graph;
 	/// value range of data
 	T value_range;
-	/// constant to balance contribution of model complexity in minimum description length calculation
-	T model_complexity_const;
-	
+	/// constant to balance contribution of model efficiency in minimum description length calculation
+	T model_efficiency_const;
+	/// number of bits needed to encode a vector (calculated in \p calculateValueRange)
+	T bits_vector;
+	unsigned int nr_of_insertions;
+	/// flag for tracking if a dislocated node was found in previous insertion epoch
+	bool insert_this_iter;
 };
 
 /** \brief cto initializing the class 
@@ -204,7 +209,7 @@ LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned in
 	max_epochs_error_reduction (5),
 	max_epochs_mdl_reduction (80),
 	last_epoch_mdl_reduction (0),
-	model_complexity_const (1.0)
+	model_efficiency_const (1.0)
 {
 	_graphptr = new LLRGNGGraph<T,S>(dim, window);
 	this->graphptr = _graphptr;
@@ -317,31 +322,13 @@ void LLRGNGAlgorithm<T,S>::setDataAccuracy (T accuracy)
 	data_accuracy = accuracy;
 }
 
-/* set \p model_complexity_const constant to balance the contribution of model complexity for MDL calculation
+/* set \p model_efficiency_const constant to balance the contribution of model efficiency for MDL calculation
  * \param constant set model complexity contribution
  */
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setModelComplexityConst (T constant)
+void LLRGNGAlgorithm<T,S>::setModelEfficiencyConst (T constant)
 {
-	model_complexity_const = constant;
-}
-
-/** \brief Algorithmic dependent distance function
-*
-*   This function returns the distance of the given item and the given node. 
-*   The distance is a algorithmic dependent function that is either
-*   just the setted metric or a combination thereof.
-*   Currently dist  = metric(x_t,w_j) where x_t is the data vector and w_j the node vector,
-*
-*   \param item data vector
-*   \param node_index is the node where to the distance shall be determined
-*/
-template<typename T,typename S>
-T LLRGNGAlgorithm<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
-{
-    // dist  = metric(x_t,w_j) instead of metric(x_t,w_j)^2 as proposed in the paper
-    // since this accelerates the calculation but does not change the result
-	return metric( item, (*_graphptr)[node_index].weight);
+	model_efficiency_const = constant;
 }
 
 /** \brief Defines the update rule for a node given by the second index 
@@ -382,7 +369,7 @@ void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,c
 	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[node_index]);
 	// LLRGNGNode<T,S>* winner = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[winner_index]);
 
-	T distance = getDistance ((*this)[item_index], node_index);
+	T distance = _graphptr->getDistance ((*this)[item_index], node_index);
 	T amplitude;
 	if (distance >= node->prev_restricting_distance)
 		amplitude = node->restricting_distance;
@@ -402,7 +389,7 @@ void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,c
 
 }
 
-/** \brief Runs an algorithm based on Life-Long Learning Cell Structures algorithm proposed by Hamker
+/** \brief Runs an algorithm based on different implementations of GNG and own ideas
 */
 template<typename T,typename S>
 void LLRGNGAlgorithm<T,S>::run()
@@ -424,6 +411,8 @@ void LLRGNGAlgorithm<T,S>::run()
 		{
 			epoch = 0;
 			stable_graph = false;
+			nr_of_insertions = 1;
+			insert_this_iter = true;
 			calculateValueRange ();
 			do
 			{
@@ -438,6 +427,7 @@ void LLRGNGAlgorithm<T,S>::run()
 				epoch++;
 			}
 			while (true);
+			std::cout << "Finished!" << std::endl;
 		}
 	}
 	else if (this->sampling_mode == randomly)
@@ -451,6 +441,8 @@ void LLRGNGAlgorithm<T,S>::run()
 		{
 			epoch = 0;
 			stable_graph = false;
+			nr_of_insertions = 1;
+			insert_this_iter = true;
 			calculateValueRange ();
 			do {
 				for(unsigned int t = 0; t < tsize; t++)
@@ -465,6 +457,7 @@ void LLRGNGAlgorithm<T,S>::run()
 				
 			}
 			while (true);
+			std::cout << "Finished!" << std::endl;
 		}
 
 	}
@@ -481,7 +474,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	unsigned int b = 1;
 	//second winner
 	unsigned int s = 0;
-	T distance = this->getWinner(b,s,(*this)[t]);
+	T distance = _graphptr->getWinner(b,s,(*this)[t]);
 	// _graphptr->increaseItemsCounter (b);
 	
 	//learning rule for weight adaptation
@@ -524,42 +517,95 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		//find node with maximal value of insertion criterion when the graph is not improving more
 		if (minimalAvgErrors ())
 		{
+			unsigned int dislocated_node;
 			if (_graphptr->size() > 2)
 			{
 				mutex.lock ();
-				deleteUselessNodes(b, s);
-				mutex.unlock ();
-			}
-
-			for (unsigned int j=0; j<_graphptr->size(); j++)
-			{
-				_graphptr->calculateInsertionQuality (j);
-				_graphptr->calculateInsertionCriterion (j);
-			}
-		
-			int q = maxInsertionCriterionNode ();
-		
-			// find node among neighbours of q with maximal value of
-			//quality measure of insertion
-			if (q != -1)
-			{
-				std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
-				int f = maxInsertionQualityNode (q_neighbors);
-				if (f != -1)
+				if (_graphptr->deleteInactiveNodes(b, s))
 				{
-					mutex.lock ();
-					_graphptr->rmEdge (q, f);
-					_graphptr->addNode ();
-					int node_index = _graphptr->size()-1;
-					std::cout << "adding node " << node_index << "..." << std::endl;
-					_graphptr->calculateInheritedParams (node_index, q, f);
-					_graphptr->setAge(q,node_index,0.0);
-					_graphptr->setAge(f,node_index,0.0);
-					mutex.unlock();
-					calculateInitialRestrictingDistances ();
-					// _graphptr->resetItemsCounters ();
+					updateMinimalGraphMDL();
+					if (minimalMDL ())
+					{
+						markAsStableGraph ();
+						return;
+					}
+					if (vWindow != NULL)
+						vWindow->updateData (_graphptr->getNodes());
 
 				}
+				if (nr_of_insertions == 1)
+				{
+					LLRGNGGraph<T,S>* dislocated_node_graphptr = findDislocatedNodeGraph (b, s, dislocated_node);
+					if (dislocated_node_graphptr != NULL)
+					{
+						delete _graphptr;
+						_graphptr = new LLRGNGGraph<T,S>(*dislocated_node_graphptr);
+						this->graphptr = _graphptr;
+						this->_graphModulptr = _graphptr;
+						insert_this_iter = false;
+						/*updateMinimalGraphMDL();
+						  if (minimalMDL ())
+						  {
+						  markAsStableGraph ();
+						  return;
+						  }*/
+					}
+				}
+				mutex.unlock ();
+			}
+			// std::vector<unsigned int> dislocated_nodes = findDislocatedNodes ();
+			// std::cout << "nr. of dislocated nodes: " << dislocated_nodes.size() << std::endl;
+
+			// unsigned int nr_of_insertions = 1;
+			// if (dislocated_node_graphptr != NULL)
+			// 	nr_of_insertions = 2;
+			if (insert_this_iter == false)
+			{
+				insert_this_iter = true;
+				if (b != dislocated_node) 
+					updateParams (t,b,s);
+				nr_of_insertions = 2;
+				return;
+			}
+			else
+			{
+				for (unsigned int j=0; j<_graphptr->size(); j++)
+				{
+					_graphptr->calculateInsertionQuality (j);
+					_graphptr->calculateInsertionCriterion (j);
+				}
+				
+				std::vector<int> q_nodes = maxInsertionCriterionNodes();
+				//for (unsigned int d=0; d<dislocated_nodes.size(); d++)
+				//{
+				for (unsigned int n=0; n<nr_of_insertions; n++)
+				{
+					// int q = maxInsertionCriterionNode ();
+					int q = q_nodes[n];
+		
+					// find node among neighbours of q with maximal value of
+					//quality measure of insertion
+					if (q != -1)
+					{
+						std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
+						int f = maxInsertionQualityNode (q_neighbors);
+						if (f != -1)
+						{
+							mutex.lock ();
+							_graphptr->rmEdge (q, f);
+							_graphptr->addNode ();
+							int node_index = _graphptr->size()-1;
+							std::cout << "adding node " << node_index << "..." << std::endl;
+							_graphptr->calculateInheritedParams (node_index, q, f);
+							_graphptr->setAge(q,node_index,0.0);
+							_graphptr->setAge(f,node_index,0.0);
+							mutex.unlock();
+							calculateInitialRestrictingDistances ();
+
+						}
+					}
+				}
+				nr_of_insertions = 1;
 			}
 		}
 		if (vWindow != NULL)
@@ -573,37 +619,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 
 	if (!stable_graph)
 	{
-		T min_error = _graphptr->getNodeMinLastAvgError (b);
-		T distance = getDistance ((*this)[t], b);
-		_graphptr->updateAvgError (b, distance);
-		_graphptr->updateRestrictingDistance (b, distance);
-		b_neighbors = _graphptr->getNeighbors(b);
-
-		//for (unsigned int j=0; j < b_neighbors.size(); j++)
-		//_graphptr->updateRestrictingDistance (j, getDistance((*this)[t], j));
-		if (min_error > _graphptr->getNodeMinLastAvgError (b))
-			_graphptr->setLastEpochImprovement (b, epoch);
-		
-		//decrease age of best-matching node
-		_graphptr->decreaseNodeAge (b);
-
-		//the original algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
-
-		//adapt edges
-		bool s_neighborof_b = false;
-		for(unsigned int j=0; j < b_neighbors.size();j++)
-		{
-			unsigned int b_neighbor = b_neighbors[j];
-			if (b_neighbor == s)
-			{
-				s_neighborof_b = true;
-				_graphptr->setAge (b, s, 0.0);
-			}
-			else
-				_graphptr->incAge (b, b_neighbor);
-		}
-		if (!s_neighborof_b)
-			_graphptr->setAge (b, s, 0.0);
+		updateParams (t,b,s);
 	}
 
 
@@ -617,6 +633,42 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 
 
 }
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsigned int& s)
+{
+	T min_error = _graphptr->getNodeMinLastAvgError (b);
+	T distance = _graphptr->getDistance ((*this)[t], b);
+	_graphptr->updateAvgError (b, distance);
+	_graphptr->updateRestrictingDistance (b, distance);
+	std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
+
+	//for (unsigned int j=0; j < b_neighbors.size(); j++)
+	//_graphptr->updateRestrictingDistance (j, getDistance((*this)[t], j));
+	if (min_error > _graphptr->getNodeMinLastAvgError (b))
+		_graphptr->setLastEpochImprovement (b, epoch);
+		
+	//decrease age of best-matching node
+	_graphptr->decreaseNodeAge (b);
+
+	//the LLG (Hamker) algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
+
+	//adapt edges
+	bool s_neighborof_b = false;
+	for(unsigned int j=0; j < b_neighbors.size();j++)
+	{
+		unsigned int b_neighbor = b_neighbors[j];
+		if (b_neighbor == s)
+		{
+			s_neighborof_b = true;
+			_graphptr->setAge (b, s, 0.0);
+		}
+		else
+			_graphptr->incAge (b, b_neighbor);
+	}
+	if (!s_neighborof_b)
+		_graphptr->setAge (b, s, 0.0);
+
+}
 
 /** \brief find node with maximal value of insertion criterion
  */
@@ -625,7 +677,7 @@ int LLRGNGAlgorithm<T,S>::maxInsertionCriterionNode ()
 {
 	assert (_graphptr->size());
 	T max_value = 0;
-	unsigned int q = -1;
+	int q = -1;
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		T value = (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]))->insertion_criterion;
@@ -638,6 +690,26 @@ int LLRGNGAlgorithm<T,S>::maxInsertionCriterionNode ()
 	return q;
 }
 
+template<typename T, typename S>
+std::vector<int> LLRGNGAlgorithm<T,S>::maxInsertionCriterionNodes ()
+{
+	assert (_graphptr->size());
+	T max_value = 0;
+	std::vector<int> q (2);
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		T value = (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]))->insertion_criterion;
+		if (max_value < value)
+		{
+			max_value = value;
+			q[1] = q[0];
+			q[0] = i;
+		}
+	}
+	return q;
+}
+
+ 
 /** \brief find node with maximal value of insertion quality among some nodes
  *  \param nodes vector of nodes to query
  */
@@ -660,6 +732,43 @@ int LLRGNGAlgorithm<T,S>::maxInsertionQualityNode (const std::vector<unsigned in
 	return f;
 }
 
+//! \brief calculate model efficiency of a graph. Utifactor is also calculated
+/*! \param graph 
+  \return model efficiency
+*/
+template<typename T, typename S>
+T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph)
+{
+	graph->resetMDLCounters ();
+	for(unsigned int t = 0; t < this->size(); t++)
+	{
+		//winners
+		unsigned int b, s;
+		/*T distance = */graph->getWinner(b,s,(*this)[t]);
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*graph)[b]);
+		node->items_counter++;
+		// node->utifactor += distance;
+		
+		// winner_per_item[t] = b;
+		T node_item_efficiency = 0;
+		for (unsigned int i=0; i<this->getDimension(); i++)
+		{
+			node_item_efficiency += std::max(log2((fabs((*this)[t][i] -  (*graph)[b].weight[i])) / data_accuracy), 1.0);
+			node->efficiency += node_item_efficiency;
+		}
+		graph->model_efficiency += node_item_efficiency;
+	}
+	/*for (unsigned int i=0; i < graph->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*graph)[i]);
+		if (node->items_counter > 0)
+			node->utifactor /= (T) node->items_counter;
+		graph->utifactor += node->utifactor;
+	}*/
+	return graph->model_efficiency;
+
+
+}
 
 template<typename T, typename S>
 T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
@@ -667,91 +776,102 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 	// items_per_winner = std::vector<unsigned int> (_graphptr->size());
 	//std::vector<int> winner_per_item (this->size(), -1);
 	// std::vector<T> mdl_per_item (this->size());
-	_graphptr->resetItemsCounters ();
-	mdl = 0;
-	for(unsigned int t = 0; t < this->size(); t++)
-	{
-		//winners
-		unsigned int b, s;
-		this->getWinner(b,s,(*this)[t]);
-		// items_per_winner[b]++;
-		_graphptr->increaseItemsCounter (b);
-		// winner_per_item[t] = b;
-		for (unsigned int i=0; i<this->getDimension(); i++)
-		{
-		 	// mdl_per_item[t] += std::max(log2((fabs((*this)[t][i] -  (*_graphptr)[b].weight[i])) / data_accuracy), 1.0);
-			mdl += std::max(log2((fabs((*this)[t][i] -  (*_graphptr)[b].weight[i])) / data_accuracy), 1.0);
-		}
-		// mdl += mdl_per_item[t];
-	}
-
-	mdl *= model_complexity_const;
-	int K = ceil (log2(value_range / data_accuracy));
+	// mdl = 0;
+	calculateModelEfficiency (_graphptr);
+	mdl = model_efficiency_const * _graphptr->model_efficiency;
 	T L_inliers = this->size() * log2 (_graphptr->size());
-	//verify outliers
-	/*unsigned int outliers;
-	for(unsigned int t = 0; t < this->size(); t++)
-	{
-		bool alone = 0;
-		if (items_per_winner[winner_per_item[t]] == 1) alone = 1;
-		
-		if ( ((this->size()-1)*log2(_graphptr->size()-alone) + K) - (L_inliers + mdl_per_item[t]) - alone * K < 0)
-			outliers++;
-	}*/
-	// //reestimate inliers
-	// L_inliers -= outliers * log2 (_graphptr->size());
 	
-	mdl += _graphptr->size() * K + L_inliers /*+ outliers * K*/;
-	std::cout << "K: " << K << std::endl;
+	mdl += _graphptr->size() * bits_vector + L_inliers;
+	std::cout << "K: " << bits_vector << std::endl;
 	std::cout << "L_inliers: " << L_inliers << std::endl;
-	// std::cout << "outliers: " << outliers << std::endl;
-	std::cout << "errors: " << mdl - (_graphptr->size() * K + L_inliers /*+ outliers*/) << std::endl;
+	std::cout << "efficiency: " << mdl - (_graphptr->size() * bits_vector + L_inliers ) << std::endl;
 	return mdl;
 
 }
 
-/* \brief delete nodes that are do not have items in their receptive fields
-   \param winner winner node index that needs to be reindexed if necessary
-   \param snd_winner winner node index that needs to be reindexed if necessary
- */
+//! \brief find nodes that are not properly located according to MDL principle
+
+/*! \return dislocated_nodes set of nodes that are dislocated
+*/
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::deleteUselessNodes (unsigned int& winner, unsigned int& snd_winner)
+std::vector<unsigned int> LLRGNGAlgorithm<T,S>::findDislocatedNodes ()
 {
+	// test dislocated nodes creating pruned graphs
+	std::vector<T> efficiency_pruned_graphs;
+	for (unsigned int i=0; i<_graphptr->size(); i++)
+	{
+		LLRGNGGraph<T,S>* pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
+		pruned_graph->rmNode (i);
+		efficiency_pruned_graphs.push_back (calculateModelEfficiency (pruned_graph));
+		delete pruned_graph;
+	}
+	
+	std::vector<unsigned int> dislocated_nodes;
+	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
+	// T model_complexity_change = bits_vector + this->size() * (log2 (_graphptr->size()) - log2 (_graphptr->size() - 1));
+	std::cout << "mod complex. change: " << model_complexity_change << std::endl;
+	
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
-		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (node->items_counter == 0)
+		if (model_complexity_change + model_efficiency_const * (efficiency_pruned_graphs[i] - _graphptr->model_efficiency) < 0)
 		{
-			_graphptr->rmNode (i);
-			if (winner > i)
-				winner--;
-			if (snd_winner > i)
-				snd_winner--;
-			i--;
+			std::cout << "eff pruned: " << efficiency_pruned_graphs[i] << std::endl;
+			std::cout << "change: " << model_complexity_change + model_efficiency_const * (efficiency_pruned_graphs[i] - _graphptr->model_efficiency) << std::endl;
+			dislocated_nodes.push_back (i);
 		}
-		
 	}
+	return dislocated_nodes;
 }
 
-/* \brief find node with less items in their receptive fields
- */
 template<typename T, typename S>
-int LLRGNGAlgorithm<T,S>::findLessItemsNode ()
+LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int&winner, unsigned int& snd_winner, unsigned int& dislocated_node)
 {
-	unsigned int min_value = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[0])->activations_counter;
-	int n = 0;
-	
- 	for (unsigned int i=1; i < _graphptr->size(); i++)
+	// test dislocated nodes creating pruned graphs
+	std::vector<LLRGNGGraph<T,S>* > pruned_graphs;
+	for (unsigned int i=0; i<_graphptr->size(); i++)
 	{
-		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		if (node->items_counter < min_value)
+		LLRGNGGraph<T,S>* pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
+		pruned_graphs.push_back (pruned_graph);
+		pruned_graph->rmNode (i);
+		calculateModelEfficiency (pruned_graph);
+	}
+	dislocated_node = _graphptr->size();
+	T min_change = 0;
+	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
+	std::cout << "mod complex. change: " << model_complexity_change << std::endl;
+	
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		T change = model_complexity_change + model_efficiency_const * (pruned_graphs[i]->model_efficiency - _graphptr->model_efficiency);
+		if (change < min_change)
 		{
-			min_value = node->items_counter;
-			n = i;
+			
+			std::cout << "eff pruned: " << pruned_graphs[i]->model_efficiency << std::endl;
+			std::cout << "change: " << change << std::endl;
+			dislocated_node = i;
 		}
 	}
-	return n;
+	LLRGNGGraph<T,S>* graph_neg_mdl_change;
+	if (dislocated_node != _graphptr->size())
+	{
+		graph_neg_mdl_change = pruned_graphs[dislocated_node];
+		if (winner > dislocated_node)
+			winner--;
+		if (snd_winner > dislocated_node)
+			snd_winner--;
+	}
+	else
+		graph_neg_mdl_change = NULL;
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+		if (i != dislocated_node)
+		{
+			LLRGNGGraph<T,S>* graph_to_del = pruned_graphs[i];
+			delete graph_to_del;
+		}
+	pruned_graphs.clear ();
+	return graph_neg_mdl_change;
 }
+
 
 
 /* \brief get maximal number of partitions
@@ -852,17 +972,19 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 {
+	mutex.lock();
 	delete _graphptr;
 	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;
 	if (vWindow != NULL)
-	{
-		mutex.lock();
+	// {
+	// 	mutex.lock();
 		vWindow->updateData ( _graphptr->getNodes());
-		mutex.unlock();
-	}
+	// 	mutex.unlock();
+	// }
+	mutex.unlock();
 
 }
 
@@ -879,6 +1001,8 @@ void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 	value_range = avg_values - _graphptr->getLowLimit ();
 
 	std::cout << "value range: " << value_range << std::endl;
+
+	bits_vector = ceil (log2(value_range / data_accuracy));
 
 }
 

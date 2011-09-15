@@ -40,7 +40,7 @@ protected:
 */
 template<typename T,typename S> void CDNAlgorithm<T,S>::updateNeighbor(const unsigned int& time,const unsigned int& index)
 {
- float distance = pow(this->getDistance((*this)[time],index),2);
+ float distance = pow(this->_graphptr->getDistance((*this)[time],index),2);
  float rate;
 
  if (distance > 0)

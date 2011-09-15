@@ -1,7 +1,6 @@
 /** 
 * \class LLRGNGGraph
 * \author Sergio Roa
-* \author Manuel Noll
 * 
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
 *  \version 1.0
@@ -74,10 +73,12 @@ struct LLRGNGNode : Base_Node<T,S>
 	void updateLearningRate (T&, T&);
 	/// learning rate of the node
 	T learning_rate;
-	// update items counter
-	void increaseItemsCounter ();
 	/// counter for the nr. of items in the receptive field of this node
 	unsigned int items_counter;
+	/// model efficiency contribution to total MDL
+	T efficiency;
+	/// utility factor contribution for this node for evaluating node relocation
+	// T utifactor;
 	/// repulsion constant for updating weights
 	T repulsion;
 };
@@ -87,7 +88,8 @@ template<typename T, typename S>
 LLRGNGNode<T,S>::LLRGNGNode () :
 	age (1),
 	learning_rate (0),
-	items_counter (0)
+	items_counter (0),
+	efficiency (0)
 {
 }
 
@@ -250,13 +252,7 @@ void LLRGNGNode<T,S>::decreaseAge (unsigned int age_time_window)
 	age = exp (-1/(T) age_time_window) * age;
 }
 
-/** \brief update \p items_counter in the receptive field
- */
-template<typename T, typename S>
-void LLRGNGNode<T,S>::increaseItemsCounter ()
-{
-	items_counter++;
-}
+template<typename T, typename S> class LLRGNGAlgorithm;
 
 /** \brief LLRGNGGraph provides some additional learning strategies, some of them proposed in
  *   the algorithm Life-long learning cell structures -- continuosly learning
@@ -273,7 +269,7 @@ public:
 	/// copy constructor
 	LLRGNGGraph (const LLRGNGGraph&);
 	/// std dto
-	~LLRGNGGraph(){}
+	~LLRGNGGraph();
 	// removes the node given by the index, removes its edges and updates the number of connections of its neighbors
 	virtual void rmNode(const unsigned int&); 
 	// set time window constants
@@ -282,6 +278,7 @@ public:
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
 	void updateAvgError (const unsigned int, T);
+	// update restricting distance value for some node
 	void updateRestrictingDistance (const unsigned int, T);
 	// calculate learning quality for some node
 	void calculateLearningQuality (const unsigned int);
@@ -303,14 +300,19 @@ public:
 	unsigned int getMaximalEdgeAge () const;
 	// decrease age of some node
 	void decreaseNodeAge (const unsigned int);
-	// update activations counter for some node
+	// update items counter in the receptive field for some node
 	void increaseItemsCounter (const unsigned int);
-	// reset activations counters for all nodes
-	void resetItemsCounters ();
+	// delete nodes that do not have items in their receptive fields
+	bool deleteInactiveNodes (unsigned int&, unsigned int&);
+	// find node with less items in their receptive fields
+	int findLessItemsNode ();
+	// reset items counter and efficiency contribution for MDL for all nodes
+	void resetMDLCounters ();
 	// get last stored minimal average error for some node
 	T getNodeMinLastAvgError (const unsigned int);
 	// set last epoch where an error reduction for a node was achieved
 	void setLastEpochImprovement (const unsigned int, unsigned int);
+	friend class LLRGNGAlgorithm<T,S>;
 
 protected:
 	// returns a pointer to a edge of a type that is currently used by the graph
@@ -331,6 +333,11 @@ protected:
 	unsigned int age_time_window;
 	/// maximal size of error vector
 	const unsigned int max_errors_size;
+	/// utility factor for evaluating node relocation
+	// T utifactor;
+	/// current model efficiency value
+	T model_efficiency;
+
 };
 
 /** \brief cto Graph creation (node and edges weights share dimensionality)
@@ -349,7 +356,9 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_
 	smoothing_window (1),
 	error_time_window (1),
 	age_time_window (1),
-	max_errors_size (max_error_window)
+	max_errors_size (max_error_window),
+	// utifactor (0),
+	model_efficiency (0)
 {
 }
 
@@ -370,7 +379,9 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 	smoothing_window (g.smoothing_window),
 	error_time_window (g.error_time_window),
 	age_time_window (g.age_time_window),
-	max_errors_size (g.max_errors_size)
+	max_errors_size (g.max_errors_size),
+	// utifactor (g.utifactor),
+	model_efficiency (g.model_efficiency)
 {
 
 	this->_dimNode = g._dimNode;
@@ -412,9 +423,18 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->learning_rate = copynode->learning_rate;
 		node->items_counter = copynode->items_counter;
 		node->errors = copynode->errors;
+		node->efficiency = copynode->efficiency;
+		// node->utifactor = copynode->utifactor;
 	}
 }
 
+/** \brief dto Graph deletion
+ */
+template<typename T, typename S>
+LLRGNGGraph<T,S>::~LLRGNGGraph ()
+{
+	
+}
 
 
 /** \brief overriden function from \p Base_Graph
@@ -534,7 +554,12 @@ void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
 
 }
 
-template<typename T, typename S>
+//! \brief update restricting distance value for some node
+/*! 
+  
+  \param index node index
+  \param last_error last error to calculate current value
+*/template<typename T, typename S>
 void LLRGNGGraph<T,S>::updateRestrictingDistance (const unsigned int index, T last_error)
 {
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateRestrictingDistance(last_error);
@@ -641,13 +666,65 @@ void LLRGNGGraph<T,S>::increaseItemsCounter (const unsigned int index)
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->increaseItemsCounter ();
 }
 
-/** \brief reset items counter for all nodes
+/* \brief delete nodes that are do not have items in their receptive fields
+   \param winner winner node index that needs to be reindexed if necessary
+   \param snd_winner winner node index that needs to be reindexed if necessary
  */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::resetItemsCounters ()
+bool LLRGNGGraph<T,S>::deleteInactiveNodes (unsigned int& winner, unsigned int& snd_winner)
 {
+	bool node_deleted = false;
 	for (unsigned int i=0; i < this->size(); i++)
-		static_cast<LLRGNGNode<T,S>* > (this->_nodes[i])->items_counter = 0;
+	{
+		if (static_cast<LLRGNGNode<T,S>* > (this->_nodes[i])->items_counter == 0)
+		{
+			rmNode (i);
+			node_deleted = true;
+			if (winner > i)
+				winner--;
+			if (snd_winner > i)
+				snd_winner--;
+			i--;
+		}
+		
+	}
+	return node_deleted;
+}
+
+/* \brief find node with less items in their receptive fields
+ */
+template<typename T, typename S>
+int LLRGNGGraph<T,S>::findLessItemsNode ()
+{
+	unsigned int min_value = static_cast<LLRGNGNode<T,S>* > (this->_nodes[0])->activations_counter;
+	int n = 0;
+	
+ 	for (unsigned int i=1; i < this->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (this->_nodes[i]);
+		if (node->items_counter < min_value)
+		{
+			min_value = node->items_counter;
+			n = i;
+		}
+	}
+	return n;
+}
+
+/** \brief reset items counter for all nodes and efficiency contribution to MDL
+ */
+template<typename T, typename S>
+void LLRGNGGraph<T,S>::resetMDLCounters ()
+{
+	// utifactor = 0;
+	model_efficiency = 0;
+	for (unsigned int i=0; i < this->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (this->_nodes[i]);
+		node->items_counter = 0;
+		node->efficiency = 0;
+		// node->utifactor = 0;
+	}
 }
 
 /* \brief get last stored minimal average error for some node
