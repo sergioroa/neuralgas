@@ -43,14 +43,14 @@ template < typename T , typename S > struct Base_Node
    func=NULL;  
   }
 
-  ~Base_Node()
+  virtual ~Base_Node()
   { 
     int esize = edges.size(); 
     for(int i = 0; i < esize; i++)
         if (edges[i]!=NULL)
         {
-		// delete edges[i];
-                edges[i] = NULL;
+		delete edges[i];
+                // edges[i] = NULL;
         }  
     
   }
@@ -136,7 +136,7 @@ template<typename T, typename S> class Base_Graph
              Base_Graph(const unsigned int&,const unsigned int&);
              
              //std dto
-             ~Base_Graph();            
+             virtual ~Base_Graph();            
              //returning a reference to the node indexed by the given index
              Base_Node<T,S>&                     operator[](const unsigned int&);
              //returning a const reference to the node indexed by the given index
@@ -254,9 +254,10 @@ template<typename T,typename S> Base_Graph<T,S>::~Base_Graph()
   for(int i = 0; i < nsize; i++)
   {
     delete  _nodes[i];                                // delete ptrs to the nodes
-    _nodes[i] = NULL;            
-    _nodes.pop_back();
+    //_nodes[i] = NULL;            
+    //_nodes.pop_back();
   }
+  _nodes.clear();
   
 }
 

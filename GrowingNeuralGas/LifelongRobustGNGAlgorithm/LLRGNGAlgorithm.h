@@ -543,12 +543,12 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						this->graphptr = _graphptr;
 						this->_graphModulptr = _graphptr;
 						insert_this_iter = false;
-						/*updateMinimalGraphMDL();
-						  if (minimalMDL ())
-						  {
-						  markAsStableGraph ();
-						  return;
-						  }*/
+						updateMinimalGraphMDL();
+						if (minimalMDL ())
+						{
+							markAsStableGraph ();
+							return;
+						}
 					}
 				}
 				mutex.unlock ();
@@ -694,9 +694,10 @@ template<typename T, typename S>
 std::vector<int> LLRGNGAlgorithm<T,S>::maxInsertionCriterionNodes ()
 {
 	assert (_graphptr->size());
-	T max_value = 0;
+	T max_value = (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[0]))->insertion_criterion;
 	std::vector<int> q (2);
-	for (unsigned int i=0; i < _graphptr->size(); i++)
+	q[0] = 0;
+	for (unsigned int i=1; i < _graphptr->size(); i++)
 	{
 		T value = (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]))->insertion_criterion;
 		if (max_value < value)
@@ -732,7 +733,7 @@ int LLRGNGAlgorithm<T,S>::maxInsertionQualityNode (const std::vector<unsigned in
 	return f;
 }
 
-//! \brief calculate model efficiency of a graph. Utifactor is also calculated
+//! \brief calculate model efficiency of a graph.
 /*! \param graph 
   \return model efficiency
 */
@@ -945,7 +946,7 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 
 	if (min_mdl > mdl )
 	{
-		std::cout << " <-- is minimal!" << std::endl;
+		std::cout << "\t\t\t\t <-- is minimal!" << std::endl;
 		min_mdl = mdl;
 		delete min_mdl_graphptr;
 		min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);

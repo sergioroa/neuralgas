@@ -43,7 +43,7 @@ template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
     UGraph (const UGraph& g) : Base_Graph<T,S> (g) {}
 
     //std dto
-                        ~UGraph(){}
+                        virtual ~UGraph(){}
     //returns whether the two nodes are connected by an edge
     inline bool         areConnected(const unsigned int&,const unsigned int&)const;
     // adds an edge between the nodes given by their indices      

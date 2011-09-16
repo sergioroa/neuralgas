@@ -43,7 +43,7 @@ public:
 	//cto creating a graph with the different dimension for node and edge weight vectors
 	GNGModulGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
 	// std dto
-	~GNGModulGraph(){}
+	virtual ~GNGModulGraph(){}
 	// adds an edge between the nodes given by their indeces by calling corresponding upper class method of UGraph
 	virtual void inline  addEdge(const unsigned int& x,const unsigned int& y){if (x!=y) UGraph<T,S>::addEdge(x,y); }
 	// removes an edge between the nodes given by their indeces if there exists one by calling corresponding upper class method of UGraph    

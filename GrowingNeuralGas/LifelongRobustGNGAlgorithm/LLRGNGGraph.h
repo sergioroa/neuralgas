@@ -33,7 +33,7 @@ struct LLRGNGNode : Base_Node<T,S>
 	// default \p LLRGNGNode cto
 	LLRGNGNode ();
 	// default \p LLRGNGNode dto
-	~LLRGNGNode ();
+	virtual ~LLRGNGNode ();
 	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable error window
 	std::vector<T> errors;
@@ -97,6 +97,7 @@ LLRGNGNode<T,S>::LLRGNGNode () :
 template<typename T, typename S>
 LLRGNGNode<T,S>::~LLRGNGNode ()
 {
+	this->edges.clear();
 	errors.clear ();
 }
 
@@ -269,7 +270,7 @@ public:
 	/// copy constructor
 	LLRGNGGraph (const LLRGNGGraph&);
 	/// std dto
-	~LLRGNGGraph();
+	virtual ~LLRGNGGraph();
 	// removes the node given by the index, removes its edges and updates the number of connections of its neighbors
 	virtual void rmNode(const unsigned int&); 
 	// set time window constants
@@ -316,7 +317,7 @@ public:
 
 protected:
 	// returns a pointer to a edge of a type that is currently used by the graph
-	virtual LLRGNGNode<T,S>* newNode(void);	
+	virtual LLRGNGNode<T,S>* newNode(void);
 	/// adaptation threshold constant
 	T adaptation_threshold;
 	/// initial winner learning rate constant
@@ -433,7 +434,14 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 template<typename T, typename S>
 LLRGNGGraph<T,S>::~LLRGNGGraph ()
 {
+	for (unsigned int i=0; i<this->size(); i++)
+		for (unsigned int j=i+1; j<this->_nodes[i]->edges.size(); j++)
+			if (this->_nodes[i]->edges[j] != NULL)
+				delete this->_nodes[i]->edges[j];
 	
+	for (unsigned int i=0; i<this->size(); i++)
+		this->_nodes[i]->edges.clear();
+			     
 }
 
 
@@ -481,7 +489,7 @@ void LLRGNGGraph<T,S>::rmNode(const unsigned int& index)
    
 	for(unsigned int i=0; i < nsize; i++)
 		this->_nodes[ i ]->edges.erase( this->_nodes[ i ]->edges.begin() + index ); 
-   
+
 	delete this->_nodes[index];                                 // delete ptrs to the nodes (really needed?)
 	this->_nodes[index] = NULL;  // (really needed?)
    
