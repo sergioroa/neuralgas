@@ -81,7 +81,7 @@ public:
 };
 
 
-class VoronoiMainWindow : virtual public QMainWindow
+class VoronoiMainWindow : public QMainWindow
 {
 	Q_OBJECT
 	
