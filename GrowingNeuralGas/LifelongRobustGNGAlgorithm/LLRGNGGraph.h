@@ -219,7 +219,7 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
-	repulsion = last_avgerror * 0.2;
+	repulsion = last_avgerror * 0.25;
 
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
@@ -541,7 +541,7 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	node->weight = (first_node->weight + snd_node->weight) / 2;
 	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
 	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
-	node->repulsion = node->last_avgerror * 0.2;
+	node->repulsion = node->last_avgerror * 0.25;
 
 	node->min_last_avgerror = node->last_avgerror;
 	
@@ -682,20 +682,29 @@ template<typename T, typename S>
 bool LLRGNGGraph<T,S>::deleteInactiveNodes (unsigned int& winner, unsigned int& snd_winner)
 {
 	bool node_deleted = false;
+	if (this->size() <= 2)
+		return false;
+
 	for (unsigned int i=0; i < this->size(); i++)
 	{
 		if (static_cast<LLRGNGNode<T,S>* > (this->_nodes[i])->items_counter == 0)
 		{
-			rmNode (i);
-			node_deleted = true;
-			if (winner > i)
-				winner--;
-			if (snd_winner > i)
-				snd_winner--;
-			i--;
+			if (this->size() > 2 && i != winner && i != snd_winner)
+			{
+				rmNode (i);
+				node_deleted = true;
+				if (winner > i)
+					winner--;
+				if (snd_winner > i)
+					snd_winner--;
+				else if (snd_winner == i)
+					snd_winner = this->size();
+				i--;
+			}
 		}
 		
 	}
+	std::cout << "deleting node..." << std::endl;
 	return node_deleted;
 }
 

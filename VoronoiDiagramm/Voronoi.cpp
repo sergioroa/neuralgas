@@ -219,7 +219,7 @@ void Voronoi::save(const char* filename)
     image.save(filename, "JPG");
 }
 
-void Voronoi::setData (const SeqData* d)
+void Voronoi::setData (SeqData* d)
 {
     _data = new SeqData ();
     for (unsigned int i=0; i<d->size(); i++)
@@ -229,7 +229,7 @@ void Voronoi::setData (const SeqData* d)
     }
 }
 
-void Voronoi::setNeurons (const SeqNeurons* n)
+void Voronoi::setNeurons (SeqNeurons* n)
 {
     _neurons = new SeqNeurons ();
     for (unsigned int i=0; i<n->size(); i++)

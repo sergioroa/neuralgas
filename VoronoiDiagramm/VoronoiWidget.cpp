@@ -100,20 +100,33 @@ void VoronoiMainWindow::customEvent(QEvent* e) {
 		std::cout << "showing..." << std::endl;
 		show ();
 	}
-	else if (e->type() == 1003) {
-		std::cout << "updating..." << std::endl;
-		UpdateDataEvent* ue = dynamic_cast<UpdateDataEvent*>(e);
-		// vw->voronoi->_data = ue->data;
-		// vw->voronoi->_neurons = new SeqNeurons (ue->neurons);
-		vw->voronoi->setNeurons (ue->neurons);
-		// vw->voronoi->getMaxMinValue();
-		// vw->voronoi->setSizefromData(1000);
-		// vw->setImageSize ();
-		vw->voronoi->discretizeNeurons ();
-		vw->voronoi->calcVoronoi ();
-		vw->repaint ();
-	}
 	
+}
+
+void VoronoiMainWindow::updateData ( SeqNeurons* neurons) {
+	mutex->lock ();
+	std::cout << "updating..." << std::endl;
+	vw->voronoi->setNeurons (neurons);
+	vw->voronoi->discretizeNeurons ();
+	vw->voronoi->calcVoronoi ();
+	vw->repaint ();
+	condition->wakeAll ();
+	mutex->unlock ();
+	
+}
+
+void VoronoiMainWindow::initializeData ( SeqData* data, SeqNeurons* neurons, unsigned int sidesize)
+{
+	vw->voronoi->setData (data);
+	vw->voronoi->getMaxMinValue();
+	vw->voronoi->setSizefromData(sidesize);
+	vw->voronoi->discretizeData ();
+	vw->voronoi->setNeurons (neurons);
+	vw->voronoi->discretizeNeurons ();
+	vw->voronoi->calcVoronoi ();
+	vw->setImageSize ();
+	resize (vw->width()+10, vw->height()+10);
+
 }
 
 

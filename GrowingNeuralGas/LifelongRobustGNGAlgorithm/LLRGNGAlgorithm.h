@@ -23,26 +23,29 @@ namespace neuralgas {
 
 //! \brief This class (interface) is used to provide threading facilities
 class LLRGNGThread : public QThread {
+	Q_OBJECT
+	
 public:
 	LLRGNGThread ();
 	~LLRGNGThread ();
 	virtual void run () = 0;
-	void allocGUI (int argc, char *argv[], unsigned int sidesize);
+	void setDebugging (bool debug) { debugging = debug; }
 	void begin ();
-	VoronoiMainWindow* getVWindow ();
-	QApplication* getApp ();
+	QMutex* getMutex () { return &mutex; }
+	QWaitCondition* getWaitCondition () { return &condition; }
+signals:
+	void updateData (SeqNeurons* neurons);
+	void initializeData (SeqData* data, SeqNeurons* neurons, unsigned int sidesize = 1000);
 protected:
-	VoronoiMainWindow *vWindow;
-	QApplication *a;
-	unsigned int sidesize;
 	QMutex mutex;
 	QWaitCondition condition;
+	bool debugging;
 
 };
 
 LLRGNGThread::LLRGNGThread ()
 {
-	vWindow = NULL;
+	debugging = false;
 }
 
 LLRGNGThread::~LLRGNGThread () {
@@ -62,23 +65,6 @@ void LLRGNGThread::begin ()
 
 }
 
-void LLRGNGThread::allocGUI (int argc, char *argv[], unsigned int size = 1000)
-{
-	a = new QApplication (argc, argv);
-	vWindow = new VoronoiMainWindow;
-	sidesize = size;
-}
-
-VoronoiMainWindow* LLRGNGThread::getVWindow ()
-{
-	return vWindow;
-}
-
-QApplication* LLRGNGThread::getApp ()
-{
-	assert (a);
-	return a;
-}
 
 /** \brief Class implements some techniques based on the algorithms explained in 
  * Robust growing neural gas algorithm with application in cluster analysis
@@ -140,8 +126,7 @@ protected:
 	void updateMinimalGraphMDL ();
 	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
 	bool minimalMDL ();
-	// find nodes that are not properly located according to MDL principle
-	std::vector<unsigned int> findDislocatedNodes ();
+	// find graph with a node that is not properly located according to MDL principle
 	LLRGNGGraph<T,S>* findDislocatedNodeGraph (unsigned int&, unsigned int&, unsigned int&);
 	// calculate model efficiency (error) of a graph
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph);
@@ -250,19 +235,8 @@ void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 
 	calculateInitialRestrictingDistances ();
 
-	if (vWindow != NULL)
-	{
-		vWindow->vw->voronoi->setData (this->_data);
-		vWindow->vw->voronoi->getMaxMinValue();
-		vWindow->vw->voronoi->setSizefromData(sidesize);
-		vWindow->vw->voronoi->discretizeData ();
-		vWindow->vw->voronoi->setNeurons (_graphptr->getNodes());
-		vWindow->vw->voronoi->discretizeNeurons ();
-		vWindow->vw->voronoi->calcVoronoi ();
-		vWindow->vw->setImageSize ();
-		vWindow->resize (vWindow->vw->width()+10, vWindow->vw->height()+10);
-
-	}
+	if (debugging)
+		emit initializeData (this->_data, _graphptr->getNodes());
 
 }
 
@@ -399,7 +373,6 @@ void LLRGNGAlgorithm<T,S>::run()
 	assert (_graphptr);
 	assert (insertion_rate);
 
-
 	unsigned int tsize = this->size();
 	if (this->sampling_mode == sequential)
 	{
@@ -500,6 +473,13 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//calculate insertion quality
 	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
+		if (debugging)
+		{
+			mutex.lock();
+			emit updateData(_graphptr->getNodes());
+			condition.wait (&mutex);
+			mutex.unlock();
+		}
 		if (min_mdl_graphptr != NULL)
 			updateMinimalGraphMDL ();
 		else
@@ -520,17 +500,23 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			unsigned int dislocated_node;
 			if (_graphptr->size() > 2)
 			{
-				mutex.lock ();
 				if (_graphptr->deleteInactiveNodes(b, s))
 				{
 					updateMinimalGraphMDL();
+
+					if (debugging)
+					{
+						mutex.lock();
+						emit updateData(_graphptr->getNodes());
+						condition.wait (&mutex);
+						mutex.unlock();
+					}
+
 					if (minimalMDL ())
 					{
 						markAsStableGraph ();
 						return;
 					}
-					if (vWindow != NULL)
-						vWindow->updateData (_graphptr->getNodes());
 
 				}
 				if (nr_of_insertions == 1)
@@ -538,20 +524,29 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					LLRGNGGraph<T,S>* dislocated_node_graphptr = findDislocatedNodeGraph (b, s, dislocated_node);
 					if (dislocated_node_graphptr != NULL)
 					{
+						std::cout << "deleting nodes..." << std::endl;
 						delete _graphptr;
 						_graphptr = new LLRGNGGraph<T,S>(*dislocated_node_graphptr);
 						this->graphptr = _graphptr;
 						this->_graphModulptr = _graphptr;
 						insert_this_iter = false;
 						updateMinimalGraphMDL();
+						if (debugging)
+						{
+							mutex.lock();
+							emit updateData(_graphptr->getNodes());
+							condition.wait (&mutex);
+							mutex.unlock();
+						}
+
 						if (minimalMDL ())
 						{
 							markAsStableGraph ();
 							return;
 						}
+
 					}
 				}
-				mutex.unlock ();
 			}
 			// std::vector<unsigned int> dislocated_nodes = findDislocatedNodes ();
 			// std::cout << "nr. of dislocated nodes: " << dislocated_nodes.size() << std::endl;
@@ -562,8 +557,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			if (insert_this_iter == false)
 			{
 				insert_this_iter = true;
-				if (b != dislocated_node) 
-					updateParams (t,b,s);
+				updateParams (t,b,s);
 				nr_of_insertions = 2;
 				return;
 			}
@@ -591,7 +585,6 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						int f = maxInsertionQualityNode (q_neighbors);
 						if (f != -1)
 						{
-							mutex.lock ();
 							_graphptr->rmEdge (q, f);
 							_graphptr->addNode ();
 							int node_index = _graphptr->size()-1;
@@ -599,20 +592,22 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 							_graphptr->calculateInheritedParams (node_index, q, f);
 							_graphptr->setAge(q,node_index,0.0);
 							_graphptr->setAge(f,node_index,0.0);
-							mutex.unlock();
+
 							calculateInitialRestrictingDistances ();
+							if (debugging)
+							{
+								mutex.lock();
+								emit updateData(_graphptr->getNodes());
+								condition.wait (&mutex);
+								mutex.unlock();
+							}
 
 						}
 					}
 				}
+
 				nr_of_insertions = 1;
 			}
-		}
-		if (vWindow != NULL)
-		{
-			mutex.lock ();
-			vWindow->updateData (_graphptr->getNodes());
-			mutex.unlock ();
 		}
 		
 	}
@@ -623,50 +618,54 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	}
 
 
-	mutex.lock ();
 	//remove all edges older than the maximal value for age
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
 
 	//remove nodes without any edge
 	this->rmNotConnectedNodes();
-	mutex.unlock ();
 
 
 }
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsigned int& s)
 {
-	T min_error = _graphptr->getNodeMinLastAvgError (b);
-	T distance = _graphptr->getDistance ((*this)[t], b);
-	_graphptr->updateAvgError (b, distance);
-	_graphptr->updateRestrictingDistance (b, distance);
-	std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
-
-	//for (unsigned int j=0; j < b_neighbors.size(); j++)
-	//_graphptr->updateRestrictingDistance (j, getDistance((*this)[t], j));
-	if (min_error > _graphptr->getNodeMinLastAvgError (b))
-		_graphptr->setLastEpochImprovement (b, epoch);
-		
-	//decrease age of best-matching node
-	_graphptr->decreaseNodeAge (b);
-
-	//the LLG (Hamker) algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
-
-	//adapt edges
-	bool s_neighborof_b = false;
-	for(unsigned int j=0; j < b_neighbors.size();j++)
+	if (b < _graphptr->size())
 	{
-		unsigned int b_neighbor = b_neighbors[j];
-		if (b_neighbor == s)
+		T min_error = _graphptr->getNodeMinLastAvgError (b);
+		T distance = _graphptr->getDistance ((*this)[t], b);
+		_graphptr->updateAvgError (b, distance);
+		_graphptr->updateRestrictingDistance (b, distance);
+		std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
+
+		//for (unsigned int j=0; j < b_neighbors.size(); j++)
+		//_graphptr->updateRestrictingDistance (j, getDistance((*this)[t], j));
+		if (min_error > _graphptr->getNodeMinLastAvgError (b))
+			_graphptr->setLastEpochImprovement (b, epoch);
+		
+		//decrease age of best-matching node
+		_graphptr->decreaseNodeAge (b);
+
+		//the LLG (Hamker) algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
+
+		//adapt edges
+		if (s < _graphptr->size())
 		{
-			s_neighborof_b = true;
-			_graphptr->setAge (b, s, 0.0);
+			bool s_neighborof_b = false;
+			for(unsigned int j=0; j < b_neighbors.size();j++)
+			{
+				unsigned int b_neighbor = b_neighbors[j];
+				if (b_neighbor == s)
+				{
+					s_neighborof_b = true;
+					_graphptr->setAge (b, s, 0.0);
+				}
+				else
+					_graphptr->incAge (b, b_neighbor);
+			}
+			if (!s_neighborof_b)
+				_graphptr->setAge (b, s, 0.0);
 		}
-		else
-			_graphptr->incAge (b, b_neighbor);
 	}
-	if (!s_neighborof_b)
-		_graphptr->setAge (b, s, 0.0);
 
 }
 
@@ -792,43 +791,15 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 
 //! \brief find nodes that are not properly located according to MDL principle
 
-/*! \return dislocated_nodes set of nodes that are dislocated
+/*! \return graph_neg_mdl_change graph with more negative mdl change containing a node that is dislocated
 */
 template<typename T, typename S>
-std::vector<unsigned int> LLRGNGAlgorithm<T,S>::findDislocatedNodes ()
-{
-	// test dislocated nodes creating pruned graphs
-	std::vector<T> efficiency_pruned_graphs;
-	for (unsigned int i=0; i<_graphptr->size(); i++)
-	{
-		LLRGNGGraph<T,S>* pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
-		pruned_graph->rmNode (i);
-		efficiency_pruned_graphs.push_back (calculateModelEfficiency (pruned_graph));
-		delete pruned_graph;
-	}
-	
-	std::vector<unsigned int> dislocated_nodes;
-	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
-	// T model_complexity_change = bits_vector + this->size() * (log2 (_graphptr->size()) - log2 (_graphptr->size() - 1));
-	std::cout << "mod complex. change: " << model_complexity_change << std::endl;
-	
-	for (unsigned int i=0; i < _graphptr->size(); i++)
-	{
-		if (model_complexity_change + model_efficiency_const * (efficiency_pruned_graphs[i] - _graphptr->model_efficiency) < 0)
-		{
-			std::cout << "eff pruned: " << efficiency_pruned_graphs[i] << std::endl;
-			std::cout << "change: " << model_complexity_change + model_efficiency_const * (efficiency_pruned_graphs[i] - _graphptr->model_efficiency) << std::endl;
-			dislocated_nodes.push_back (i);
-		}
-	}
-	return dislocated_nodes;
-}
-
-template<typename T, typename S>
-LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int&winner, unsigned int& snd_winner, unsigned int& dislocated_node)
+LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& winner, unsigned int& snd_winner, unsigned int& dislocated_node)
 {
 	// test dislocated nodes creating pruned graphs
 	std::vector<LLRGNGGraph<T,S>* > pruned_graphs;
+	if (_graphptr->size() <= 2)
+		return NULL;
 	for (unsigned int i=0; i<_graphptr->size(); i++)
 	{
 		LLRGNGGraph<T,S>* pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
@@ -858,8 +829,12 @@ LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int&wi
 		graph_neg_mdl_change = pruned_graphs[dislocated_node];
 		if (winner > dislocated_node)
 			winner--;
+		else if (winner == dislocated_node)
+			winner = _graphptr->size();
 		if (snd_winner > dislocated_node)
 			snd_winner--;
+		else if (snd_winner == dislocated_node)
+			snd_winner = _graphptr->size();
 	}
 	else
 		graph_neg_mdl_change = NULL;
@@ -973,19 +948,19 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 {
-	mutex.lock();
 	delete _graphptr;
 	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;
-	if (vWindow != NULL)
-	// {
-	// 	mutex.lock();
-		vWindow->updateData ( _graphptr->getNodes());
-	// 	mutex.unlock();
-	// }
-	mutex.unlock();
+
+	if (debugging)
+	{
+		mutex.lock();
+		emit updateData(_graphptr->getNodes());
+		condition.wait (&mutex);
+		mutex.unlock();
+	}
 
 }
 

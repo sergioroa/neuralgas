@@ -38,11 +38,21 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	
-	
+	QApplication *a;
+	VoronoiMainWindow *vWindow;
 	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
 	if (vm.count("debug"))
-		llrgng->allocGUI (argc, argv);
-	
+	{
+		a = new QApplication (argc, argv);
+		vWindow = new VoronoiMainWindow;
+		vWindow->setMutex (llrgng->getMutex ());
+		vWindow->setWaitCondition (llrgng->getWaitCondition ());
+		llrgng->setDebugging (true);
+		// vWindow->moveToThread(QApplication::instance()->thread());
+		llrgng->connect (llrgng, SIGNAL(updateData(SeqNeurons*)), vWindow, SLOT (updateData(SeqNeurons*)));
+		llrgng->connect (llrgng, SIGNAL(initializeData(SeqData*, SeqNeurons*, unsigned int)), vWindow, SLOT (initializeData(SeqData*, SeqNeurons*, unsigned int)));
+	}
+
 	if (vm.count("whitenoise_prob")) {
 		if (whitenoise_prob < 0.0 || whitenoise_prob > 1.0)
 		{
@@ -90,6 +100,9 @@ int main(int argc, char *argv[])
 	llrgng->setRefVectors(2,mins,maxs);
 	// llrgng->setRefVectors(2,mins,maxs);
 
+	if (vm.count("debug"))
+		vWindow->show ();
+
 	// llrgng->setTimeWindows (20, 100, 100);
 	llrgng->setTimeWindows (100, 60, size);
 	llrgng->setLearningRates (0.1, 0.001);
@@ -112,11 +125,10 @@ int main(int argc, char *argv[])
 	llrgng->setStoppingCriterion (stability);
 
 	llrgng->begin();
+
 	if (vm.count("debug"))
-	{
-		llrgng->getVWindow()->show();
-		llrgng->getApp()->exec();
-	}
+		a->exec();
+	
 	llrgng->wait ();
 	llrgng->save("nodes.txt");
 	llrgng->showGraph ();

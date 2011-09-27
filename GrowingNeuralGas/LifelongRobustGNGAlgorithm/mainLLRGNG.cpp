@@ -37,9 +37,21 @@ int main (int argc, char* argv[])
 		return 0;
 	}
 
+	QApplication *a;
+	VoronoiMainWindow *vWindow;
 	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
 	if (vm.count("debug"))
-		llrgng->allocGUI (argc, argv);
+	{
+		a = new QApplication (argc, argv);
+		vWindow = new VoronoiMainWindow;
+		// llrgng->allocGUI (/*argc, argv*/);
+		vWindow->setMutex (llrgng->getMutex ());
+		vWindow->setWaitCondition (llrgng->getWaitCondition ());
+		llrgng->setDebugging (true);
+		// vWindow->moveToThread(QApplication::instance()->thread());
+		llrgng->connect (llrgng, SIGNAL(updateData(SeqNeurons*)), vWindow, SLOT (updateData(SeqNeurons*)));
+		llrgng->connect (llrgng, SIGNAL(initializeData(SeqData*, SeqNeurons*, unsigned int)), vWindow, SLOT (initializeData(SeqData*, SeqNeurons*, unsigned int)));
+	}
 
 	cout << sigma << "," << transProb << endl;
   
@@ -67,6 +79,8 @@ int main (int argc, char* argv[])
 	
 	llrgng->setRefVectors(2,mins,maxs);
 	// llrgng->setRefVectors(2,min,max);
+	if (vm.count("debug"))
+		vWindow->show();
 
 	// llrgng->setTimeWindows (20, 100, 100);
 	llrgng->setTimeWindows (100, 60, 80*size);
@@ -86,13 +100,12 @@ int main (int argc, char* argv[])
 	//llrgng->setMaxEpochs (100);
 	llrgng->setStoppingCriterion (stability);
 
+	
 	llrgng->begin();
 
 	if (vm.count("debug"))
-	{
-		llrgng->getVWindow()->show();
-		llrgng->getApp()->exec();
-	}
+		a->exec();
+	
 	llrgng->wait ();
 	llrgng->save("nodes.txt");
 	llrgng->showGraph ();

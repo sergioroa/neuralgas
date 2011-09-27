@@ -27,8 +27,8 @@ public:
     void setSizefromData(const int&);
     void showData();
     SeqData* getData () { return _data; }
-    void setData (const SeqData* d);
-    void setNeurons (const SeqNeurons* neurons);
+    void setData (SeqData* d);
+    void setNeurons (SeqNeurons* neurons);
     SeqNeurons* getNeurons () { return _neurons; }
     void getMaxMinValue();
     void discretizeData();

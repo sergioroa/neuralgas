@@ -19,8 +19,11 @@
 #include <QtGui/QMainWindow>
 #include <QtGui/QApplication>
 #include <VoronoiDiagramm/Voronoi.h>
+#include <QMutex>
+#include <QWaitCondition>
 
 namespace neuralgas {
+
 
 class VoronoiWidget : public QWidget
 {
@@ -77,37 +80,22 @@ public:
 
 };
 
-class UpdateDataEvent : public QEvent
-{
-public:
-	int region;
-	//const SeqData data;
-	SeqNeurons* neurons;
-	UpdateDataEvent(/*const SeqData& d, */SeqNeurons* n) :
-		QEvent ((QEvent::Type)1003),
-		// data (d),
-		neurons (n)
-	{
-	}
 
-};
-
-
-class VoronoiMainWindow : public QMainWindow
+class VoronoiMainWindow : virtual public QMainWindow
 {
 	Q_OBJECT
-
-	public:
+	
+public:
 	//! \brief constructor
 	/*! 
 	  
 	  \param parent QWidget parent 
 	*/
 	VoronoiMainWindow(QWidget *parent = 0);
-
+	
 	//! \brief destructor
 	~VoronoiMainWindow();
-
+	
 	//! \brief handle events like resize, update data, show
 	/*! 
 	  
@@ -115,16 +103,20 @@ class VoronoiMainWindow : public QMainWindow
 	*/
 	virtual void customEvent(QEvent* e);
 
-	void updateData ( /*const SeqData& data, */SeqNeurons* neurons) {
-		QApplication::postEvent(this, new UpdateDataEvent(/*data,*/ neurons) );
-
-	}
-
-	
 	//! The widget to print Voronoi diagrams
 	VoronoiWidget* vw;
+	void setMutex (QMutex* m) { mutex = m; }
+	void setWaitCondition (QWaitCondition *c) { condition = c; }
 
-private:
+public slots:
+	void updateData ( /*const SeqData& data, */SeqNeurons* neurons);
+	void initializeData ( SeqData* data, SeqNeurons* neurons, unsigned int sidesize);
+	
+protected:
+
+	QMutex *mutex;
+	QWaitCondition *condition;
+
 };
 
 
