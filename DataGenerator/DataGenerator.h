@@ -173,7 +173,7 @@ template<typename T> Vector<T>* DataGenerator<T>::next(){}
 /** \brief Returns the data
 */
 template<typename T> std::vector< Vector<T>* >* DataGenerator<T>::getData()
-{return _data;}
+{return new std::vector<Vector<T>* > (*_data);}
 
 /** \brief Generates a given number of data
 *

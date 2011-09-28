@@ -226,7 +226,7 @@ template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int
   T x = T();
   _zero           = x - x;
   _dimension      = dimension;
-  _data           = new std::vector< Vector<T>* >;
+  // _data           = new std::vector< Vector<T>* >;
   _data           = NULL;
   graphptr        = NULL;
   _metric_to_use  = NULL;   // no user defined metric is used, std metric is used

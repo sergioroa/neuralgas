@@ -88,7 +88,6 @@ class VoronoiMainWindow : public QMainWindow
 public:
 	//! \brief constructor
 	/*! 
-	  
 	  \param parent QWidget parent 
 	*/
 	VoronoiMainWindow(QWidget *parent = 0);
@@ -98,23 +97,41 @@ public:
 	
 	//! \brief handle events like resize, update data, show
 	/*! 
-	  
 	  \param e Event
 	*/
 	virtual void customEvent(QEvent* e);
 
 	//! The widget to print Voronoi diagrams
 	VoronoiWidget* vw;
+	//! \brief set Mutual exclusion object pointer
+	/*! 
+	  \param m mutex pointer
+	*/
 	void setMutex (QMutex* m) { mutex = m; }
+	//! \brief set Wait condition object pointer
+	/*! 
+	  \param c waitcondition pointer
+	*/
 	void setWaitCondition (QWaitCondition *c) { condition = c; }
 
 public slots:
-	void updateData ( /*const SeqData& data, */SeqNeurons* neurons);
+	//! \brief update nodes
+	/*! 
+	  \param neurons or nodes
+	*/
+	void updateData (SeqNeurons* neurons);
+	//! \brief initialize data, nodes and size of the painting area
+	/*! 
+	  \param data data set vectors
+	  \param neurons nodes
+	  \param sidesize size of painting area
+	*/
 	void initializeData ( SeqData* data, SeqNeurons* neurons, unsigned int sidesize);
 	
 protected:
-
+	//! Mutual exclusion pointer for threads
 	QMutex *mutex;
+	//! Wait condition pointer for implementing semaphore
 	QWaitCondition *condition;
 
 };

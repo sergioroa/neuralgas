@@ -26,13 +26,39 @@ class LLRGNGThread : public QThread {
 	Q_OBJECT
 	
 public:
-	LLRGNGThread ();
-	~LLRGNGThread ();
+	LLRGNGThread ()
+	{
+		debugging = false;
+	}
+	~LLRGNGThread ()
+	{
+		mutex.lock();
+		condition.wakeOne();
+		mutex.unlock();
+	}
 	virtual void run () = 0;
-	void setDebugging (bool debug) { debugging = debug; }
-	void begin ();
-	QMutex* getMutex () { return &mutex; }
-	QWaitCondition* getWaitCondition () { return &condition; }
+	void setDebugging (bool debug)
+	{
+		debugging = debug;
+	}
+	void begin ()
+	{
+		if (!isRunning ()) {
+			start(LowPriority);
+		}
+		else {
+			condition.wakeOne();
+		}
+		
+	}
+	QMutex* getMutex ()
+	{
+		return &mutex;
+	}
+	QWaitCondition* getWaitCondition ()
+	{
+		return &condition;
+	}
 signals:
 	void updateData (SeqNeurons* neurons);
 	void initializeData (SeqData* data, SeqNeurons* neurons, unsigned int sidesize = 1000);
@@ -42,29 +68,6 @@ protected:
 	bool debugging;
 
 };
-
-LLRGNGThread::LLRGNGThread ()
-{
-	debugging = false;
-}
-
-LLRGNGThread::~LLRGNGThread () {
-	mutex.lock();
-	condition.wakeOne();
-	mutex.unlock();
-}
-
-void LLRGNGThread::begin ()
-{
-	if (!isRunning ()) {
-		start(LowPriority);
-	}
-	else {
-		condition.wakeOne();
-	}
-
-}
-
 
 /** \brief Class implements some techniques based on the algorithms explained in 
  * Robust growing neural gas algorithm with application in cluster analysis
