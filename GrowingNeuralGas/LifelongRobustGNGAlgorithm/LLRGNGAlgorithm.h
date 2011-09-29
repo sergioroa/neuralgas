@@ -210,7 +210,7 @@ template<typename T,typename S>
 LLRGNGAlgorithm<T,S>::~LLRGNGAlgorithm()
 {
 	delete _graphptr;
-	if (this->stopping_criterion == stability)
+	if (this->stopping_criterion == stability && min_mdl_graphptr != NULL)
 		delete min_mdl_graphptr;
 }
 
@@ -529,7 +529,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					{
 						std::cout << "deleting nodes..." << std::endl;
 						delete _graphptr;
-						_graphptr = new LLRGNGGraph<T,S>(*dislocated_node_graphptr);
+						// _graphptr = new LLRGNGGraph<T,S>(*dislocated_node_graphptr);
+						_graphptr = dislocated_node_graphptr;
 						this->graphptr = _graphptr;
 						this->_graphModulptr = _graphptr;
 						insert_this_iter = false;
@@ -549,6 +550,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						}
 
 					}
+					else delete dislocated_node_graphptr;
+						
 				}
 			}
 			// std::vector<unsigned int> dislocated_nodes = findDislocatedNodes ();

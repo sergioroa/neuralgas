@@ -117,6 +117,7 @@ int main (int argc, char* argv[])
 		total_error += errors[i];
 	
 	std::cout << total_error / size<<std::endl;
+	na.reset();
 	delete llrgng;
 
 	return EXIT_SUCCESS;

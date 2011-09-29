@@ -80,9 +80,13 @@ template<typename T> DataGenerator<T>::DataGenerator(const int& dim)
 template<typename T> DataGenerator<T>::~DataGenerator()
 {
 
- for(unsigned int i=0; i < _data->size(); i++)
-         delete (*_data)[i];
- delete _data;
+ if (_data != NULL)
+ {
+	 for(unsigned int i=0; i < _data->size(); i++)
+		 delete (*_data)[i];
+	 _data->clear ();
+	 delete _data;
+ }
 
 }
 
@@ -156,6 +160,7 @@ template<typename T> void DataGenerator<T>::reset()
 {
  for(unsigned int i=0; i < _data->size(); i++)
          delete (*_data)[i];
+ _data->clear();
  _data=NULL;
 }
 
@@ -173,7 +178,7 @@ template<typename T> Vector<T>* DataGenerator<T>::next(){}
 /** \brief Returns the data
 */
 template<typename T> std::vector< Vector<T>* >* DataGenerator<T>::getData()
-{return new std::vector<Vector<T>* > (*_data);}
+{return _data;}
 
 /** \brief Generates a given number of data
 *

@@ -242,11 +242,16 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
 {
  //if (graphptr!=NULL) 
    // delete graphptr;
- graphptr=NULL;
-
- if (_data!=NULL)
+  graphptr=NULL;
+  
+  if (_data!=NULL)
+  {
+    for(unsigned int i=0; i < _data->size(); i++)
+      delete (*_data)[i];
+    _data->clear();
     delete _data;
-
+    
+  }
 }
 
 /** \brief Saves the nodes weight to a file
@@ -268,7 +273,7 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
 
 template<typename T,typename S> void NeuralGas<T,S>::save(const char* filename)
 {
- graphptr->save(filename);
+  graphptr->save(filename);
 }
 
 
@@ -301,7 +306,7 @@ template<typename T,typename S> void NeuralGas<T,S>::setStoppingCriterion(unsign
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::setData(std::vector< Vector<T>* >* data)
 {
- _data       = data;
+  _data       = data;
 }
 
 /** \brief Adds a single datum
@@ -317,8 +322,8 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(Vector<T
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vector< Vector<T>* >* to_add)
 {
- for(unsigned int i=0;i < to_add.size(); i++)
-         _data->push_back( (*to_add)[i]);
+  for(unsigned int i=0;i < to_add.size(); i++)
+    _data->push_back( (*to_add)[i]);
 }
 
 
@@ -358,23 +363,9 @@ template< typename T, typename S> T NeuralGas<T,S>::metric(const Vector<T>& x, c
  if (_metric_to_use==NULL) // is a non-standard metric set ?
  {
      return euclidean<T,S> (x, y);
-     // T result;
-     // T value;
-     // Vector<T> z = x - y;
-     
-     // //result =  _zero;
-     // result = 0;
-     // unsigned int tsize = z.size();
-     
-     // for (unsigned int i=0; i < tsize; i++)
-     // {
-     //     value  = (z[i]*z[i]);
-     //     result+=  value;
-     // }
-     // return T(sqrt(result));
  }
  else
-	 return (this->*_metric_to_use)(x,y);   // use the non-standard user defined metric
+   return (this->*_metric_to_use)(x,y);   // use the non-standard user defined metric
 }  
 
 /** \brief Sets the number of initial reference vectors.
