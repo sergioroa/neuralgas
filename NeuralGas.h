@@ -18,7 +18,9 @@
 #include <limits>
 #include <Graphs/Base_Graph.h>
 
-/// Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
+/** \namespace neuralgas
+    \brief Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
+*/
 namespace neuralgas {
 
 /// NUM_PARAM is the maximal number of used parameters, has to be changed if a larger number of
@@ -26,7 +28,7 @@ namespace neuralgas {
 #define NUM_PARAM 9
 
 /**
- * \enum sampling_mode
+ * \enum _sampling_mode
  * \brief for using different mechanisms for sampling learning data
  */
 enum _sampling_mode {sequential, /**< sample instances sequentially */
@@ -34,7 +36,7 @@ enum _sampling_mode {sequential, /**< sample instances sequentially */
 };
 
 /**
- * \enum stopping_criterion
+ * \enum _stopping_criterion
  * \brief for using different mechanisms for stopping the algorithms
  */
 enum _stopping_criterion {epochs, /**< nr of training epochs */

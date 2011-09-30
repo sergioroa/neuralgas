@@ -211,10 +211,8 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
 		prev_avgerror += 1.0 / errors[i];	
 	
-	prev_avgerror /= smoothing_prev;
-	last_avgerror /= smoothing_last;
-	prev_avgerror = 1.0 / prev_avgerror;
-	last_avgerror = 1.0 / last_avgerror;
+	prev_avgerror = smoothing_prev / prev_avgerror;
+	last_avgerror = smoothing_last / last_avgerror;
 
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
