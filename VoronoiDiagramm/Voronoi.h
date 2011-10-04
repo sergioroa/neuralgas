@@ -1,3 +1,12 @@
+/** 
+* \file Voronoi.h
+* \author Manuel Noll
+* \author Sergio Roa
+* 
+*  \version 1.0
+*  \date    2010
+*/
+
 #ifndef VORONOI_H
 #define VORONOI_H
 
@@ -16,6 +25,9 @@ namespace neuralgas {
 typedef std::vector < Vector<double>* > SeqData;
 typedef std::vector < Base_Node<double, int>* > SeqNeurons;
 
+//! \class Voronoi
+/*! \brief Encapsulates techniques for generating Voronoi Diagramms  
+ */
 class Voronoi
 {
 public:

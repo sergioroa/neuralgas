@@ -1,5 +1,5 @@
 /** 
-* \class LLRGNGAlgorithm
+* \file LLRGNGAlgorithm.h
 * \author Sergio Roa
 * 
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
@@ -21,7 +21,9 @@
 
 namespace neuralgas {
 
-//! \brief This class (interface) is used to provide threading facilities
+//! \class LLRGNGThread
+/*! \brief This class is used to provide threading facilities
+ */
 class LLRGNGThread : public QThread {
 	Q_OBJECT
 	
@@ -69,10 +71,11 @@ protected:
 
 };
 
-/** \brief Class implements some techniques based on the algorithms explained in 
- * Robust growing neural gas algorithm with application in cluster analysis
- * by A.K. Qin and P.N. Suganthan and
- * Life-long learning cell structures -- continuosly learning without catastrophic interference
+/** \class LLRGNGAlgorithm
+ *  \brief Class implements some techniques based on the algorithms explained in 
+ *  Robust growing neural gas algorithm with application in cluster analysis
+ *  by A.K. Qin and P.N. Suganthan and
+ *  Life-long learning cell structures -- continuosly learning without catastrophic interference
  *         by Fred H. Hamker.
  *  In this new algorithm, there is no output layer. The learning process is unsupervised. There are stopping criteria based on Minimum Description Length and Learning progress.
 */
@@ -107,6 +110,7 @@ public:
 	void setModelEfficiencyConst (T);
 	// find node with maximal value of insertion criterion
 	int maxInsertionCriterionNode ();
+	// find two nodes with maximal value of insertion criterion
 	std::vector<int> maxInsertionCriterionNodes ();
 	// find node with maximal value of insertion quality among some nodes
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
@@ -281,8 +285,8 @@ void LLRGNGAlgorithm<T,S>::setInsertionRate (T rate)
 	insertion_rate = rate;	
 }
 
-/* \brief set maximal edge age constant
- * \param maximal_edge_age maximal edge age constant
+/** \brief set maximal edge age constant
+ *  \param maximal_edge_age maximal edge age constant
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setMaximalEdgeAge (unsigned int maximal_edge_age)
@@ -290,8 +294,8 @@ void LLRGNGAlgorithm<T,S>::setMaximalEdgeAge (unsigned int maximal_edge_age)
 	_graphptr->setMaximalEdgeAge (maximal_edge_age) ;
 }
 
-/* set \p data_accuracy constant
- * \param accuracy maximal data precision or minimal quantization constant
+/** set \p data_accuracy constant
+ *  \param accuracy maximal data precision or minimal quantization constant
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setDataAccuracy (T accuracy)
@@ -299,7 +303,7 @@ void LLRGNGAlgorithm<T,S>::setDataAccuracy (T accuracy)
 	data_accuracy = accuracy;
 }
 
-/* set \p model_efficiency_const constant to balance the contribution of model efficiency for MDL calculation
+/** set \p model_efficiency_const constant to balance the contribution of model efficiency for MDL calculation
  * \param constant set model complexity contribution
  */
 template<typename T, typename S>
@@ -631,7 +635,13 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 
 
 }
-template<typename T, typename S>
+
+//! \brief update params like age, avg errors
+/*! 
+  \param t current time step
+  \param b current winner
+  \param s current second winner
+*/template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsigned int& s)
 {
 	if (b < _graphptr->size())
@@ -694,6 +704,8 @@ int LLRGNGAlgorithm<T,S>::maxInsertionCriterionNode ()
 	return q;
 }
 
+/** \brief find two nodes with maximal values of insertion criterion
+ */
 template<typename T, typename S>
 std::vector<int> LLRGNGAlgorithm<T,S>::maxInsertionCriterionNodes ()
 {
@@ -775,6 +787,7 @@ T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph)
 
 }
 
+//! \brief Calculate MDL for the current \p _graphptr
 template<typename T, typename S>
 T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
 {
@@ -855,7 +868,7 @@ LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& w
 
 
 
-/* \brief get maximal number of partitions
+/** \brief get maximal number of partitions
  */
 template<typename T, typename S>
 unsigned int LLRGNGAlgorithm<T,S>::getMaxNodes () const
@@ -866,18 +879,18 @@ unsigned int LLRGNGAlgorithm<T,S>::getMaxNodes () const
 		return max_nodes;
 }
 
-/* \brief set maximum nr of epochs after avg error reduction is expected
-   \param epochs maximum nr of epochs
- */
+/** \brief set maximum nr of epochs after avg error reduction is expected
+    \param epochs maximum nr of epochs
+*/
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setMaxEpochsErrorReduction (unsigned int epochs)
 {
 	max_epochs_error_reduction = epochs;
 }
 
-/* \brief set maximum nr of epochs after mdl reduction is expected
-   \param epochs maximum nr of epochs
- */
+/** \brief set maximum nr of epochs after mdl reduction is expected
+    \param epochs maximum nr of epochs
+*/
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setMaxEpochsMDLReduction (unsigned int epochs)
 {
@@ -885,7 +898,7 @@ void LLRGNGAlgorithm<T,S>::setMaxEpochsMDLReduction (unsigned int epochs)
 }
 
 
-/* \brief check if minimal error for all nodes has not changed for more than \p max_epochs_error_reduction
+/** \brief check if minimal error for all nodes has not changed for more than \p max_epochs_error_reduction
  */
 template<typename T, typename S>
 bool LLRGNGAlgorithm<T,S>::minimalAvgErrors ()
@@ -901,7 +914,7 @@ bool LLRGNGAlgorithm<T,S>::minimalAvgErrors ()
 }
 
 
-/* \brief update the graph with minimal description length
+/** \brief update the graph with minimal description length
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
@@ -938,7 +951,7 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 
 }
 
-/* \brief check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
+/** \brief check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
  */
 template<typename T, typename S>
 bool LLRGNGAlgorithm<T,S>::minimalMDL ()
@@ -948,7 +961,7 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 }
 
 
-/* \brief mark the current graph as stable in order to stop the algorithm
+/** \brief mark the current graph as stable in order to stop the algorithm
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
@@ -969,7 +982,7 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 
 }
 
-/* \brief calculate value range of data
+/** \brief calculate value range of data
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::calculateValueRange ()

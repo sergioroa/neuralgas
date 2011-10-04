@@ -1,5 +1,5 @@
 /** 
-* \class NeuralGas
+* \file NeuralGas.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -44,21 +44,20 @@ enum _stopping_criterion {epochs, /**< nr of training epochs */
 			  stability /**< a network stability measure */
 };
 
-
-/** \brief Class declares the basic operations for the Neural Gas Algorithm and is intended as a super class for inheritance.
-*
-* The Neural Gas Algortihm as proposed by Martinetz and Schulten, "A Neural Gas Network Learns Topologies"
-* served to build a general algorithmic framework.
-* The underlying graph structure is the Base_Graph which is an abstract graph class
-* forcing the NeuralGas class to be an abstract class as well.
-* \param *graphptr a pointer to the underlying data structure representing the graph
-* \param _zero is the zero element of the unknown datatype T
-* \param _unit is the unit element
-* \param _dimension is dimension of the input data and therefore the dimension of the graph weight vectors
-* \param *_data is a pointer to the given input data; a pointer is used, since for large data a duplicate set could be to memory consuming
-* \param *_metric_to_use is a function pointer which is NULL if not a particular metric is given via setMetric
-*/
-
+/** \class NeuralGas
+ * \brief This class defines the basic operations for the Neural Gas Algorithm and is intended as a super class for inheritance.
+ *
+ * The Neural Gas Algortihm as proposed by Martinetz and Schulten, "A Neural Gas Network Learns Topologies"
+ * served to build a general algorithmic framework.
+ * The underlying graph structure is the Base_Graph which is an abstract graph class
+ * forcing the NeuralGas class to be an abstract class as well.
+ * \param *graphptr a pointer to the underlying data structure representing the graph
+ * \param _zero is the zero element of the unknown datatype T
+ * \param _unit is the unit element
+ * \param _dimension is dimension of the input data and therefore the dimension of the graph weight vectors
+ * \param *_data is a pointer to the given input data; a pointer is used, since for large data a duplicate set could be to memory consuming
+ * \param *_metric_to_use is a function pointer which is NULL if not a particular metric is given via setMetric
+ */
 template < typename T, typename S > class NeuralGas
 {
 public:

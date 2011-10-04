@@ -1,5 +1,5 @@
 /** 
-* \class Vector
+* \file Vector.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -17,13 +17,21 @@
 
 namespace neuralgas {
 
+//! \class Vector
+/*! \brief Implements operations for n-dimensional vectors. Caution! Default constructor
+           produces a one-dimensional vector
+ */
 template<typename T> class Vector : public std::vector<T>
 {
   
- public: 
+public:
+	 /// default constructor
          inline Vector(){this->resize(1);}
+	 /// constructor specifying dimension
          inline Vector(const int& dim){this->resize(dim);}
+	 /// constructor specifying dimension and values
          inline Vector(const int& dim,const T& value){this->resize(dim,value);}
+	 // copy constructor
          inline Vector(const std::vector<T>& v);
          //operator+= based on the operations = and +
          inline Vector<T>& operator+=(const Vector<T>&);
@@ -117,7 +125,6 @@ template<typename T> template<typename S> inline Vector<T>& Vector<T>::operator/
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add) const
 {
  unsigned int tsize = this->size();  
- // Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_add.size() )
@@ -143,7 +150,6 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add)
 {
  unsigned int tsize = this->size();  
- // Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_add.size() )
@@ -169,7 +175,6 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract) const
 { 
  unsigned int tsize = this->size();  
- //Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_subtract.size() )
@@ -195,7 +200,6 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract)
 { 
  unsigned int tsize = this->size();  
- //Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if ( tsize == to_subtract.size() )
@@ -225,7 +229,6 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 {   
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- // Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if (tsize > 1 )
@@ -253,7 +256,6 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 {   
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- // Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  
@@ -284,7 +286,6 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- // Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if (tsize > 1 )
@@ -314,7 +315,6 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 {   
  unsigned int tsize = this->size();  
  const T    scalar   =   (T)factor;
- // Vector<T>* result   =new Vector<T>(tsize);
  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
 
  if (tsize > 1 )
@@ -330,7 +330,12 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 
 }
 
-template<typename T>
+//! \brief Copy constructor
+/*! 
+  \param v std::vector object to be copied from
+  
+  \return the corresponding Vector
+*/template<typename T>
 inline Vector<T>::Vector (const std::vector<T>& v)
 {
   this->resize(v.size());

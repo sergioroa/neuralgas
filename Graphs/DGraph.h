@@ -1,5 +1,5 @@
 /** 
-* \class DGraph
+* \file DGraph.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -16,22 +16,22 @@
 
 namespace neuralgas {
 
-//TODO doxygen funcs & mark the dangerous upcast within the code
+//TODO doxygen funcs
 
-/** \brief The derived node for directed graph
-*
-*   The node permits having different in and outgoing edges which is essential
-*   for a directed graph.
-*   Since this was already implied in the Base_Node but not the possibility
-*   to reflect the distinction of in and outgoing edges within the variable 
-*   num_connections containing the number of connections.Therefore two new variables
-*   num_in_edges and num_out_edges are added representing the number of 
-*   ingoing respectively outgoing edges.
-*
-*   \param num_in_edges number of ingoing edges
-*   \param num_out_edges number of outgoing edges
-*/
-
+/** \class DNode
+ *  \brief The derived node for directed graph
+ *
+ *   The node permits having different in and outgoing edges which is essential
+ *   for a directed graph.
+ *   Since this was already implied in the Base_Node but not the possibility
+ *   to reflect the distinction of in and outgoing edges within the variable 
+ *   num_connections containing the number of connections.Therefore two new variables
+ *   num_in_edges and num_out_edges are added representing the number of 
+ *   ingoing respectively outgoing edges.
+ *
+ *   \param num_in_edges number of ingoing edges
+ *   \param num_out_edges number of outgoing edges
+ */
 template < typename T , typename S > struct DNode : Base_Node<T,S>
 {
  DNode()
@@ -50,23 +50,21 @@ template < typename T , typename S > struct DNode : Base_Node<T,S>
  int num_out_edges;   
 };
 
-
-/** \brief DGraph provides a structure for a directed graph with n-dim weighted nodes and m-dim weighted edges
-*
-* The Base_Graph class is extended such that edge handling like adding and removing 
-* is implemented such that the underlying data structure represents an directed graph.
-* The first template parameter is the type of the node weigth vectors and the second template
-* parameter is the type of the edge weigth vectors.
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges.
-*
-*/
-
-
+/** \class DGraph
+ *  \brief DGraph provides a structure for a directed graph with n-dim weighted nodes and m-dim weighted edges
+ *
+ * The Base_Graph class is extended such that edge handling like adding and removing 
+ * is implemented such that the underlying data structure represents an directed graph.
+ * The first template parameter is the type of the node weigth vectors and the second template
+ * parameter is the type of the edge weigth vectors.
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges.
+ *
+ */
 template<typename T,typename S> class DGraph : public virtual Base_Graph<T,S>
 {
   public:

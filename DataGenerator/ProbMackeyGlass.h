@@ -1,8 +1,8 @@
 /** 
-* \class ProbMackeyGlass
+* \file ProbMackeyGlass.h
 * \author Manuel Noll
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -16,6 +16,9 @@
 
 namespace neuralgas {
 
+//! \class ProbMackeyGlass
+/*! \brief A MackeyGlass dataset generated from 2 MackeyGlass sources
+ */
 class ProbMackeyGlass : public DataGenerator<double>
 {
       public:

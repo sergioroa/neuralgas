@@ -1,5 +1,5 @@
 /** 
-* \class LLRGNGGraph
+* \file LLRGNGGraph.h
 * \author Sergio Roa
 * 
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
@@ -15,8 +15,8 @@
 
 namespace neuralgas {
 
-
-/** \brief The derived node for a LLRGNGGraph
+/** \class LLRGNGNode
+ *  \brief The derived node for a LLRGNGGraph
  *
  *  The node permits having a quality measure for learning when inserting and deleting nodes,
  *  calculated from a last mean error and a previous mean error in a similar way as in the paper
@@ -253,7 +253,8 @@ void LLRGNGNode<T,S>::decreaseAge (unsigned int age_time_window)
 
 template<typename T, typename S> class LLRGNGAlgorithm;
 
-/** \brief LLRGNGGraph provides some additional learning strategies, some of them proposed in
+/** \class LLRGNGGraph
+ *  \brief This class provides some additional learning strategies, some of them proposed in
  *   the algorithm Life-long learning cell structures -- continuosly learning
  *   without catastrophic interference by Fred H. Hamker.
  * and Robust growing neural gas algorithm with application in cluster analysis by Qin and Suganthan.

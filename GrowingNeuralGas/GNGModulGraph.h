@@ -1,6 +1,7 @@
 /** 
-* \class GNGModulGraph
+* \file GNGModulGraph.h
 * \author Manuel Noll
+* \author Sergio Roa
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
@@ -18,22 +19,22 @@ namespace neuralgas {
 
 template<typename T,typename S> class ErrorTesting;
 
-/** \brief GNGModulGraph provides the basic graph structure for MergeGrowingNeuralGas
-*   algorithms and their extensions.
-*
-* The class is a undirected time graph.
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges, but in the edge has to be derived from the struct TEdge<S,T>
-* contained in the class TGraph.
-*
-* \param low_limit min value for the random initializiation of the context vector 
-* \param high_limit max value for the random initializiation of the context vector 
-*/
-
+/** \class GNGModulGraph
+ *  \brief provides the basic graph structure for MergeGrowingNeuralGas
+ *   algorithms and their extensions.
+ *
+ * The class is a undirected time graph.
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges, but in the edge has to be derived from the struct TEdge<S,T>
+ * contained in the class TGraph.
+ *
+ * \param low_limit min value for the random initializiation of the context vector 
+ * \param high_limit max value for the random initializiation of the context vector 
+ */
 template<typename T,typename S> class GNGModulGraph : public virtual UGraph<T,S>, public virtual TGraph<T,S>
 {
 

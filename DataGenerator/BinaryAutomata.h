@@ -1,5 +1,5 @@
 /** 
-* \class BinaryAutomata
+* \file BinaryAutomata.h
 * \author Manuel Noll
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
@@ -15,46 +15,49 @@
 
 namespace neuralgas {
 
-class BinaryAutomata : public DataGenerator<float>
+//! \class BinaryAutomata
+/*! \brief Binary Automata experiment proposed by Voegtlin
+ */
+class BinaryAutomata : public DataGenerator<double>
 {
       public:
              BinaryAutomata();
-             void generate(const int& number){DataGenerator<float>::generate(number);}
+             void generate(const int& number){DataGenerator<double>::generate(number);}
              virtual void reset();
       private:
-             virtual  Vector<float>* generate();
-             virtual  Vector<float>* next(){return generate();}
+             virtual  Vector<double>* generate();
+             virtual  Vector<double>* next(){return generate();}
              short    _last_bit;
 
 };
 
-BinaryAutomata::BinaryAutomata() : DataGenerator<float>(1)
+BinaryAutomata::BinaryAutomata() : DataGenerator<double>(1)
 {
  srand( (unsigned)time( NULL ) );
  if ( (rand() % 7) > 3 )
     _last_bit = 0;
  else _last_bit = 1;
                             
- Vector<float> * v = new Vector<float>(1);
+ Vector<double> * v = new Vector<double>(1);
  (*v)[0]= _last_bit;
  _data->push_back(v);
 }
 
 void BinaryAutomata::reset()
 {
- DataGenerator<float>::reset();
+ DataGenerator<double>::reset();
  if ( (rand() % 7) > 3 )
   _last_bit = 0;
  else
   _last_bit = 1;
           
- Vector<float> * v = new Vector<float>(1);
+ Vector<double> * v = new Vector<double>(1);
  (*v)[0]= _last_bit;
  _data->push_back(v);
 
 }
 
-Vector<float>* BinaryAutomata::generate()
+Vector<double>* BinaryAutomata::generate()
 {
  if ( _last_bit )
  {
@@ -66,7 +69,7 @@ Vector<float>* BinaryAutomata::generate()
       if ( (rand() % 10) <= 3 )
          _last_bit = 1;   
  }
-  Vector<float> * v = new Vector<float>(1);
+  Vector<double> * v = new Vector<double>(1);
  (*v)[0]= _last_bit;
  return v;
 

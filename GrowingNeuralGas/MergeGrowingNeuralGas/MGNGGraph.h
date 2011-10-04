@@ -1,5 +1,5 @@
 /** 
-* \class MGNGGraph
+* \file MGNGGraph.h
 * \author Manuel Noll
 * 
 *  Copyright(c) 20010 Manuel Noll - All rights reserved
@@ -18,23 +18,22 @@ namespace neuralgas {
 
 template<typename T, typename S> class MGNGAlgorithm;
 
-/** \brief The derived node for a MGNGGraph
-*
-*   The node permits having a counter implementing the algorithm described in 
-*   "Incremental Unsupervised Time Series Analysis using Merge Growing Neural Gas"
-*   by Andreakis,Hoyningen-Huene and Beets.
-*   The counter represents the amount of winning in this algorithm. The higher the value
-*   the more reliable and important is the node.
-*   There are four functions, decCounter, incCounter, setCounter and getCounter
-*   for manipulating the value. 
-*   Furthermore it has a context vector as suggested in the above mentioned paper to reflect
-*   the history and the time series evolution of the node.
-*   \param counter the belief in the node
-*   \param context vector reflecting the time series evolution
-*
-*/
-
-
+/** \class MGNGNode
+ *  \brief The derived node for a MGNGGraph
+ *
+ *   The node permits having a counter implementing the algorithm described in 
+ *   "Incremental Unsupervised Time Series Analysis using Merge Growing Neural Gas"
+ *   by Andreakis,Hoyningen-Huene and Beets.
+ *   The counter represents the amount of winning in this algorithm. The higher the value
+ *   the more reliable and important is the node.
+ *   There are four functions, decCounter, incCounter, setCounter and getCounter
+ *   for manipulating the value. 
+ *   Furthermore it has a context vector as suggested in the above mentioned paper to reflect
+ *   the history and the time series evolution of the node.
+ *   \param counter the belief in the node
+ *   \param context vector reflecting the time series evolution
+ *
+ */
 template<typename T,typename S> struct MGNGNode : Base_Node<T,S>
 {
  // sets the value of the counter
@@ -59,22 +58,22 @@ template<typename T,typename S> struct MGNGNode : Base_Node<T,S>
  float getTemp(){return temperature;} 
 };
 
-/** \brief MGNGGraph provides the graph structure for the algorithm proposed in
-*   "Incremental Unsupervised Time Series Analysis using Merge Growing Neural Gas"
-*   by Andreakis,Hoyningen-Huene and Beets.
-*
-* The class is a undirected time graph permiting the access to the MGNGnode 
-* via potential dangerous downcastings.
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges,where the edge has to be derived from the timed edge TEdge
-* in the TGraph class.
-*
-*/
-
+/** \class MGNGGraph
+ * \brief provides the graph structure for the algorithm proposed in
+ *   "Incremental Unsupervised Time Series Analysis using Merge Growing Neural Gas"
+ *   by Andreakis,Hoyningen-Huene and Beets.
+ *
+ * The class is a undirected time graph permiting the access to the MGNGnode 
+ * via potential dangerous downcastings.
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges,where the edge has to be derived from the timed edge TEdge
+ * in the TGraph class.
+ *
+ */
 template<typename T,typename S> class MGNGGraph : public GNGModulGraph<T,S>
 {
  public:

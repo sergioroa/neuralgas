@@ -1,13 +1,11 @@
 /** 
-* \class ErrorTesting
+* \file ErrorTesting.h
 * \author Manuel Noll
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
-
-// TODO doxygen setGNGObject 
 
 #ifndef ERRORTESTING_H
 #define ERRORTESTING_H
@@ -17,25 +15,25 @@
 
 namespace neuralgas {
 
-/** \brief This class allows to compute the quantization error of NeuralGas Algorithms.
-*
-*   By giving a ptr of type GNGModul or of a thereof derived class to the class constructor
-*   the ErrorTesting class has full access to all members of that GNGModul object since
-*   the ErrorTesting class is defined as friend class of GNGModul.
-*   The class uses the fitted GNG network and the within the GNG object contained data 
-*   to compute the error either by an arbitrary number of data vectors beginning from the end
-*   or by a number of randomly chosen data vectors.
-*   As error metric the distance used within the GNG object is used as default. But it is
-*   also possible to define an own error metric and set it by the func setErrorMetric.
-*
-* \param _gngptr ptr to the given GNG object
-* \param _pastTimeSteps defines the number of data items that shall be used, correspoding to the number of returned error points
-* \param _random bool that says whether the data items are selected randomly, default is false
-* \param _errors a vector containing the number of errors
-* \param _error_metric_to_use is the user defined error metric,as default the metric of the given derived GNGModul object is used
-*
-*/   
-
+/** \class ErrorTesting
+ *  \brief This class allows to compute the quantization error of NeuralGas Algorithms.
+ *
+ *   By giving a ptr of type GNGModul or of a thereof derived class to the class constructor
+ *   the ErrorTesting class has full access to all members of that GNGModul object since
+ *   the ErrorTesting class is defined as friend class of GNGModul.
+ *   The class uses the fitted GNG network and the within the GNG object contained data 
+ *   to compute the error either by an arbitrary number of data vectors beginning from the end
+ *   or by a number of randomly chosen data vectors.
+ *   As error metric the distance used within the GNG object is used as default. But it is
+ *   also possible to define an own error metric and set it by the func setErrorMetric.
+ *
+ * \param _gngptr ptr to the given GNG object
+ * \param _pastTimeSteps defines the number of data items that shall be used, correspoding to the number of returned error points
+ * \param _random bool that says whether the data items are selected randomly, default is false
+ * \param _errors a vector containing the number of errors
+ * \param _error_metric_to_use is the user defined error metric,as default the metric of the given derived GNGModul object is used
+ *
+ */   
 template < typename T, typename S > class ErrorTesting
 {
  public:
@@ -107,6 +105,10 @@ template < typename T, typename S > ErrorTesting<T,S>::ErrorTesting(GNGModul<T,S
 template < typename T, typename S > ErrorTesting<T,S>::~ErrorTesting()
 {_gngptr  = NULL;}
 
+//! \brief set the GNG object (algorithm) pointer to be tested
+/*! 
+  \param gngptr 
+*/
 template < typename T, typename S > void ErrorTesting<T,S>::setGNGObject(GNGModul<T,S>* gngptr)
 { _gngptr              = gngptr;}
 

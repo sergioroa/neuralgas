@@ -110,8 +110,6 @@ SET(GRAPH_HEADERS
 	${NEURALGAS_ROOT}/Graphs/TGraph.h
 	${NEURALGAS_ROOT}/Graphs/UGraph.h
 	${NEURALGAS_ROOT}/Graphs/Vector.h
-	${NEURALGAS_ROOT}/Graphs/Vector_temp.h
-	${NEURALGAS_ROOT}/Graphs/Vector_temp_easy.h
 )
 INSTALL(FILES ${GRAPH_HEADERS} DESTINATION include/NeuralGas/Graphs/)
 

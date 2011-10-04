@@ -581,8 +581,10 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = DataGenerator \
+INPUT                  = . \
+			 DataGenerator \
 			 Graphs \
+			 GrowingNeuralGas \
 			 GrowingNeuralGas/ErrorBasedGNGAlgorithm \
 			 GrowingNeuralGas/LifelongRobustGNGAlgorithm \
 			 GrowingNeuralGas/Testing \

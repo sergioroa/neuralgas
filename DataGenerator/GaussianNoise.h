@@ -1,5 +1,5 @@
 /** 
-* \class GaussianNoise
+* \file GaussianNoise.h
 * \author Sergio Roa
 * 
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
@@ -16,6 +16,10 @@
 
 namespace neuralgas {
 
+//! \class GaussianNoise
+/*! \brief Generation of datasets by using Gaussian distributions with the possibility
+     of adding white noise
+ */
 class GaussianNoise : public DataGenerator<double>
 {
 public:

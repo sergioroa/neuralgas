@@ -1,8 +1,9 @@
 /** 
-* \class NoisyAutomata
+* \file NoisyAutomata.h
 * \author Manuel Noll
+* \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -16,8 +17,16 @@
 
 namespace neuralgas {
 
+//! \enum noisyautomata_encoding
+/*! \brief these are the possible modes for storing a dataset in CrySSMEx format
+ */
 enum noisyautomata_encoding { vectorial, symbolic };
 
+
+//! \class NoisyAutomata
+/*! \brief Generation of noisy automata datasets from 3 Gaussian distributions as
+     proposed by Hammer et al.
+ */
 class NoisyAutomata : public DataGenerator<double>
 {
       public:
@@ -33,10 +42,8 @@ class NoisyAutomata : public DataGenerator<double>
       private:
              virtual  Vector<double>* generate();
              virtual  Vector<double>* next(){return generate();}
-             // Vector<double>* normal_distribution(const double&, const double&);
-             // double    approx_gauss(const double&);
-             // void     box_muller(double&,double&);
              short    _state;
+	     /// std dev
              double    _sigma;
              double    _transProb;
              std::ofstream crySSMExFile;
@@ -156,7 +163,7 @@ Vector<double>* NoisyAutomata::generate()
 
  if (_data->size() == 0)
  {
-   previous_item = normal_distribution(0,0,_sigma,_sigma);
+   previous_item = normal_distribution(0,0,_sigma*_sigma,_sigma*_sigma);
    return previous_item; 
  }
  else
@@ -173,7 +180,7 @@ Vector<double>* NoisyAutomata::generate()
    {
      
      _state=1;
-     current_item = normal_distribution(1,0,_sigma,_sigma);
+     current_item = normal_distribution(1,0,_sigma*_sigma,_sigma*_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -188,7 +195,7 @@ Vector<double>* NoisyAutomata::generate()
    {
      
      _state=3;
-     current_item = normal_distribution(0,1,_sigma,_sigma);
+     current_item = normal_distribution(0,1,_sigma*_sigma,_sigma*_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -209,7 +216,7 @@ Vector<double>* NoisyAutomata::generate()
      crySSMExFile << "b  ";
    
    _state=0;
-   current_item = normal_distribution(0,0,_sigma,_sigma);
+   current_item = normal_distribution(0,0,_sigma*_sigma,_sigma*_sigma);
    if (crySSMExFile.is_open())
    {
      write_vector (crySSMExFile, *current_item);
@@ -231,7 +238,7 @@ Vector<double>* NoisyAutomata::generate()
    if (prob < _transProb)
    {
      _state=3;
-     current_item = normal_distribution(0,1,_sigma,_sigma);
+     current_item = normal_distribution(0,1,_sigma*_sigma,_sigma*_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -246,7 +253,7 @@ Vector<double>* NoisyAutomata::generate()
    {
      
      _state=1;
-     current_item = normal_distribution(1,0,_sigma,_sigma);
+     current_item = normal_distribution(1,0,_sigma*_sigma,_sigma*_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -266,7 +273,7 @@ Vector<double>* NoisyAutomata::generate()
    else if (crySSMExFile.is_open() && input_format == symbolic)
      crySSMExFile << "c  ";
    _state=2;
-   current_item = normal_distribution(0,0,_sigma,_sigma);
+   current_item = normal_distribution(0,0,_sigma*_sigma,_sigma*_sigma);
    if (crySSMExFile.is_open())
    {
      write_vector (crySSMExFile, *current_item);

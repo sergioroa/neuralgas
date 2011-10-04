@@ -1,5 +1,5 @@
 /** 
-* \class EBGNGAlgorithm
+* \file EBGNGAlgorithm.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -17,6 +17,10 @@
 
 namespace neuralgas {
 
+/** \class EBGNGAlgorithm
+ *  \brief A simple implementation of GNG that modifies learning rate with the current
+           average error. Stops according to error threshold and maximum network size
+ */
 template<typename T,typename S> class EBGNGAlgorithm : public GNGModul<T,S>
 {
 public:
@@ -142,16 +146,7 @@ template<typename T,typename S> void EBGNGAlgorithm<T,S>::updateWinner(const uns
 }
 
 
-/** \brief Runs the algorithm as proposed in "Incremental Unsupervised Time Series 
-*   Analysis using Merge Growing Neural Gas" by Andreakis,Hoyningen-Huene and Beets
-*
-*   Runs the algorithm where a greater flexibility is implemented by outsourcing the counter
-*   update rule and by assigning possibly time depending functions to the parameters.
-*
-*   NOTE: It is intended to abstract it further by outsourcing further elements, like
-*   the learning rule.
-*
-*/
+/** \brief Runs the algorithm */
 template<typename T,typename S> void EBGNGAlgorithm<T,S>::run()
 {
  

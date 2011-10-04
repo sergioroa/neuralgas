@@ -1,5 +1,5 @@
 /** 
-* \class GNGAlgorithm
+* \file GNGAlgorithm.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -21,51 +21,52 @@
 
 namespace neuralgas {
 
-/** \brief Class implements the algorithm proposed in 
-*   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
-*
-* The class is a flexible (not yet as flexible as it is intented to be) implemention of
-* the algorithm proposed by the above mentionend authors.
-* Since the class is derived from the abstract class NeuralGas it is necessary to define
-* the precompiler macro NUM_PARAM reflecting the number of needed parameter params within the
-* algorithm.
-* Recap : the values are set via the super class func setFuncArray taking a func ptr of the
-*  float (*)(const unsigned int&) and an index of the parameter to set. The setting is
-* params[0] alpha, params[1] beta, params[2] gamma, params[3] delta, params[4] epsilon_b, 
-* params[5] epsilon_n, params[6] theta params[7] eta params[8] lambda
-* In order to change the number of parameters the precompile definition NUM_PARAM in file 
-* NeuralGas.h has to be changed accordingly.
-* The int parameter in float (*)(const unsigned int&) is the given time step allowing to define
-* time / step dependend parameters.
-*
-* IMPORTANT : USAGE
-*
-* setFuncArray(index) has to be called for each parameter(#NUM_PARAM)
-*
-* setData 
-*
-* maximal random value has to be determined
-*
-* setRefVectors(num,max_random) inits graph with num ref vectors, their random init weight
-*                               and context values are within max_random.
-*                               Is the data updated by assigning new data by the setData func
-*                               the call of setRefVectors erases the learned graph structure.
-*                               Therefore the call is equal to a new init of the algorithm.
-*
-* run()                         Starts the learning algorithm.
-*                               Is some new data assigned by the setData func without calling
-*                               setRefVectors then another call
-*                               of run() refines, adjusts respectively the graph to this newly
-*                               added data.
-*
-* OPTIONAL:
-* setMetric(T (*)(const Vector<T>& a,const Vector<T>& b)) Sets a new metric for distance measurement.
-*                                                         Default is L2 euclidean metric.
-*                                                         Called with NULL sets the default metric.
-* 
-*
-*   \param _graphptr is a Base_Graph casted pointer to the thereof derived class GNGGraph
-*/
+/** \class GNGAlgorithm
+ * \brief Class implements the algorithm proposed in 
+ *   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
+ *
+ * The class is a flexible (not yet as flexible as it is intented to be) implemention of
+ * the algorithm proposed by the above mentionend authors.
+ * Since the class is derived from the abstract class NeuralGas it is necessary to define
+ * the precompiler macro NUM_PARAM reflecting the number of needed parameter params within the
+ * algorithm.
+ * Recap : the values are set via the super class func setFuncArray taking a func ptr of the
+ *  float (*)(const unsigned int&) and an index of the parameter to set. The setting is
+ * params[0] alpha, params[1] beta, params[2] gamma, params[3] delta, params[4] epsilon_b, 
+ * params[5] epsilon_n, params[6] theta params[7] eta params[8] lambda
+ * In order to change the number of parameters the precompile definition NUM_PARAM in file 
+ * NeuralGas.h has to be changed accordingly.
+ * The int parameter in float (*)(const unsigned int&) is the given time step allowing to define
+ * time / step dependend parameters.
+ *
+ * IMPORTANT : USAGE
+ *
+ * setFuncArray(index) has to be called for each parameter(#NUM_PARAM)
+ *
+ * setData 
+ *
+ * maximal random value has to be determined
+ *
+ * setRefVectors(num,max_random) inits graph with num ref vectors, their random init weight
+ *                               and context values are within max_random.
+ *                               Is the data updated by assigning new data by the setData func
+ *                               the call of setRefVectors erases the learned graph structure.
+ *                               Therefore the call is equal to a new init of the algorithm.
+ *
+ * run()                         Starts the learning algorithm.
+ *                               Is some new data assigned by the setData func without calling
+ *                               setRefVectors then another call
+ *                               of run() refines, adjusts respectively the graph to this newly
+ *                               added data.
+ *
+ * OPTIONAL:
+ * setMetric(T (*)(const Vector<T>& a,const Vector<T>& b)) Sets a new metric for distance measurement.
+ *                                                         Default is L2 euclidean metric.
+ *                                                         Called with NULL sets the default metric.
+ * 
+ *
+ *   \param _graphptr is a Base_Graph casted pointer to the thereof derived class GNGGraph
+ */
 
 template<typename T,typename S> class GNGAlgorithm : public GNGModul<T,S>
 {

@@ -1,6 +1,7 @@
 /** 
-* \class Base_Graph
+* \file Base_Graph.h
 * \author Manuel Noll
+* \author Sergio Roa
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
@@ -21,20 +22,21 @@
 
 namespace neuralgas {
 
-// TODO virtual destructors, check edge deleting
+// TODO check edge deleting for derived classes (or better use shared_ptr)
 
 template < typename T , typename S > struct Base_Node;
 template < typename T , typename S> struct Base_Edge;
 
 template< typename T, typename S > class NeuralGas;
 
-/** \brief The basis node
-*
-* \param num_connections number of connected nodes to this node
-* \param weight vectors as data vector
-* \param func user definded function called in the function update() for changing the node's values
-* \param edges a vector of ptrs to the node's edges 
-*/
+/** \class Base_Node
+ *  \brief The base class for nodes
+ *
+ * \param num_connections number of connected nodes to this node
+ * \param weight vectors as data vector
+ * \param func user definded function called in the function update() for changing the node's values
+ * \param edges a vector of ptrs to the node's edges 
+ */
 template < typename T , typename S > struct Base_Node
 {
   Base_Node()
@@ -68,13 +70,13 @@ template < typename T , typename S > struct Base_Node
 
 };  
 
-
-/** \brief The basis edge
-*
-* \param weight vectors as data vector
-* \param in ptr to the ingoing node 
-* \param out ptr to the outgoing node
-*/
+/** \class Base_Edge
+ *  \brief The base class for edges
+ *
+ * \param weight vectors as data vector
+ * \param in ptr to the ingoing node 
+ * \param out ptr to the outgoing node
+ */
 template < typename T , typename S> struct Base_Edge
 {
   
@@ -95,34 +97,34 @@ template < typename T , typename S> struct Base_Edge
   Base_Node<S,T>* out;
 };  
 
-/** \brief Base_Graph provides a basic structure for a graph with n-dim weighted nodes and m-dim weighted edges
-*
-* The graph structure comes up with adding, removing nodes; 
-* initializing the graph with a given number of nodes where the weight vectors have 
-* random values. Further functions are checking whether a node has neighbors and
-* getting the neighbors function. 
-* Kind of iterator functions allow to apply a given user defined function to all
-* nodes or to the neighbor nodes of a node. 
-* Edge handling like adding and removing has to be treated in the derived classes in order to
-* ensure the users requirements to implement either an undirected or a directed graph.
-* It is recommended in the case of an undirected graph to use for two connected nodes exactly 
-* one edge that is refered to from the pointers within both nodes.
-* And in the case for directed graphs it is expected to use up to two edges, each edge referring 
-* to the in node and corresponding out node. 
-* The first template parameter is the type of the node weigth vectors and the second template
-* parameter is the type of the edge weigth vectors.
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges.
-*
-* \param _nodes array of pointer to the nodes of the graph
-* \param _dimNode dimension of the node's weight vectors
-* \param _dimEdge dimension of the edge's weight vectors
-*/
-
+/** \class Base_Graph
+ *  \brief Base_Graph provides a basic structure for a graph with n-dim weighted nodes and m-dim weighted edges
+ *
+ * The graph structure comes up with adding, removing nodes; 
+ * initializing the graph with a given number of nodes where the weight vectors have 
+ * random values. Further functions are checking whether a node has neighbors and
+ * getting the neighbors function. 
+ * Kind of iterator functions allow to apply a given user defined function to all
+ * nodes or to the neighbor nodes of a node. 
+ * Edge handling like adding and removing has to be treated in the derived classes in order to
+ * ensure the users requirements to implement either an undirected or a directed graph.
+ * It is recommended in the case of an undirected graph to use for two connected nodes exactly 
+ * one edge that is refered to from the pointers within both nodes.
+ * And in the case for directed graphs it is expected to use up to two edges, each edge referring 
+ * to the in node and corresponding out node. 
+ * The first template parameter is the type of the node weigth vectors and the second template
+ * parameter is the type of the edge weigth vectors.
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges.
+ *
+ * \param _nodes array of pointer to the nodes of the graph
+ * \param _dimNode dimension of the node's weight vectors
+ * \param _dimEdge dimension of the edge's weight vectors
+ */
 template<typename T, typename S> class Base_Graph
 {
       public:

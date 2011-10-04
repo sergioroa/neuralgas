@@ -1,5 +1,5 @@
 /** 
-* \class UGraph
+* \file UGraph.h
 * \author Manuel Noll
 * \author Sergio Roa
 *
@@ -16,22 +16,22 @@
 
 namespace neuralgas {
 
-/** \brief UGraph provides a structure for an undirected graph with n-dim weighted nodes and m-dim weighted edges
-*
-* The Base_Graph class is extended such that edge handling like adding and removing 
-* is implemented such that the underlying data structure represents an undirected graph.
-* The first template parameter is the type of the node weigth vectors and the second template
-* parameter is the type of the edge weigth vectors.
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges.
-*
-* 
-*/
-
+/** \class UGraph
+ *  \brief UGraph provides a structure for an undirected graph with n-dim weighted nodes and m-dim weighted edges
+ *
+ * The Base_Graph class is extended such that edge handling like adding and removing 
+ * is implemented such that the underlying data structure represents an undirected graph.
+ * The first template parameter is the type of the node weigth vectors and the second template
+ * parameter is the type of the edge weigth vectors.
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges.
+ *
+ * 
+ */
 template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
 {
   public:

@@ -1,5 +1,5 @@
 /** 
-* \class CDNAlgorithm
+* \file CDNAlgorithm.h
 * \author Manuel Noll
 * 
 *  Copyright(c) 20010 Manuel Noll - All rights reserved
@@ -14,6 +14,9 @@
 
 namespace neuralgas {
 
+/** \class CDNAlgorithm
+ *  \brief Cool down GNG Algorithm (still uncomplete and buggy)
+ */
 template<typename T,typename S> class CDNAlgorithm : public MGNGAlgorithm<T,S>
 {
 public:

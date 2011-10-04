@@ -92,7 +92,7 @@ int main (int argc, char* argv[])
 	// llrgng->setDataAccuracy (0.00000000001);
 	// llrgng->setMaxNodes (3);
 	llrgng->setMaxEpochsErrorReduction (5);
-	llrgng->setMaxEpochsMDLReduction (60);
+	llrgng->setMaxEpochsMDLReduction (400);
 	llrgng->setModelEfficiencyConst (1);
 
 	llrgng->setSamplingMode (randomly);

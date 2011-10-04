@@ -23,6 +23,10 @@ VoronoiWidget::VoronoiWidget (QWidget *parent) : QWidget (parent)
 	 voronoi = new Voronoi;
 }
 
+VoronoiWidget::~VoronoiWidget ()
+{
+	delete voronoi;
+}
 
 void VoronoiWidget::paintEvent (QPaintEvent *event)
 {

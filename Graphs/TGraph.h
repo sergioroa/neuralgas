@@ -1,9 +1,9 @@
 /** 
-* \class TGraph
+* \file TGraph.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -18,14 +18,14 @@
 
 namespace neuralgas {
 
-/** \brief The derived edge for the time / age graph
-*
-*   The edge permits giving each edge a time / age which can be
-*   decreased, increased, set and get directly by correspondig functions.
-*
-* \param age represents the age of the edge which is initialised to 0.0
-*/
-
+/** \class TEdge
+ *  \brief The derived edge for the time / age graph
+ *
+ *   The edge permits giving each edge a time / age which can be
+ *   decreased, increased, set and get directly by correspondig functions.
+ *
+ * \param age represents the age of the edge which is initialised to 0.0
+ */
 template<typename A,typename B> struct TEdge : Base_Edge<A,B>
 {
   TEdge()
@@ -46,26 +46,25 @@ template<typename A,typename B> struct TEdge : Base_Edge<A,B>
 };  
 
 
-
-/** \brief TGraph provides a structure for a time or aging graph with n-dim weighted 
-*   nodes and m-dim weighted edges
-*
-* The Base_Graph class is extended such that edge aging is implemented 
-* representing an aging ot timed graph.
-* The class is abstract, therefore it cannot be instantiated and has to be used as
-* a superclass, perhaps in combination with another graph like DGraph or UGraph.
-* The first template parameter is the type of the node weigth vectors and the second template
-* parameter is the type of the edge weigth vectors.
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges.
-*
-* 
-*/
-
+/** \class TGraph
+ *  \brief TGraph provides a structure for a time or aging graph with n-dim weighted 
+ *   nodes and m-dim weighted edges
+ *
+ * The Base_Graph class is extended such that edge aging is implemented 
+ * representing an aging ot timed graph.
+ * The class is abstract, therefore it cannot be instantiated and has to be used as
+ * a superclass, perhaps in combination with another graph like DGraph or UGraph.
+ * The first template parameter is the type of the node weigth vectors and the second template
+ * parameter is the type of the edge weigth vectors.
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges.
+ *
+ * 
+ */
 template<typename T,typename S> class TGraph : public virtual Base_Graph<T,S>
 { 
   public:

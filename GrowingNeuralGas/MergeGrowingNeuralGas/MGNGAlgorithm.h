@@ -1,5 +1,5 @@
 /** 
-* \class MGNGAlgorithm
+* \file MGNGAlgorithm.h
 * \author Manuel Noll
 * 
 *  Copyright(c) 2010 Manuel Noll - All rights reserved
@@ -33,63 +33,62 @@ template<typename T,typename S> void updateCounter(Base_Node<T,S>* n,const float
 }
 
 
-
-/** \brief Class implements the algorithm proposed in "Incremental Unsupervised Time Series 
-*   Analysis using Merge Growing Neural Gas" by Andreakis,Hoyningen-Huene and Beets.
-*
-* The class is a flexible (not yet as flexible as it is intented to be) implemention of
-* the algorithm proposed by the above mentionend authors.
-* Since the class is derived from the abstract class NeuralGas it is necessary to define
-* the precompiler macro NUM_PARAM reflecting the number of needed parameter params within the
-* algorithm.
-* Recap : the values are set via the super class func setFuncArray taking a func ptr of the
-*  float (*)(const unsigned int&) and an index of the parameter to set. The setting is
-* params[0] alpha, params[1] beta, params[2] gamma, params[3] delta, params[4] epsilon_b, 
-* params[5] epsilon_n, params[6] theta params[7] eta params[8] lambda
-* In order to change the number of parameters the precompile definition NUM_PARAM in file 
-* NeuralGas.h has to be changed accordingly.
-* The int parameter in float (*)(const unsigned int&) is the given time step allowing to define
-* time / step dependend parameters.
-* A further flexiblization is func is the setFuncUpdateCounter taking a func ptr of the form
-*  void (*)(Base_Node<T,S>* n, const float&)
-* defining the update rule for each node, the second float parameter is param[7].
-*
-* IMPORTANT : USAGE
-*
-* setFuncArray(index) has to be called for each parameters(#NUM_PARAM)
-*
-* setData 
-*
-* maximal random value has to be determined
-*
-* setRefVectors(num,max_random) inits graph with num ref vectors, their random init weight
-*                               and context values is within max_random.
-*                               Is the data updated by assigning new data by the setData func
-*                               the call of setRefVectors erases the learned graph structure.
-*                               Therefore the call is equal to a new init of the algorithm.
-*
-* run()                         Starts the learning algorithm.
-*                               Is some new data assigned by the setData func without calling
-*                               setRefVectors then another call
-*                               of run() refines, adjusts respectively the graph to this newly
-*                               added data.
-*
-* OPTIONAL:
-* setMetric(T (*)(const Vector<T>& a,const Vector<T>& b)) Sets a new metric for distance measurement.
-*                                                         Default is L2 euclidean metric.
-*                                                         Called with NULL sets the default metric.
-* 
-* setFuncUpdateCounter(void (*)(Base_Node<T,S>* n,const float&))  Defining the update rule for 
-*                                                       each node, the second float parameter 
-*                                                       is param[7].
-*                                                       Called with NULL sets default rule counter*param[7]
-*
-*
-*   \param globalContextV is the vector reflecting the global time series context
-*   \param _graphptr is a Base_Graph casted pointer to thereof derived class MGNGGraph
-*   \param funcUpdateCounter is func pointer to a func with the time as paramter defining the way of updating the counter of each node
-*/
-
+/** \class MGNGAlgorithm
+ *  \brief Class implements the algorithm proposed in "Incremental Unsupervised Time Series 
+ *   Analysis using Merge Growing Neural Gas" by Andreakis,Hoyningen-Huene and Beets.
+ *
+ * The class is a flexible (not yet as flexible as it is intented to be) implemention of
+ * the algorithm proposed by the above mentionend authors.
+ * Since the class is derived from the abstract class NeuralGas it is necessary to define
+ * the precompiler macro NUM_PARAM reflecting the number of needed parameter params within the
+ * algorithm.
+ * Recap : the values are set via the super class func setFuncArray taking a func ptr of the
+ *  float (*)(const unsigned int&) and an index of the parameter to set. The setting is
+ * params[0] alpha, params[1] beta, params[2] gamma, params[3] delta, params[4] epsilon_b, 
+ * params[5] epsilon_n, params[6] theta params[7] eta params[8] lambda
+ * In order to change the number of parameters the precompile definition NUM_PARAM in file 
+ * NeuralGas.h has to be changed accordingly.
+ * The int parameter in float (*)(const unsigned int&) is the given time step allowing to define
+ * time / step dependend parameters.
+ * A further flexiblization is func is the setFuncUpdateCounter taking a func ptr of the form
+ *  void (*)(Base_Node<T,S>* n, const float&)
+ * defining the update rule for each node, the second float parameter is param[7].
+ *
+ * IMPORTANT : USAGE
+ *
+ * setFuncArray(index) has to be called for each parameters(#NUM_PARAM)
+ *
+ * setData 
+ *
+ * maximal random value has to be determined
+ *
+ * setRefVectors(num,max_random) inits graph with num ref vectors, their random init weight
+ *                               and context values is within max_random.
+ *                               Is the data updated by assigning new data by the setData func
+ *                               the call of setRefVectors erases the learned graph structure.
+ *                               Therefore the call is equal to a new init of the algorithm.
+ *
+ * run()                         Starts the learning algorithm.
+ *                               Is some new data assigned by the setData func without calling
+ *                               setRefVectors then another call
+ *                               of run() refines, adjusts respectively the graph to this newly
+ *                               added data.
+ *
+ * OPTIONAL:
+ * setMetric(T (*)(const Vector<T>& a,const Vector<T>& b)) Sets a new metric for distance measurement.
+ *                                                         Default is L2 euclidean metric.
+ *                                                         Called with NULL sets the default metric.
+ * 
+ * setFuncUpdateCounter(void (*)(Base_Node<T,S>* n,const float&))  Defining the update rule for 
+ *                                                       each node, the second float parameter 
+ *                                                       is param[7].
+ *                                                       Called with NULL sets default rule counter*param[7]
+ *
+ *
+ *   \param globalContextV is the vector reflecting the global time series context
+ *   \param _graphptr is a Base_Graph casted pointer to thereof derived class MGNGGraph
+ *   \param funcUpdateCounter is func pointer to a func with the time as paramter defining the way of updating the counter of each node
+ */
 template<typename T,typename S> class MGNGAlgorithm : public GNGModul<T,S>
 {
 public:

@@ -1,5 +1,5 @@
 /** 
-* \class GNGGraph
+* \file GNGGraph.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -17,22 +17,21 @@
 
 namespace neuralgas {
 
-/** \brief The derived node for a GNGGraph
-*
-*   The node permits having an error implementing the algorithm described in 
-*   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
-*   The error represents the distortion that was measured between the node weight 
-*   and the actual data vector by an user defined metric.
-*   There are four functions, decCounter, incCounter, setCounter and getCounter
-*   for manipulating the value. 
-*   Furthermore it has a context vector as suggested in the above paper to reflect
-*   the history and the time series evolution of the node.
-*   \param counter the belief in the node
-*   \param vector reflecting the time series evolution
-*
-*/
-
-
+/** \class GNGNode
+ *  \brief The derived node for a GNGGraph
+ *
+ *   The node permits having an error implementing the algorithm described in 
+ *   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
+ *   The error represents the distortion that was measured between the node weight 
+ *   and the actual data vector by an user defined metric.
+ *   There are four functions, decCounter, incCounter, setCounter and getCounter
+ *   for manipulating the value. 
+ *   Furthermore it has a context vector as suggested in the above paper to reflect
+ *   the history and the time series evolution of the node.
+ *   \param counter the belief in the node
+ *   \param vector reflecting the time series evolution
+ *
+ */
 template<typename T,typename S> struct GNGNode : Base_Node<T,S>
 {
 	// sets the value of the error
@@ -43,20 +42,20 @@ template<typename T,typename S> struct GNGNode : Base_Node<T,S>
 	T error;
 };
 
-/** \brief GNGGraph provides the graph structure for the algorithm proposed in
-*   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
-*
-* The class is a undirected time graph permiting the access to the GNGnode 
-* The following paragraph is important for derived classes. 
-* It is possible to use a user defined type of node for the graph.
-* In this case that newly defined node has to be derived from the struct Base_Node<T,S>
-* and the virtual function newNode() has to be overloaded in the derived graph class such that 
-* it returns a pointer to that newly defined but derived node data type. 
-* The same holds for the edges, where the edge has to be derived from the timed edge TEdge
-* in the TGraph class.
-*
-*/
-
+/** \class GNGGraph
+ *  \brief provides the graph structure for the algorithm proposed in
+ *   "Growing Neural Gas for Temporal Clustering" by Isaac J. Sledge and James M. Keller.
+ *
+ * The class is a undirected time graph permiting the access to the GNGnode 
+ * The following paragraph is important for derived classes. 
+ * It is possible to use a user defined type of node for the graph.
+ * In this case that newly defined node has to be derived from the struct Base_Node<T,S>
+ * and the virtual function newNode() has to be overloaded in the derived graph class such that 
+ * it returns a pointer to that newly defined but derived node data type. 
+ * The same holds for the edges, where the edge has to be derived from the timed edge TEdge
+ * in the TGraph class.
+ *
+ */
 template<typename T,typename S> class GNGGraph : public GNGModulGraph<T,S>
 {
 public:
@@ -88,7 +87,6 @@ private:
 * that the function of the subclass and not of the superclass is called within the function
 * addNode(),resulting in the use of the used defined node type as node for the graph structure.
 */
-
 template<typename T,typename S> GNGNode<T,S>* GNGGraph<T,S>::newNode(void)
 {
   GNGNode<T,S>* n = new GNGNode<T,S>;

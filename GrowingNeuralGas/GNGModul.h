@@ -1,5 +1,5 @@
 /** 
-* \class GNGModul
+* \file GNGModul.h
 * \author Manuel Noll
 * \author Sergio Roa
 * 
@@ -20,17 +20,17 @@ namespace neuralgas {
 
 template<typename T,typename S> class ErrorTesting;
 
-/** \brief This class is a modul offering common functions that are used within nearly
-*   every GrowingNeuralGas Algorithms.
-*
-*   This modul is an abstraction of GrowingNeuralGas Algorithm that is not runnable but
-*   comprises moduls that were used within nearly every GrowingNeuralGas Algorithm like 
-*   the calculation of the two closest reference vectors, the arc removing etc.
-*   It is intended to expand this class whenever components are found to be extractable.
-*
-*   \param _graphModulptr ptr to the GNGModulGraph
-*/
-
+/** \class GNGModul
+ *  \brief This class is a modul offering common functions that are used within nearly
+ *  every GrowingNeuralGas Algorithms.
+ *
+ *   This modul is an abstraction of GrowingNeuralGas Algorithm that is not runnable but
+ *   comprises moduls that were used within nearly every GrowingNeuralGas Algorithm like 
+ *   the calculation of the two closest reference vectors, the arc removing etc.
+ *   It is intended to expand this class whenever components are found to be extractable.
+ *
+ *   \param _graphModulptr ptr to the GNGModulGraph
+ */
 template<typename T,typename S> class GNGModul : public NeuralGas<T,S>
 {
 

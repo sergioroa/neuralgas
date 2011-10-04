@@ -16,6 +16,11 @@
 
 namespace neuralgas {
 
+//! \brief Approximated Gauss by numerical integration
+/*! 
+  \param value variable
+  \return result
+*/
 double approx_gauss(const double& value)
 {
       double dz = 10E-5;
@@ -32,7 +37,12 @@ double approx_gauss(const double& value)
       return ( value > 0) ? z : -z;
 }
 
-void box_muller(double& a1, double& a2)
+//! \brief Box Muller method for obtaining approx. Gauss distribution
+/*! 
+  
+  \param a1 first uniformly distributed random variable
+  \param a2 second uniformly distributed random variable
+*/void box_muller(double& a1, double& a2)
 {
      double rho = sqrt( -2* (log(a1)));
      double phi = 2*M_PI*a2;
@@ -41,7 +51,16 @@ void box_muller(double& a1, double& a2)
 }
 
 
-Vector<double>* normal_distribution(const double& m1, const double& m2, const double& _sigma1, const double& _sigma2)
+//! \brief Generation of bi-dimensional normal distribution by applying Box Muller method
+/*! 
+  
+  \param m1 first mean
+  \param m2 second mean
+  \param _sigma1 first variance
+  \param _sigma2 second variance
+  
+  \return normal distributed bi-dimensional vector
+*/Vector<double>* normal_distribution(const double& m1, const double& m2, const double& _sigma1, const double& _sigma2)
 {
  Vector<double>* v=new Vector<double>(2);
 

@@ -1,5 +1,5 @@
 /** 
-* \class VoronoiWidget
+* \file VoronoiWidget.h
 * \author Sergio Roa
 * 
 *  Copyright(c) 2011 Sergio Roa - All rights reserved
@@ -25,6 +25,9 @@
 namespace neuralgas {
 
 
+//! \class VoronoiWidget
+/*! \brief Qt Widget for painting Voronoi Diagramms  
+ */
 class VoronoiWidget : public QWidget
 {
 	Q_OBJECT
@@ -35,6 +38,12 @@ public:
 	  \param parent parent widget	  
 	*/
 	VoronoiWidget (QWidget *parent=0);
+	//! \brief Destructor
+	/*! 
+	  
+	  \param parent parent widget	  
+	*/
+	~VoronoiWidget ();
 	/** 
 	 * \brief paint the \p image
 	 * 
@@ -58,6 +67,9 @@ protected:
 };
 
 
+//! \class ResizeEvent
+/*! \brief Event class triggered when resizing the window
+ */
 class ResizeEvent : public QEvent
 {
 public:
@@ -73,6 +85,9 @@ public:
 	
 };
 
+//! \class ShowEvent
+/*! \brief Event class triggered w showing the window
+ */
 class ShowEvent : public QEvent
 {
 public:
@@ -81,6 +96,9 @@ public:
 };
 
 
+//! \class VoronoiMainWindow
+/*! \brief a Qt Main Window with a VoronoiWidget that handles events  
+ */
 class VoronoiMainWindow : public QMainWindow
 {
 	Q_OBJECT

@@ -1,8 +1,9 @@
 /** 
-* \class DataGenerator
+* \file DataGenerator.h
 * \author Manuel Noll
+* \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -15,17 +16,17 @@
 
 namespace neuralgas {
 
-/** \brief The class is an abstract class that provides the basic operations for data generation
-*   for the NeuralGas algorithms.
-*
-*   The class is an abstract class that provides the data generation process for the NeuralGas
-*   Algorithms. It is intended to be derived by classes that either generate the data
-*   by their own e.g. via a mathematical funcition or represent a file format
-*   that allows reading the data from a file or to stream in data online successively.
-*
-*   \param _data contains the generated data
-*/
-
+/** \class DataGenerator
+ *  \brief The class is an abstract class that provides the basic operations for data generation
+ *   for the NeuralGas algorithms.
+ *
+ *   The class is an abstract class that provides the data generation process for the NeuralGas
+ *   Algorithms. It is intended to be derived by classes that either generate the data
+ *   by their own e.g. via a mathematical funcition or represent a file format
+ *   that allows reading the data from a file or to stream in data online successively.
+ *
+ *   \param _data contains the generated data
+ */
 template<typename T> class DataGenerator
 {
  public:
@@ -43,7 +44,7 @@ template<typename T> class DataGenerator
 	Vector<T>                               minValues() const; 
          // erases the data
         void                                    reset();
-        // returns the next datum
+        // returns the next item
         virtual   Vector<T>*                    next()=0;
         // returns the data
         std::vector< Vector<T>* >*              getData();
@@ -164,10 +165,10 @@ template<typename T> void DataGenerator<T>::reset()
  _data=NULL;
 }
 
-/** \brief Returns the next datum
+/** \brief Returns the next item
 *
-*   The function is intended for implementing successiv datum returning,
-*   either in the sense that step by step a new datum is generated and returned
+*   The function is intended for implementing successive item returning,
+*   either in the sense that step by step a new item is generated and returned
 *   or is read in from a file line by line or waits for instreaming online data.
 *   It may be necessary to implement the func in such a way that first all the data
 *   within the vector _data is returned and afterwards newly generated data is returned.
@@ -192,10 +193,10 @@ template<typename T> void DataGenerator<T>::generate(const int& number)
  }
 }
 
-/** \brief Generates a single datum
+/** \brief Generates a single item
  *
  *   This function represents the heart of the class. It defines how to "generate"
- *   datum, meaning whether it should be read from a file, generated via a function
+ *   item, meaning whether it should be read from a file, generated via a function
  *   or online streamed.
  *   
  */

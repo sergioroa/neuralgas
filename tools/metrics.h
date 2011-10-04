@@ -17,7 +17,14 @@
 namespace neuralgas
 {
 
-template<typename T, typename S>
+//! \brief The euclidean distance function
+/*! 
+  
+  \param x first vector
+  \param y second vector
+  
+  \return distance
+*/template<typename T, typename S>
 inline T euclidean (const Vector<T>& x, const Vector<T>& y)
 {
 	T result;

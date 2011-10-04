@@ -1,8 +1,9 @@
 /** 
-* \class NeuralGasSuite
+* \file NeuralGasSuite.h
 * \author Manuel Noll
+* \author Sergio Roa
 * 
-*  Copyright(c) 20010 Manuel Noll - All rights reserved
+*  Copyright(c) 2010 Manuel Noll - All rights reserved
 *  \version 1.0
 *  \date    2010
 */
@@ -18,6 +19,9 @@
 
 namespace neuralgas {
 
+//! \class NeuralGasSuite
+/*! \brief The class allows running experiments with multiple GNG implementations
+ */
 template <typename T,typename S> class NeuralGasSuite
 {
  public:
