@@ -31,6 +31,8 @@ typedef std::vector < Base_Node<double, int>* > SeqNeurons;
 class Voronoi
 {
 public:
+    Voronoi ();
+    ~Voronoi ();
     void getData(const char*);
     void getNeurons(const char*);
     void calcVoronoi();

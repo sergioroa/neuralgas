@@ -126,7 +126,14 @@ void NoisyAutomata::generate(const int& number)
       crySSMExFile << "# examples" << std::endl << "a b c" << std::endl;
     }
     else if (input_format == vectorial)
-      crySSMExFile << "# nr input symbols" << std::endl << 0.0 << std::endl;
+    {
+      // crySSMExFile << "# nr input symbols" << std::endl << 0.0 << std::endl;
+      crySSMExFile << "# nr input symbols" << std::endl << 3 << std::endl;
+      crySSMExFile << "# examples" << std::endl;
+      crySSMExFile << "0.0 0.0 a" << std::endl;
+      crySSMExFile << "1.0 0.0 b" << std::endl;
+      crySSMExFile << "0.0 1.0 c" << std::endl;
+    }
     if (output_format == symbolic)
     {
       crySSMExFile << "# nr output symbols" << std::endl;
@@ -134,7 +141,15 @@ void NoisyAutomata::generate(const int& number)
       crySSMExFile << "# examples" << std::endl << "a b c" << std::endl;
     }
     else if (output_format == vectorial)
-      crySSMExFile << "# nr output symbols" << std::endl << 0.0 << std::endl;
+    {
+      crySSMExFile << "# nr output symbols" << std::endl;
+      // crySSMExFile << 0.0 << std::endl;
+      crySSMExFile << 4 << std::endl;
+      crySSMExFile << "1.0 0.0 ab" << std::endl;
+      crySSMExFile << "-1.0 0.0 ba" << std::endl;
+      crySSMExFile << "0.0 1.0 ac" << std::endl;
+      crySSMExFile << "0.0 -1.0 ca" << std::endl;
+    }
     
     
   }

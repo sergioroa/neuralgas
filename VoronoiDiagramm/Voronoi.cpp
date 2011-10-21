@@ -2,6 +2,47 @@
 
 namespace neuralgas {
 
+Voronoi::Voronoi ()
+{
+    _data = NULL;
+    _neurons = NULL;
+    _xValues = NULL;
+    _yValues = NULL;
+}
+
+Voronoi::~Voronoi ()
+{
+    if (_data != NULL)
+    {
+	for (unsigned int i=0; i < _data->size(); i++)
+	    delete (*_data)[i];
+	_data->clear();
+	delete _data;
+    }
+
+    if (_neurons != NULL)
+    {
+	for (unsigned int i=0; i<_neurons->size(); i++)
+	    for (unsigned int j = i+1; j < _neurons->at(i)->edges.size(); j++)
+		if (_neurons->at(i)->edges[j] != NULL)
+		    delete _neurons->at(i)->edges[j];
+
+	for (unsigned int i=0; i<_neurons->size(); i++)
+	    _neurons->at(i)->edges.clear();
+
+	for (unsigned int i=0; i<_neurons->size(); i++)
+	    delete _neurons->at(i);
+	_neurons->clear();
+	delete _neurons;
+    }
+
+    if (_xValues != NULL)
+	delete _xValues;
+    if (_yValues != NULL)
+	delete _yValues;
+    
+}
+
 void Voronoi::addData(const std::string& line)
 {
     int i=0;
@@ -10,9 +51,10 @@ void Voronoi::addData(const std::string& line)
         i++;
     }
     Vector<double>* point = new Vector<double>(2);
-    point->at(0) = atof( (line.substr(0,i-1)).c_str());
+    point->at(0) = atof( (line.substr(0,i)).c_str());
     point->at(1) = atof( (line.substr(i+1, line.size()-i - 2 )).c_str() );
     _data->push_back(point);
+    std::cout << point->at(0) << " " << point->at(1) << std::endl;
 
 }
 
@@ -25,7 +67,7 @@ void Voronoi::addNeuron(const std::string& line)
     }
     Base_Node<double, int>* neuron = new Base_Node<double, int>;
     neuron->weight.resize (2);
-    neuron->weight[0] = atof( (line.substr(0,i-1)).c_str() );
+    neuron->weight[0] = atof( (line.substr(0,i)).c_str() );
     neuron->weight[1] = atof( (line.substr(i+1, line.size()-i - 2 )).c_str() );
     _neurons->push_back(neuron);
 }
@@ -43,7 +85,7 @@ void Voronoi::getData(const char* filename)
           addData(line);
         }
         myfile.close();
-        getMaxMinValue();
+        // getMaxMinValue();
     }
 }
 

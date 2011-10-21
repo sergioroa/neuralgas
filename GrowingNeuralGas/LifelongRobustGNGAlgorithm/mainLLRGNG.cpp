@@ -20,7 +20,9 @@ int main (int argc, char* argv[])
 		("debug,d", "debug using a Qt Widget for Voronoi visualization")
 		("size", po::value (&size)->default_value (1000), "dataset size")
 		("sigma", po::value (&sigma)->default_value (0.1), "sigma std dev parameter")
-		("transprob,p", po::value (&transProb)->default_value (0.1), "transition probability parameter");
+		("transprob,p", po::value (&transProb)->default_value (0.1), "transition probability parameter")
+		("symbinput,i", "store CrySSMEx dataset input in symbolic format")
+		("symboutput,o", "store CrySSMEx dataset output in symbolic format");
     
 	// Declare an options description instance which will include
 	// all the options
@@ -52,15 +54,21 @@ int main (int argc, char* argv[])
 		llrgng->connect (llrgng, SIGNAL(updateData(SeqNeurons*)), vWindow, SLOT (updateData(SeqNeurons*)));
 		llrgng->connect (llrgng, SIGNAL(initializeData(SeqData*, SeqNeurons*, unsigned int)), vWindow, SLOT (initializeData(SeqData*, SeqNeurons*, unsigned int)));
 	}
-
+	
 	cout << sigma << "," << transProb << endl;
-  
+	
 	// noisy automata testing
 	NoisyAutomata na;
 	na.setSigma(sigma);
 	na.setTransProb(transProb);
-	na.setInputFormat (vectorial);
-	na.setOutputFormat (vectorial);
+	if (vm.count("symbinput"))
+		na.setInputFormat (symbolic);
+	else
+		na.setInputFormat (vectorial);
+	if (vm.count("symboutput"))
+		na.setOutputFormat (symbolic);
+	else
+		na.setOutputFormat (vectorial);
 	na.openCrySSMExFile ();
 	na.generate(size);
 	na.save("data.txt");
