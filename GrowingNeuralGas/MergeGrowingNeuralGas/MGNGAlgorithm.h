@@ -246,8 +246,8 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
    for(unsigned int t = 0; t < tsize; t++)
    {
     // init
-    unsigned int first_winner               =     1;
-    unsigned int second_winner              =     0;
+    unsigned int first_winner;
+    unsigned int second_winner;
     
 
    //params are defined by user set functions that may depend on the time step

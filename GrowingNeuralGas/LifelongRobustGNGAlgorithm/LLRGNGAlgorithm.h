@@ -451,9 +451,9 @@ template<typename T,typename S>
 void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 {
 	//initialization of first winner
-	unsigned int b = 1;
+	unsigned int b;
 	//second winner
-	unsigned int s = 0;
+	unsigned int s;
 	T distance = _graphptr->getWinner(b,s,(*this)[t]);
 	// _graphptr->increaseItemsCounter (b);
 	
@@ -663,7 +663,7 @@ void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsig
 		//the LLG (Hamker) algorithm modifies the insertion threshold if the distribution of the error changes. Here we are assuming a stationary distribution
 
 		//adapt edges
-		if (s < _graphptr->size())
+		if (s < _graphptr->size() && s != b)
 		{
 			bool s_neighborof_b = false;
 			for(unsigned int j=0; j < b_neighbors.size();j++)

@@ -104,6 +104,11 @@ T GNGModulGraph<T,S>::getWinner(unsigned int& first_winner, unsigned int& second
 	T distance;
 	// best_distance set to "infinity"
 	T best_distance = std::numeric_limits<T>::max();
+
+	assert (this->size() >= 2);
+
+	first_winner = 1;
+	second_winner = 0;
  
 	for (unsigned int j = 0; j < this->size(); j++)
 	{

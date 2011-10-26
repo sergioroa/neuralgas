@@ -100,7 +100,7 @@ template<typename T,typename S> void GNGModul<T,S>::rmNotConnectedNodes()
 {
     assert (_graphModulptr->size() > 0);
     for (unsigned int j = 0; j < _graphModulptr->size(); j++)
-       if (!(_graphModulptr->isConnected(j)) )
+       if (!(_graphModulptr->isConnected(j)) && _graphModulptr->size() > 2 )
        {
            _graphModulptr->rmNode(j);
 	   j--;
