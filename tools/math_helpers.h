@@ -56,8 +56,8 @@ double approx_gauss(const double& value)
   
   \param m1 first mean
   \param m2 second mean
-  \param _sigma1 first variance
-  \param _sigma2 second variance
+  \param _sigma1 first std dev
+  \param _sigma2 second std dev
   
   \return normal distributed bi-dimensional vector
 */Vector<double>* normal_distribution(const double& m1, const double& m2, const double& _sigma1, const double& _sigma2)

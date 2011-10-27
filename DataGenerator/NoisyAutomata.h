@@ -178,7 +178,7 @@ Vector<double>* NoisyAutomata::generate()
 
  if (_data->size() == 0)
  {
-   previous_item = normal_distribution(0,0,_sigma*_sigma,_sigma*_sigma);
+   previous_item = normal_distribution(0,0,_sigma,_sigma);
    return previous_item; 
  }
  else
@@ -195,7 +195,7 @@ Vector<double>* NoisyAutomata::generate()
    {
      
      _state=1;
-     current_item = normal_distribution(1,0,_sigma*_sigma,_sigma*_sigma);
+     current_item = normal_distribution(1,0,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -210,7 +210,7 @@ Vector<double>* NoisyAutomata::generate()
    {
      
      _state=3;
-     current_item = normal_distribution(0,1,_sigma*_sigma,_sigma*_sigma);
+     current_item = normal_distribution(0,1,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -231,7 +231,7 @@ Vector<double>* NoisyAutomata::generate()
      crySSMExFile << "b  ";
    
    _state=0;
-   current_item = normal_distribution(0,0,_sigma*_sigma,_sigma*_sigma);
+   current_item = normal_distribution(0,0,_sigma,_sigma);
    if (crySSMExFile.is_open())
    {
      write_vector (crySSMExFile, *current_item);
@@ -253,7 +253,7 @@ Vector<double>* NoisyAutomata::generate()
    if (prob < _transProb)
    {
      _state=3;
-     current_item = normal_distribution(0,1,_sigma*_sigma,_sigma*_sigma);
+     current_item = normal_distribution(0,1,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -268,7 +268,7 @@ Vector<double>* NoisyAutomata::generate()
    {
      
      _state=1;
-     current_item = normal_distribution(1,0,_sigma*_sigma,_sigma*_sigma);
+     current_item = normal_distribution(1,0,_sigma,_sigma);
      if (crySSMExFile.is_open())
      {
        write_vector (crySSMExFile, *current_item);
@@ -288,7 +288,7 @@ Vector<double>* NoisyAutomata::generate()
    else if (crySSMExFile.is_open() && input_format == symbolic)
      crySSMExFile << "c  ";
    _state=2;
-   current_item = normal_distribution(0,0,_sigma*_sigma,_sigma*_sigma);
+   current_item = normal_distribution(0,0,_sigma,_sigma);
    if (crySSMExFile.is_open())
    {
      write_vector (crySSMExFile, *current_item);
