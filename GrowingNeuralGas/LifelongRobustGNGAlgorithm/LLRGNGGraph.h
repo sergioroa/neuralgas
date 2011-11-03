@@ -217,7 +217,7 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
-	repulsion = last_avgerror * 0.5;
+	repulsion = last_avgerror * 0.25;
 
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
@@ -540,7 +540,7 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	node->weight = (first_node->weight + snd_node->weight) / 2;
 	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
 	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
-	node->repulsion = node->last_avgerror * 0.5;
+	node->repulsion = node->last_avgerror * 0.25;
 
 	node->min_last_avgerror = node->last_avgerror;
 	
