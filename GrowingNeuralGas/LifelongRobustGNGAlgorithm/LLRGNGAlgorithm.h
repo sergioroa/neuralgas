@@ -646,9 +646,12 @@ void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsig
 {
 	if (b < _graphptr->size())
 	{
+		Vector<T> dim_distances (this->getDimension());
+		for (unsigned int i=0; i<this->getDimension(); i++)
+			dim_distances[i] = T(fabs ((*this)[t][i] - (*_graphptr)[b].weight[i]));
 		T min_error = _graphptr->getNodeMinLastAvgError (b);
 		T distance = _graphptr->getDistance ((*this)[t], b);
-		_graphptr->updateAvgError (b, distance);
+		_graphptr->updateAvgError (b, distance, dim_distances);
 		_graphptr->updateRestrictingDistance (b, distance);
 		std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
 

@@ -37,6 +37,8 @@ struct LLRGNGNode : Base_Node<T,S>
 	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable error window
 	std::vector<T> errors;
+	/// errors vector for each dimension
+	std::vector<Vector<T> > dim_errors;
 	// calculate \p learning_quality measure
 	void calculateLearningQuality ();
 	/// quality measure for learning
@@ -50,7 +52,7 @@ struct LLRGNGNode : Base_Node<T,S>
 	/// insertion criterion
 	T insertion_criterion;
 	// calculate \p prev_avgerror and \p last_avgerror
-	void updateAvgError (T, const unsigned int&, const unsigned int&, const unsigned int&);
+	void updateAvgError (T, Vector<T>&, const unsigned int&, const unsigned int&, const unsigned int&);
 	// update \p restricting_distance
 	void updateRestrictingDistance (T);
 	/// previous mean error counter
@@ -65,6 +67,8 @@ struct LLRGNGNode : Base_Node<T,S>
 	T min_last_avgerror;
 	/// last epoch where avg error was reduced
 	unsigned int last_epoch_improvement;
+	/// last mean error for each dimension
+	Vector<T> dim_last_avgerror;
 	// decrease node age
 	void decreaseAge (unsigned int);
 	/// age of the node
@@ -98,7 +102,6 @@ template<typename T, typename S>
 LLRGNGNode<T,S>::~LLRGNGNode ()
 {
 	this->edges.clear();
-	errors.clear ();
 }
 
 
@@ -163,11 +166,16 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
  *  \param timewindow error time window constant
  */
 template<typename T, typename S>
-void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
+void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
 {
 	errors.push_back (last_error);
+	dim_errors.push_back (dim_last_error);
+	
 	if (errors.size() > max_errors_size)
+	{
 		errors.erase (errors.begin());
+		dim_errors.erase (dim_errors.begin());
+	}
 
 
 	unsigned int errors_size = errors.size();
@@ -217,8 +225,17 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, const unsigned int& smoothin
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
-	repulsion = last_avgerror * 0.25;
+	repulsion = last_avgerror * 0.4;
 
+	for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
+	{
+		dim_last_avgerror[i] = 0.0;
+		for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
+			dim_last_avgerror[i] += 1.0 / dim_errors[j][i];
+		dim_last_avgerror[i] = smoothing_last / dim_last_avgerror[i];
+	}
+
+	
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
 	
@@ -277,7 +294,7 @@ public:
 	// calculate inherited variables for a node to be inserted between two nodes
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
-	void updateAvgError (const unsigned int, T);
+	void updateAvgError (const unsigned int, T, Vector<T>&);
 	// update restricting distance value for some node
 	void updateRestrictingDistance (const unsigned int, T);
 	// calculate learning quality for some node
@@ -423,6 +440,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->learning_rate = copynode->learning_rate;
 		node->items_counter = copynode->items_counter;
 		node->errors = copynode->errors;
+		node->dim_errors = copynode->dim_errors;
 		node->efficiency = copynode->efficiency;
 		// node->utifactor = copynode->utifactor;
 	}
@@ -459,6 +477,15 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	n->repulsion = 0.001;
 	n->errors.push_back (n->last_avgerror);
 	n->min_last_avgerror = n->last_avgerror;
+	n->dim_last_avgerror.resize (this->_dimNode);
+	n->dim_errors.resize (1);
+	n->dim_errors[0].resize (this->_dimNode);
+	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
+		for (unsigned int i=0; i<this->_dimNode; i++)
+			n->dim_errors[0][i] = (this->high_limits[i] - this->low_limits[i])*(this->high_limits[i] - this->low_limits[i]);
+	else
+		for (unsigned int i=0; i<this->_dimNode; i++)
+			n->dim_errors[0][i] = (this->high_limit - this->low_limit)*(this->high_limit - this->low_limit);
 	return n; 
 }
 
@@ -537,10 +564,11 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	// node->weight = first_node->weight + (snd_node->weight - node->weight) * 0.25;
 	// node->weight = 2 * first_node->weight + snd_node->weight / 3;
 	// node->weight = 2 * first_node->weight + snd_node->weight / -3;
-	node->weight = (first_node->weight + snd_node->weight) / 2;
+	// node->weight = (first_node->weight + snd_node->weight) / 2;
+	node->weight = first_node->weight + 2 * first_node->dim_last_avgerror;
 	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
 	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
-	node->repulsion = node->last_avgerror * 0.25;
+	node->repulsion = node->last_avgerror * 0.4;
 
 	node->min_last_avgerror = node->last_avgerror;
 	
@@ -555,9 +583,9 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 /** \brief calculate last and previous mean error for a given node
     \param index node index */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
+void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error, Vector<T>& dim_last_error)
 {
-	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error, smoothing_window, error_time_window, max_errors_size);
+	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error, dim_last_error, smoothing_window, error_time_window, max_errors_size);
 
 }
 
@@ -566,7 +594,8 @@ void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error)
   
   \param index node index
   \param last_error last error to calculate current value
-*/template<typename T, typename S>
+*/
+template<typename T, typename S>
 void LLRGNGGraph<T,S>::updateRestrictingDistance (const unsigned int index, T last_error)
 {
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateRestrictingDistance(last_error);
