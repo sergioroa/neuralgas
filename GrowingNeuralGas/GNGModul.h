@@ -46,7 +46,7 @@ protected:
         // removes all edges that have an age greater than the given value
         virtual           void   rmOldEdges(const unsigned int&);
         // removes all nodes from the graph that are not connected
-        virtual           void   rmNotConnectedNodes();
+        virtual           bool   rmNotConnectedNodes();
         // ptr to the underlying graph structure
         GNGModulGraph<T,S>*      _graphModulptr;
  
@@ -96,15 +96,18 @@ template<typename T,typename S> void GNGModul<T,S>::rmOldEdges(const unsigned in
 /** \brief Removes all nodes from the graph that are not connected
 *
 */
-template<typename T,typename S> void GNGModul<T,S>::rmNotConnectedNodes()
+template<typename T,typename S> bool GNGModul<T,S>::rmNotConnectedNodes()
 {
     assert (_graphModulptr->size() > 0);
+    unsigned int original_graph_size = _graphModulptr->size();
     for (unsigned int j = 0; j < _graphModulptr->size(); j++)
        if (!(_graphModulptr->isConnected(j)) && _graphModulptr->size() > 2 )
        {
            _graphModulptr->rmNode(j);
 	   j--;
        }
+
+    return original_graph_size < _graphModulptr->size();
 }
 
 } // namespace neuralgas

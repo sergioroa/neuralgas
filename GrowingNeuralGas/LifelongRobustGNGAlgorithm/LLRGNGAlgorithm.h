@@ -480,6 +480,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//calculate insertion quality
 	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
+		calculateInitialRestrictingDistances ();
 		if (debugging)
 		{
 			mutex.lock();
@@ -509,6 +510,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			{
 				if (_graphptr->deleteInactiveNodes(b, s))
 				{
+					calculateInitialRestrictingDistances ();
 					updateMinimalGraphMDL();
 
 					if (debugging)
@@ -537,6 +539,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						this->graphptr = _graphptr;
 						this->_graphModulptr = _graphptr;
 						insert_this_iter = false;
+						calculateInitialRestrictingDistances ();
 						updateMinimalGraphMDL();
 						if (debugging)
 						{
@@ -631,7 +634,9 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
 
 	//remove nodes without any edge
-	this->rmNotConnectedNodes();
+	if (this->rmNotConnectedNodes())
+		calculateInitialRestrictingDistances ();
+		
 
 
 }
@@ -641,7 +646,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
   \param t current time step
   \param b current winner
   \param s current second winner
-*/template<typename T, typename S>
+*/
+template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsigned int& s)
 {
 	if (b < _graphptr->size())
