@@ -107,7 +107,7 @@ template<typename T,typename S> bool GNGModul<T,S>::rmNotConnectedNodes()
 	   j--;
        }
 
-    return original_graph_size < _graphModulptr->size();
+    return original_graph_size > _graphModulptr->size();
 }
 
 } // namespace neuralgas

@@ -848,6 +848,7 @@ LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& w
 			std::cout << "eff pruned: " << pruned_graphs[i]->model_efficiency << std::endl;
 			std::cout << "change: " << change << std::endl;
 			dislocated_node = i;
+			min_change = change;
 		}
 	}
 	LLRGNGGraph<T,S>* graph_neg_mdl_change;
