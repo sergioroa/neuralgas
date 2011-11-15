@@ -141,7 +141,7 @@ protected:
 	void markAsStableGraph ();
 	// calculate value range of data
 	void calculateValueRange ();
-	// calculate initial restrictive distances for every node
+	// calculate initial restricting distances for every node
 	void calculateInitialRestrictingDistances ();
 	//defines the update rule for the winner node by using a given data vector index
 	void updateWinnerWeight(const unsigned int&, const unsigned int&, T& distance);
@@ -480,7 +480,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//calculate insertion quality
 	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
-		calculateInitialRestrictingDistances ();
+		// calculateInitialRestrictingDistances ();
 		if (debugging)
 		{
 			mutex.lock();

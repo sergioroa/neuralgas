@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 	if (dataset == "1")
 		llrgng->setModelEfficiencyConst (1);
 	else
-		llrgng->setModelEfficiencyConst (1.3);
+		llrgng->setModelEfficiencyConst (1.5);
 	
 	llrgng->setSamplingMode (randomly);
 	//llrgng->setStoppingCriterion (epochs);

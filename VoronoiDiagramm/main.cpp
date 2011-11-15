@@ -12,13 +12,24 @@ int main(int argc, char *argv[])
     char* output=new char[255];
     strcpy(filename_data, "data.txt");
     strcpy(filename_neurons, "nodes.txt");
-    strcpy(output, "voronoi.jpg");
+    strcpy(output, "voronoi.png");
 
     Voronoi v;
-    v.getData(filename_data);
+    if (argc > 1)
+	    if (std::string(argv[1]) == "-w")
+		    v.setWhiteBackground ();
+    if (!v.getData(filename_data))
+    {
+	    std::cerr << "unable to read file data.txt" << std::endl;
+	    return 1;
+    }
     v.showData();
     //v.setSize(500,1000);
-    v.getNeurons(filename_neurons);
+    if (!v.getNeurons(filename_neurons))
+    {
+	    std::cerr << "unable to read file nodes.txt" << std::endl;
+	    return 1;
+    }
     v.getMaxMinValue ();
     v.setSizefromData(500);
     v.discretizeData ();

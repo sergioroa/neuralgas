@@ -14,9 +14,16 @@ int main(int argc, char *argv[])
     char* filename_neurons=new char[255];
     strcpy(filename_data, "data.txt");
     strcpy(filename_neurons, "nodes.txt");
-
-    m.vw->voronoi->getData(filename_data);
-    m.vw->voronoi->getNeurons(filename_neurons);
+    if (!m.vw->voronoi->getData(filename_data))
+    {
+	    std::cerr << "unable to read file data.txt" << std::endl;
+	    return 1;
+    }
+    if (!m.vw->voronoi->getNeurons(filename_neurons))
+    {
+	    std::cerr << "unable to read file nodes.txt" << std::endl;
+	    return 1;
+    }
     m.vw->voronoi->getMaxMinValue ();
     m.vw->voronoi->setSizefromData(1000);
     m.vw->voronoi->discretizeData();

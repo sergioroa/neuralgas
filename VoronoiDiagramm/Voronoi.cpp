@@ -8,6 +8,9 @@ Voronoi::Voronoi ()
     _neurons = NULL;
     _xValues = NULL;
     _yValues = NULL;
+    // data color
+    dataColor = qRgb(255, 255, 255);
+    backgroundColor = Qt::transparent;
 }
 
 Voronoi::~Voronoi ()
@@ -72,7 +75,7 @@ void Voronoi::addNeuron(const std::string& line)
     _neurons->push_back(neuron);
 }
 
-void Voronoi::getData(const char* filename)
+bool Voronoi::getData(const char* filename)
 {
     _data = new std::vector < Vector<double>* >;
     std::string line;
@@ -86,7 +89,9 @@ void Voronoi::getData(const char* filename)
         }
         myfile.close();
         // getMaxMinValue();
+	return true;
     }
+    return false;
 }
 
 void Voronoi::showData()
@@ -118,7 +123,7 @@ void Voronoi::getMaxMinValue()
     }
 }
 
-void Voronoi::getNeurons(const char* filename)
+bool Voronoi::getNeurons(const char* filename)
 {
     _neurons = new std::vector < Base_Node<double, int>* >;
     std::string line;
@@ -131,7 +136,9 @@ void Voronoi::getNeurons(const char* filename)
           addNeuron(line);
         }
         myfile.close();
+	return true;
     }
+    return false;
 
 }
 
@@ -222,28 +229,17 @@ void Voronoi::calcVoronoi()
     _vdg.resetIterator();
 }
 
-void Voronoi::save(const char* filename)
+void Voronoi::drawDiagram (QPainter& painter)
 {
-    QImage image(_width, _height, QImage::Format_RGB32);
-    QPainter painter(&image);
-    
-    QRgb value;
-    // value = qRgb(255, 255, 255);
-    //image.fill(value);
-    //image.fill(0);
-    image.fill (Qt::transparent);
-
     // data
-    value = qRgb(255, 255, 255); // 0xff7aa327
-    //value = qRgb(0, 0, 0);
-    painter.setPen (value);
-    painter.setBrush (QBrush(value));
-    //value = qRgb(0, 0, 255);
+    painter.setPen (dataColor);
+    painter.setBrush (QBrush(dataColor));
+
     for(unsigned int i=0; i < _data->size();i++)
 	painter.drawEllipse ((*(*_data)[i])[0], (*(*_data)[i])[1], 2, 2);
 
     // neurons
-    value = qRgb(255, 0, 0); // 0xffbd9527
+    QRgb value = qRgb(255, 0, 0);
     painter.setPen (value);
     painter.setBrush (QBrush(value));
     for(unsigned int i=0; i < _neurons->size();i++)
@@ -251,14 +247,30 @@ void Voronoi::save(const char* filename)
 
     // voronoi lines
     //value = qRgb(237, 187, 51); // 0xffedba31
-    value = qRgb(0, 0, 255); // 0xffedba31
+    value = qRgb(0, 0, 255);
     painter.setPen (value);
 
     double x1,y1,x2,y2;
     while(_vdg.getNext(x1,y1,x2,y2))
 	painter.drawLine (x1, y1, x2, y2);
+    
+}
 
-    image.save(filename, "JPG");
+void Voronoi::save(const char* filename)
+{
+    QImage image(_width, _height, QImage::Format_ARGB32);
+    image.fill(backgroundColor);
+    QPainter painter(&image);
+
+    drawDiagram (painter);
+
+    image.save(filename, "PNG");
+}
+
+void Voronoi::setWhiteBackground ()
+{
+    dataColor = qRgb(0, 0, 0);
+    backgroundColor = qRgb(255, 255, 255);
 }
 
 void Voronoi::setData (SeqData* d)

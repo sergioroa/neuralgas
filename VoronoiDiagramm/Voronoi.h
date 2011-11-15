@@ -33,8 +33,8 @@ class Voronoi
 public:
     Voronoi ();
     ~Voronoi ();
-    void getData(const char*);
-    void getNeurons(const char*);
+    bool getData(const char*);
+    bool getNeurons(const char*);
     void calcVoronoi();
     void save(const char*);
     void setSize(const int&, const int&);
@@ -47,12 +47,14 @@ public:
     void getMaxMinValue();
     void discretizeData();
     void discretizeNeurons();
+    void setWhiteBackground();
     friend class VoronoiWidget;
     friend class VoronoiMainWindow;
 protected:
     void addNeuron(const std::string&);
     void addData(const std::string&);
     void setNeurons();
+    void drawDiagram (QPainter&);
 private:
     VoronoiDiagramGenerator _vdg;
     double* _xValues;
@@ -62,6 +64,8 @@ private:
     double rangeX, rangeY, factorX, factorY;
     SeqData* _data; 
     SeqNeurons* _neurons;
+    QRgb dataColor;
+    QRgb backgroundColor;
 };
 
 } // namespace neuralgas
