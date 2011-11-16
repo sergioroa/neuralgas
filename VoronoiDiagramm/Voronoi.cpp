@@ -236,14 +236,14 @@ void Voronoi::drawDiagram (QPainter& painter)
     painter.setBrush (QBrush(dataColor));
 
     for(unsigned int i=0; i < _data->size();i++)
-	painter.drawEllipse ((*(*_data)[i])[0], (*(*_data)[i])[1], 2, 2);
+	painter.drawEllipse (QPoint((*(*_data)[i])[0], (*(*_data)[i])[1]), 1, 1);
 
     // neurons
     QRgb value = qRgb(255, 0, 0);
     painter.setPen (value);
     painter.setBrush (QBrush(value));
     for(unsigned int i=0; i < _neurons->size();i++)
-	painter.drawEllipse ((*_neurons)[i]->weight[0], (*_neurons)[i]->weight[1], 5, 5);
+	painter.drawEllipse (QPoint((*_neurons)[i]->weight[0], (*_neurons)[i]->weight[1]), 2, 2);
 
     // voronoi lines
     //value = qRgb(237, 187, 51); // 0xffedba31
