@@ -15,6 +15,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include "VoronoiDiagramGenerator.h"
 #include <Graphs/Vector.h>
@@ -35,8 +36,10 @@ public:
     ~Voronoi ();
     bool getData(const char*);
     bool getNeurons(const char*);
-    void calcVoronoi();
-    void save(const char*);
+    void calcVoronoiImage();
+    void calcVoronoiGnuplot();
+    void saveVoronoiImage(const char*);
+    void saveVoronoiGnuplot (const char*, const char*, const char *);
     void setSize(const int&, const int&);
     void setSizefromData(const int&);
     void showData();
@@ -66,6 +69,8 @@ private:
     SeqNeurons* _neurons;
     QRgb dataColor;
     QRgb backgroundColor;
+    std::stringstream gnuplotstream;
+
 };
 
 } // namespace neuralgas

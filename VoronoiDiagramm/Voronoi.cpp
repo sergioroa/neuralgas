@@ -221,7 +221,7 @@ void Voronoi::setNeurons()
     }
 }
 
-void Voronoi::calcVoronoi()
+void Voronoi::calcVoronoiImage()
 {
     // discretize();
     setNeurons();
@@ -229,14 +229,30 @@ void Voronoi::calcVoronoi()
     _vdg.resetIterator();
 }
 
+void Voronoi::calcVoronoiGnuplot()
+{
+    // discretize();
+    setNeurons();
+    _vdg.generateVoronoi(_xValues,_yValues,_neurons->size(), _minX,_maxX,_minY,_maxY,0);
+    _vdg.resetIterator();
+}
+
+
 void Voronoi::drawDiagram (QPainter& painter)
 {
+
+    QMatrix m;
+    m.translate( 0, _height );
+    m.scale( 1, -1 );
+    painter.setMatrix (m);
+     
     // data
     painter.setPen (dataColor);
     painter.setBrush (QBrush(dataColor));
 
     for(unsigned int i=0; i < _data->size();i++)
 	painter.drawEllipse (QPoint((*(*_data)[i])[0], (*(*_data)[i])[1]), 1, 1);
+	    
 
     // neurons
     QRgb value = qRgb(255, 0, 0);
@@ -256,7 +272,7 @@ void Voronoi::drawDiagram (QPainter& painter)
     
 }
 
-void Voronoi::save(const char* filename)
+void Voronoi::saveVoronoiImage(const char* filename)
 {
     QImage image(_width, _height, QImage::Format_ARGB32);
     image.fill(backgroundColor);
@@ -265,6 +281,33 @@ void Voronoi::save(const char* filename)
     drawDiagram (painter);
 
     image.save(filename, "PNG");
+}
+
+void Voronoi::saveVoronoiGnuplot (const char* filename, const char* datafilename, const char *nodesfilename)
+{
+    gnuplotstream << "set terminal postscript eps enhanced color font \"Times-Roman,14\"" << std::endl;
+    // gnuplotstream << "set output \"|epstopdf --filter > '" + fileName + ".pdf'" << endl;
+    gnuplotstream << "set output \"" + std::string(filename) + ".eps" << std::endl;
+    gnuplotstream << "set autoscale" << std::endl;
+    gnuplotstream << "unset key" << std::endl;
+    gnuplotstream << "set style line 1 lt 1 lc rgb \"black\"" << std::endl;
+    gnuplotstream << "set style line 2 lt 1 lw 2 lc rgb \"red\"" << std::endl;
+    gnuplotstream << "set style line 3 lt 1 lc rgb \"blue\"" << std::endl;
+    
+    double x1,y1,x2,y2;
+    while(_vdg.getNext(x1,y1,x2,y2))
+	gnuplotstream << "set arrow from " << x1 << "," << y1 << " to " << x2 << "," << y2 << " nohead ls 3" << std::endl;
+
+    gnuplotstream << "plot \"" << datafilename << "\" ls 1, \\" << std::endl; 
+    gnuplotstream << "\"" << nodesfilename << "\" ls 2" << std::endl;
+
+    char *gnuplotfile = new char[255];
+    strcpy (gnuplotfile, filename);
+    strcat (gnuplotfile, ".gnu");
+    std::ofstream StartPosgnuplotScript(gnuplotfile, std::ios::out);
+    StartPosgnuplotScript << gnuplotstream.str() << std::endl;
+    StartPosgnuplotScript.close();
+    
 }
 
 void Voronoi::setWhiteBackground ()

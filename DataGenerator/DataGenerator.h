@@ -51,7 +51,7 @@ template<typename T> class DataGenerator
         // generates a given number of data
         virtual void                            generate(const int&);
 	// saves dataset to a text file
-	void                                    save(const char* filename);
+	bool                                    save(const char* filename);
 
  protected:
 	// generate an item
@@ -216,7 +216,7 @@ template<typename T> Vector<T>* DataGenerator<T>::generate()=0;
 *
 * \param filename is the name of the file where to store the data to
 */
-template<typename T> void DataGenerator<T>::save(const char* filename)
+template<typename T> bool DataGenerator<T>::save(const char* filename)
 {
     std::ofstream myfile (filename);
     int size = _data->size();
@@ -232,7 +232,9 @@ template<typename T> void DataGenerator<T>::save(const char* filename)
        }
        
        myfile.close();
+       return true;
     }
+    return false;
 
 }
 

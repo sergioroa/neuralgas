@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     m.vw->voronoi->setSizefromData(1000);
     m.vw->voronoi->discretizeData();
     m.vw->voronoi->discretizeNeurons();
-    m.vw->voronoi->calcVoronoi();
+    m.vw->voronoi->calcVoronoiImage();
 
     m.vw->setImageSize ();
     m.resize (m.vw->width(), m.vw->height());

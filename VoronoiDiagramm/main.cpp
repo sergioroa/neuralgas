@@ -9,9 +9,11 @@ int main(int argc, char *argv[])
 
     char* filename_data=new char[255];
     char* filename_neurons=new char[255];
+    char* filename_voronoi=new char[255];
     char* output=new char[255];
     strcpy(filename_data, "data.txt");
     strcpy(filename_neurons, "nodes.txt");
+    strcpy(filename_voronoi, "voronoi");
     strcpy(output, "voronoi.png");
 
     Voronoi v;
@@ -31,11 +33,13 @@ int main(int argc, char *argv[])
 	    return 1;
     }
     v.getMaxMinValue ();
+    v.calcVoronoiGnuplot();
+    v.saveVoronoiGnuplot(filename_voronoi, filename_data, filename_neurons);
     v.setSizefromData(500);
     v.discretizeData ();
     v.discretizeNeurons ();
-    v.calcVoronoi();
-    v.save(output);
+    v.calcVoronoiImage();
+    v.saveVoronoiImage(output);
     std::cout <<"run done"<<std::endl;
     return 0;
 }

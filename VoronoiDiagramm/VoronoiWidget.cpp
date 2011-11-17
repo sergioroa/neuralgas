@@ -89,7 +89,7 @@ void VoronoiMainWindow::updateData ( SeqNeurons* neurons) {
 	std::cout << "updating..." << std::endl;
 	vw->voronoi->setNeurons (neurons);
 	vw->voronoi->discretizeNeurons ();
-	vw->voronoi->calcVoronoi ();
+	vw->voronoi->calcVoronoiImage ();
 	vw->repaint ();
 	condition->wakeAll ();
 	mutex->unlock ();
@@ -104,7 +104,7 @@ void VoronoiMainWindow::initializeData ( SeqData* data, SeqNeurons* neurons, uns
 	vw->voronoi->discretizeData ();
 	vw->voronoi->setNeurons (neurons);
 	vw->voronoi->discretizeNeurons ();
-	vw->voronoi->calcVoronoi ();
+	vw->voronoi->calcVoronoiImage ();
 	vw->setImageSize ();
 	resize (vw->width()+10, vw->height()+10);
 

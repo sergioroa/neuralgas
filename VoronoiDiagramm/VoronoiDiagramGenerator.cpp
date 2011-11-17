@@ -100,7 +100,7 @@ bool VoronoiDiagramGenerator::generateVoronoi(double *xValues, double *yValues, 
 
 		//printf("\n%f %f\n",xValues[i],yValues[i]);
 	}
-	
+
 	qsort(sites, nsites, sizeof (*sites), scomp);
 	
 	siteidx = 0;
