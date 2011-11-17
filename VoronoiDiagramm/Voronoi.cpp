@@ -283,11 +283,11 @@ void Voronoi::saveVoronoiImage(const char* filename)
     image.save(filename, "PNG");
 }
 
-void Voronoi::saveVoronoiGnuplot (const char* filename, const char* datafilename, const char *nodesfilename)
+void Voronoi::saveVoronoiGnuplot (std::string filename, std::string datafilename, std::string nodesfilename)
 {
     gnuplotstream << "set terminal postscript eps enhanced color font \"Times-Roman,14\"" << std::endl;
     // gnuplotstream << "set output \"|epstopdf --filter > '" + fileName + ".pdf'" << endl;
-    gnuplotstream << "set output \"" + std::string(filename) + ".eps" << std::endl;
+    gnuplotstream << "set output \"" + filename + ".eps" << std::endl;
     gnuplotstream << "set autoscale" << std::endl;
     gnuplotstream << "unset key" << std::endl;
     gnuplotstream << "set style line 1 lt 1 lc rgb \"black\"" << std::endl;
@@ -301,10 +301,8 @@ void Voronoi::saveVoronoiGnuplot (const char* filename, const char* datafilename
     gnuplotstream << "plot \"" << datafilename << "\" ls 1, \\" << std::endl; 
     gnuplotstream << "\"" << nodesfilename << "\" ls 2" << std::endl;
 
-    char *gnuplotfile = new char[255];
-    strcpy (gnuplotfile, filename);
-    strcat (gnuplotfile, ".gnu");
-    std::ofstream StartPosgnuplotScript(gnuplotfile, std::ios::out);
+    std::string gnuplotfile = filename + ".gnu";
+    std::ofstream StartPosgnuplotScript(gnuplotfile.c_str(), std::ios::out);
     StartPosgnuplotScript << gnuplotstream.str() << std::endl;
     StartPosgnuplotScript.close();
     

@@ -10,16 +10,14 @@ int main(int argc, char *argv[])
 
     VoronoiMainWindow m;
 
-    char* filename_data=new char[255];
-    char* filename_neurons=new char[255];
-    strcpy(filename_data, "data.txt");
-    strcpy(filename_neurons, "nodes.txt");
-    if (!m.vw->voronoi->getData(filename_data))
+    std::string filename_data = "data.txt";
+    std::string filename_neurons = "nodes.txt";
+    if (!m.vw->voronoi->getData(filename_data.c_str()))
     {
 	    std::cerr << "unable to read file data.txt" << std::endl;
 	    return 1;
     }
-    if (!m.vw->voronoi->getNeurons(filename_neurons))
+    if (!m.vw->voronoi->getNeurons(filename_neurons.c_str()))
     {
 	    std::cerr << "unable to read file nodes.txt" << std::endl;
 	    return 1;

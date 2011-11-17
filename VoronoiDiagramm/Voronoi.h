@@ -39,7 +39,7 @@ public:
     void calcVoronoiImage();
     void calcVoronoiGnuplot();
     void saveVoronoiImage(const char*);
-    void saveVoronoiGnuplot (const char*, const char*, const char *);
+    void saveVoronoiGnuplot (std::string, std::string, std::string);
     void setSize(const int&, const int&);
     void setSizefromData(const int&);
     void showData();
