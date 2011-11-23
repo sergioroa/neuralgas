@@ -80,16 +80,8 @@ public:
     inline void             setMetric(Metric); 
     //assigns int depending functions to the parameters 
     void                    setFuncArray(T (*)(const unsigned int&),const unsigned int&); 
-    //determines the maximal value within the given data set
-    const T                 maxValue() const; 
-    //determines the minimal value within the given data set
-    const T                 minValue() const; 
-    //determines the maximal values for each dim within the given data set
-    Vector<T>               maxValues() const; 
-    //determines the minimal values for each dim within the given data set
-    Vector<T>               minValues() const; 
     // saves the nodes weight in a file
-    void                    save(const char*);
+    void                    save(const char*, bool t = false);
     // sets the sampling mode for learning instances
     virtual void            setSamplingMode (unsigned int);
     //sets a user defined stopping criterion
@@ -149,71 +141,6 @@ void NeuralGas<T,S>::setFuncArray(T (*func)(const unsigned int& time),const unsi
  _funcArray[index]=func;
 }
 
-/** \brief Determines the maximal value within the given data set
-*
-*/
-template<typename T,typename S> const T NeuralGas<T,S>::maxValue() const
-{
-	assert (_data->size());
-	assert ((*_data)[0]->size());
-	T max_data_value = (*(*_data)[0])[0];
-	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-			if ((*(*_data)[i])[j] > max_data_value )
-				max_data_value = (*(*_data)[i])[j];
-	return max_data_value;
-} 
-
-/** \brief Determines the minimal value within the given data set
-*
-*/
-template<typename T,typename S> const T NeuralGas<T,S>::minValue() const
-{
-	assert (_data->size());
-	assert ((*_data)[0]->size());
-	T min_data_value = (*(*_data)[0])[0];
-	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-			if (_data->operator[](i)->operator[](j) < min_data_value ) 
-				min_data_value = _data->operator[](i)->operator[](j);
-	return min_data_value;
-} 
-
-/** \brief Determines the minimal values in each dim within the given data set
-*
-*/
-template<typename T,typename S> Vector<T> NeuralGas<T,S>::minValues() const
-{
-	assert (_data->size());
-	assert ((*_data)[0]->size());
-	Vector<T> min_data_values ((*_data)[0]->size());
-	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
-		min_data_values[j] = (*(*_data)[0])[j];
-	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-			if (_data->operator[](i)->operator[](j) < min_data_values[j] ) 
-				min_data_values[j] = _data->operator[](i)->operator[](j);
-	return min_data_values;
-} 
-
-/** \brief Determines the maximal values in each dim within the given data set
-*
-*/
-template<typename T,typename S> Vector<T> NeuralGas<T,S>::maxValues() const
-{
-	assert (_data->size());
-	assert ((*_data)[0]->size());
-	Vector<T> max_data_values ((*_data)[0]->size());
-	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
-		max_data_values[j] = (*(*_data)[0])[j];
-	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-			if (_data->operator[](i)->operator[](j) > max_data_values[j] ) 
-				max_data_values[j] = _data->operator[](i)->operator[](j);
-	return max_data_values;
-} 
-
-
 /** \brief Cto with the dimension of the vectors. 
 *
 * Cto has as input the to-be-used dimension for the vectors, leading to an equal
@@ -269,12 +196,13 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
 *
 *
 * \param filename is the name of the file where to store the data to
+* \param text save the file in text format if true
 */
 
 
-template<typename T,typename S> void NeuralGas<T,S>::save(const char* filename)
+template<typename T,typename S> void NeuralGas<T,S>::save(const char* filename, bool text)
 {
-  graphptr->save(filename);
+  graphptr->save(filename, text);
 }
 
 

@@ -131,7 +131,8 @@ INSTALL(FILES ${VORONOIDIAGRAMM_HEADERS} DESTINATION include/NeuralGas/VoronoiDi
 
 SET(TOOLS_HEADERS
 	${NEURALGAS_ROOT}/tools/metrics.h
-	${NEURALGAS_ROOT}/tools/math_helpers.h)
+	${NEURALGAS_ROOT}/tools/math_helpers.h
+	${NEURALGAS_ROOT}/tools/helpers.h)
 INSTALL(FILES ${TOOLS_HEADERS} DESTINATION include/NeuralGas/tools/)
 
 SET(VORONOIDIAGRAMM_MOC_HEADERS

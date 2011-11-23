@@ -15,29 +15,9 @@ Voronoi::Voronoi ()
 
 Voronoi::~Voronoi ()
 {
-    if (_data != NULL)
-    {
-	for (unsigned int i=0; i < _data->size(); i++)
-	    delete (*_data)[i];
-	_data->clear();
-	delete _data;
-    }
+    resetData();
 
-    if (_neurons != NULL)
-    {
-	for (unsigned int i=0; i<_neurons->size(); i++)
-	    for (unsigned int j = i+1; j < _neurons->at(i)->edges.size(); j++)
-		if (_neurons->at(i)->edges[j] != NULL)
-		    delete _neurons->at(i)->edges[j];
-
-	for (unsigned int i=0; i<_neurons->size(); i++)
-	    _neurons->at(i)->edges.clear();
-
-	for (unsigned int i=0; i<_neurons->size(); i++)
-	    delete _neurons->at(i);
-	_neurons->clear();
-	delete _neurons;
-    }
+    resetNodes();
 
     if (_xValues != NULL)
 	delete _xValues;
@@ -46,59 +26,80 @@ Voronoi::~Voronoi ()
     
 }
 
-void Voronoi::addData(const std::string& line)
+bool Voronoi::readData (const char* filename, bool text, bool deprecated)
 {
-    int i=0;
-    while(line[i]!=' ')
-    {
-        i++;
-    }
-    Vector<double>* point = new Vector<double>(2);
-    point->at(0) = atof( (line.substr(0,i)).c_str());
-    point->at(1) = atof( (line.substr(i+1, line.size()-i - 2 )).c_str() );
-    _data->push_back(point);
-    std::cout << point->at(0) << " " << point->at(1) << std::endl;
-
-}
-
-void Voronoi::addNeuron(const std::string& line)
-{
-    int i=0;
-    while(line[i]!=' ')
-    {
-        i++;
-    }
-    Base_Node<double, int>* neuron = new Base_Node<double, int>;
-    neuron->weight.resize (2);
-    neuron->weight[0] = atof( (line.substr(0,i)).c_str() );
-    neuron->weight[1] = atof( (line.substr(i+1, line.size()-i - 2 )).c_str() );
-    _neurons->push_back(neuron);
-}
-
-bool Voronoi::getData(const char* filename)
-{
+    resetData ();
     _data = new std::vector < Vector<double>* >;
-    std::string line;
-    std::ifstream myfile (filename);
-    if (myfile.is_open())
-    {
-        while ( myfile.good() )
-        {
-          getline (myfile,line);
-          addData(line);
-        }
-        myfile.close();
-        // getMaxMinValue();
-	return true;
-    }
-    return false;
+    if (text)
+	return neuralgas::readDataText (filename, _data, deprecated);
+    else
+	return neuralgas::readData (filename, _data);
+	
 }
+
+// bool Voronoi::readDataText (const char* filename, bool deprecated)
+// {
+//     resetData ();
+//     _data = new std::vector < Vector<double>* >;
+//     return neuralgas::readDataText (filename, _data, deprecated);
+// }
+
+
+bool Voronoi::readNodes (const char* filename, bool text, bool deprecated)
+{
+    resetNodes ();
+    _neurons = new std::vector < Base_Node<double, int>* >;
+    if (text)
+	return neuralgas::readNodesText (filename, _neurons, deprecated);
+    else
+	return neuralgas::readNodes (filename, _neurons);
+}
+
+// bool Voronoi::readNodesText (const char* filename, bool deprecated)
+// {
+//     resetNodes ();
+//     _neurons = new std::vector < Base_Node<double, int>* >;
+//     return neuralgas::readNodesText (filename, _neurons, deprecated);
+// }
+
+bool Voronoi::saveData (const char* filename, bool text)
+{
+    if (text)
+	return neuralgas::saveDataText (filename, _data);
+    else
+	return neuralgas::saveData (filename, _data);
+}
+
+// bool Voronoi::saveDataText (const char* filename)
+// {
+//     return neuralgas::saveDataText (filename, _data);
+// }
+
+
+bool Voronoi::saveNodes (const char* filename, bool text)
+{
+    if (text)
+	return neuralgas::saveNodesText (filename, _neurons);
+    else
+	return neuralgas::saveNodes (filename, _neurons);
+	
+}
+
+// bool Voronoi::saveNodesText (const char* filename)
+// {
+//     return neuralgas::saveNodesText (filename, _neurons);
+// }
 
 void Voronoi::showData()
 {
-    for(unsigned int i=0; i < _data->size(); i++)
-        std::cout << (*(*_data)[i])[0] << " " << (*(*_data)[i])[1] << std::endl;
+    neuralgas::showData (_data);
 }
+
+void Voronoi::showNodes()
+{
+    neuralgas::showNodes (_neurons);
+}
+
 
 void Voronoi::getMaxMinValue()
 {
@@ -121,25 +122,6 @@ void Voronoi::getMaxMinValue()
 
 	
     }
-}
-
-bool Voronoi::getNeurons(const char* filename)
-{
-    _neurons = new std::vector < Base_Node<double, int>* >;
-    std::string line;
-    std::ifstream myfile (filename);
-    if (myfile.is_open())
-    {
-        while ( myfile.good() )
-        {
-          getline (myfile,line);
-          addNeuron(line);
-        }
-        myfile.close();
-	return true;
-    }
-    return false;
-
 }
 
 void Voronoi::discretizeData()
@@ -285,7 +267,7 @@ void Voronoi::saveVoronoiImage(const char* filename)
 
 void Voronoi::saveVoronoiGnuplot (std::string filename, std::string datafilename, std::string nodesfilename)
 {
-    gnuplotstream << "set terminal postscript eps enhanced color font \"Times-Roman,14\"" << std::endl;
+    gnuplotstream << "set terminal postscript eps enhanced color font \"Times-Roman,24\"" << std::endl;
     // gnuplotstream << "set output \"|epstopdf --filter > '" + fileName + ".pdf'" << endl;
     gnuplotstream << "set output \"" + filename + ".eps" << std::endl;
     gnuplotstream << "set autoscale" << std::endl;
@@ -299,7 +281,8 @@ void Voronoi::saveVoronoiGnuplot (std::string filename, std::string datafilename
 	gnuplotstream << "set arrow from " << x1 << "," << y1 << " to " << x2 << "," << y2 << " nohead ls 3" << std::endl;
 
     gnuplotstream << "plot \"" << datafilename << "\" ls 1, \\" << std::endl; 
-    gnuplotstream << "\"" << nodesfilename << "\" ls 2" << std::endl;
+    // gnuplotstream << "\"" << nodesfilename << "\" ls 2" << std::endl;
+    gnuplotstream << "\"" << nodesfilename << "\" with points pt 7 lc rgb \"red\"" << std::endl;
 
     std::string gnuplotfile = filename + ".gnu";
     std::ofstream StartPosgnuplotScript(gnuplotfile.c_str(), std::ios::out);
@@ -316,6 +299,7 @@ void Voronoi::setWhiteBackground ()
 
 void Voronoi::setData (SeqData* d)
 {
+    resetData ();
     _data = new SeqData ();
     for (unsigned int i=0; i<d->size(); i++)
     {
@@ -326,6 +310,7 @@ void Voronoi::setData (SeqData* d)
 
 void Voronoi::setNeurons (SeqNeurons* n)
 {
+    resetNodes ();
     _neurons = new SeqNeurons ();
     for (unsigned int i=0; i<n->size(); i++)
     {
@@ -352,5 +337,34 @@ void Voronoi::setNeurons (SeqNeurons* n)
 		}
 }
 
+void Voronoi::resetData ()
+{
+    if (_data != NULL)
+    {
+	for (unsigned int i=0; i < _data->size(); i++)
+	    delete (*_data)[i];
+	_data->clear();
+	delete _data;
+    }
+}
+
+void Voronoi::resetNodes ()
+{
+    if (_neurons != NULL)
+    {
+	for (unsigned int i=0; i<_neurons->size(); i++)
+	    for (unsigned int j = i+1; j < _neurons->at(i)->edges.size(); j++)
+		if (_neurons->at(i)->edges[j] != NULL)
+		    delete _neurons->at(i)->edges[j];
+
+	for (unsigned int i=0; i<_neurons->size(); i++)
+	    _neurons->at(i)->edges.clear();
+
+	for (unsigned int i=0; i<_neurons->size(); i++)
+	    delete _neurons->at(i);
+	_neurons->clear();
+	delete _neurons;
+    }
+}
 
 } // namespace neuralgas

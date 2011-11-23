@@ -2,6 +2,7 @@
 #include <iostream>
 #include "MGNGGraph.h"
 #include "MGNGAlgorithm.h"
+#include "tools/math_helpers.h"
 
 using namespace std;
 using namespace neuralgas;
@@ -42,8 +43,8 @@ int main(int argc, char *argv[])
     mgng.setFuncArray(funclambda,8);
 
     mgng.setData(v);
-    float min_value = mgng.minValue(); 
-    float max_value = mgng.maxValue(); 
+    float min_value = minValue(v); 
+    float max_value = maxValue(v); 
     mgng.setRefVectors(2,min_value,max_value);
     mgng.run();
     mgng.showGraph();

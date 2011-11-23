@@ -18,8 +18,8 @@
 #include <sstream>
 #include <string>
 #include "VoronoiDiagramGenerator.h"
-#include <Graphs/Vector.h>
 #include <Graphs/Base_Graph.h>
+#include <tools/helpers.h>
 
 namespace neuralgas {
 
@@ -34,8 +34,10 @@ class Voronoi
 public:
     Voronoi ();
     ~Voronoi ();
-    bool getData(const char*);
-    bool getNeurons(const char*);
+    bool readData(const char*, bool t=false, bool d = false );
+    bool readNodes(const char*, bool t = false, bool d = false );
+    bool saveData(const char*, bool t = false);
+    bool saveNodes(const char*, bool t = false);
     void calcVoronoiImage();
     void calcVoronoiGnuplot();
     void saveVoronoiImage(const char*);
@@ -43,6 +45,7 @@ public:
     void setSize(const int&, const int&);
     void setSizefromData(const int&);
     void showData();
+    void showNodes();
     SeqData* getData () { return _data; }
     void setData (SeqData* d);
     void setNeurons (SeqNeurons* neurons);
@@ -54,10 +57,10 @@ public:
     friend class VoronoiWidget;
     friend class VoronoiMainWindow;
 protected:
-    void addNeuron(const std::string&);
-    void addData(const std::string&);
     void setNeurons();
     void drawDiagram (QPainter&);
+    void resetData();
+    void resetNodes();
 private:
     VoronoiDiagramGenerator _vdg;
     double* _xValues;

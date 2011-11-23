@@ -12,6 +12,7 @@
 #define DATAGENERATOR_H
 
 #include <Graphs/Vector.h>
+#include <tools/helpers.h>
 #include <fstream>
 
 namespace neuralgas {
@@ -34,14 +35,6 @@ template<typename T> class DataGenerator
                                                 DataGenerator(const int&);
         // std dto
                                                 ~DataGenerator();
-        //determines the max value within the data
-        const T                                 maxValue() const;
-        //determines the min value within the data
-        const T                                 minValue() const;
-	//determines the maximal values for each dim within the given data set
-	Vector<T>                               maxValues() const; 
-	//determines the minimal values for each dim within the given data set
-	Vector<T>                               minValues() const; 
          // erases the data
         void                                    reset();
         // returns the next item
@@ -51,7 +44,7 @@ template<typename T> class DataGenerator
         // generates a given number of data
         virtual void                            generate(const int&);
 	// saves dataset to a text file
-	bool                                    save(const char* filename);
+	bool                                    save(const char* filename, bool t = false);
 
  protected:
 	// generate an item
@@ -90,69 +83,6 @@ template<typename T> DataGenerator<T>::~DataGenerator()
  }
 
 }
-
-/** \brief Determines the maximal value within the given data set
-*
-*/
-template<typename T> const T DataGenerator<T>::maxValue() const
-{
-    T max_data_value = (*(*_data)[0])[0];
-    for ( unsigned int i = 0; i < _data->size(); i++)
-	for ( unsigned int j = 1; j < (*_data)[0]->size(); j++) { 
-	    if (_data->operator[](i)->operator[](j) > max_data_value ) 
-		max_data_value = _data->operator[](i)->operator[](j);
-	}
-    return max_data_value;
-} 
-
-/** \brief Determines the minimal value within the given data set
-*
-*/
-template<typename T> const T DataGenerator<T>::minValue() const
-{
-    T min_data_value = (*(*_data)[0])[0];
-    for ( unsigned int i = 0; i < _data->size(); i++)
-	for ( unsigned int j = 1; j < (*_data)[0]->size(); j++) { 
-	    if (_data->operator[](i)->operator[](j) < min_data_value ) 
-		min_data_value = _data->operator[](i)->operator[](j);
-	}
-    return min_data_value;
-} 
-
-
-/** \brief Determines the minimal values in each dim within the given data set
-*
-*/
-template<typename T> Vector<T> DataGenerator<T>::minValues() const
-{
-	assert (_data->size());
-	assert ((*_data)[0]->size());
-	Vector<T> min_data_values ((*_data)[0]->size());
-	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
-		min_data_values[j] = (*(*_data)[0])[j];
-	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-			if (_data->operator[](i)->operator[](j) < min_data_values[j] ) 
-				min_data_values[j] = _data->operator[](i)->operator[](j);
-	return min_data_values;
-} 
-
-/** \brief Determines the maximal values in each dim within the given data set
-*
-*/
-template<typename T> Vector<T> DataGenerator<T>::maxValues() const
-{
-	assert (_data->size());
-	assert ((*_data)[0]->size());
-	Vector<T> max_data_values ((*_data)[0]->size());
-	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
-		max_data_values[j] = (*(*_data)[0])[j];
-	for ( unsigned int i = 0; i < _data->size(); i++)
-		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
-			if (_data->operator[](i)->operator[](j) > max_data_values[j] ) 
-				max_data_values[j] = _data->operator[](i)->operator[](j);
-	return max_data_values;
-} 
 
 
 /** \brief Erases the data generated so far
@@ -216,26 +146,12 @@ template<typename T> Vector<T>* DataGenerator<T>::generate()=0;
 *
 * \param filename is the name of the file where to store the data to
 */
-template<typename T> bool DataGenerator<T>::save(const char* filename)
+template<typename T> bool DataGenerator<T>::save(const char* filename, bool text)
 {
-    std::ofstream myfile (filename);
-    int size = _data->size();
-    
-    if (myfile.is_open())
-    {
-       for(int i = 0; i < size; i++)
-       {      
-              for(int j=0; j < _dim; j++)
-                      myfile << _data->at(i)->at(j) << " ";
-	      if (i != size-1)
-		      myfile << std::endl;
-       }
-       
-       myfile.close();
-       return true;
-    }
-    return false;
-
+	if (text)
+		return neuralgas::saveDataText (filename, _data);
+	else
+		return neuralgas::saveData (filename, _data);
 }
 
 } // namespace neuralgas

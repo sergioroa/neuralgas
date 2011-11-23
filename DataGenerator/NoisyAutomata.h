@@ -305,4 +305,4 @@ Vector<double>* NoisyAutomata::generate()
 
 } // namespace neuralgas
 
-#endif
+#endif // NOISYAUTOMATA_H

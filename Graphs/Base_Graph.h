@@ -19,6 +19,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <tools/metrics.h>
+#include <tools/helpers.h>
 
 namespace neuralgas {
 
@@ -154,7 +155,7 @@ template<typename T, typename S> class Base_Graph
              // removes an edge between the nodes given by their indeces if there exists one     
              virtual void                        rmEdge(const unsigned int&,const unsigned int&)=0;
              // saves the nodes weight in a file
-             void                                save(const char*);             
+             bool                                save(const char*, bool t = false);             
              //returns a vector of ints representing the indices of the neighboring nodes
              std::vector<unsigned int>           getNeighbors(const unsigned int&) const;
              // Returns neighbors set cardinality for some node
@@ -298,28 +299,14 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
 * which means that they are separated by spaces.
 *
 * \param filename is the name of the file where to store the data to
+* \param text save the file in text format if true
 */
-
-
-template<typename T,typename S> void Base_Graph<T,S>::save(const char* filename)
+template<typename T,typename S> bool Base_Graph<T,S>::save( const char* filename, bool text)
 {
-    std::ofstream myfile (filename);
-    unsigned int size = _nodes.size();
-    
-    if (myfile.is_open())
-    {
-       for(unsigned int i = 0; i < size -1; i++)
-       {      
-              for(unsigned int j=0; j < _dimNode; j++)
-                      myfile << (_nodes[i])->weight[j] << " ";
-              myfile << std::endl;
-       }
-       
-       for(unsigned int j=0; j < _dimNode; j++)
-           myfile << (_nodes[size-1])->weight[j] << " ";       
-       myfile.close();
-    }
-
+	if (text)
+		return neuralgas::saveNodesText (filename, &_nodes);
+	else
+		return neuralgas::saveNodes (filename, &_nodes);
 }
 
 

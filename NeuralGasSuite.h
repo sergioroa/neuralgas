@@ -16,6 +16,7 @@
 #include "GrowingNeuralGas/GNGModul.h"
 #include "GrowingNeuralGas/Testing/ErrorTesting.h"
 #include "GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h"
+#include "tools/math_helpers.h"
 
 namespace neuralgas {
 
@@ -119,8 +120,8 @@ template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(c
 
 template <typename T,typename S> void NeuralGasSuite<T,S>::setRefVectors(const int& number)
 {
-	 Vector<T> min_values = _dg->minValues();
-	 Vector<T> max_values = _dg->maxValues();
+	 Vector<T> min_values = minValues(_dg->getData());
+	 Vector<T> max_values = maxValues(_dg->getData());
         
          for (unsigned int i=0; i <_algos.size();i++)
          {

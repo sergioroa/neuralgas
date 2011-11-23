@@ -36,6 +36,8 @@ template<typename T, typename S> class MGNGAlgorithm;
  */
 template<typename T,typename S> struct MGNGNode : Base_Node<T,S>
 {
+ virtual ~MGNGNode () {}
+	
  // sets the value of the counter
  void setCounter(const float& newCounter){counter=newCounter;}
  // returns the counter
@@ -82,7 +84,7 @@ template<typename T,typename S> class MGNGGraph : public GNGModulGraph<T,S>
    //cto creating a graph with the different dimension for node and edge weight vectors
    MGNGGraph(const int& dimNode,const int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge),UGraph<T,S>(dimNode,dimEdge),TGraph<T,S>(dimNode,dimEdge){}
    // std dto
-   ~MGNGGraph(){}
+   ~MGNGGraph();
    // sets a new counter value for the given node
    void inline setCounter(const int&, const float&);
    // decreases the counter by one
@@ -119,6 +121,20 @@ protected:
    virtual MGNGNode<T,S>*             newNode(void);
 };
 
+
+/** \brief dto Graph deletion
+ */
+template<typename T, typename S>
+MGNGGraph<T,S>::~MGNGGraph ()
+{
+	for (unsigned int i=0; i<this->size(); i++)
+		for (unsigned int j=i+1; j<this->_nodes[i]->edges.size(); j++)
+			if (this->_nodes[i]->edges[j] != NULL)
+				delete this->_nodes[i]->edges[j];
+	
+	for (unsigned int i=0; i<this->size(); i++)
+		this->_nodes[i]->edges.clear();
+}
 
 /** \brief returns a pointer to a node of a type that is currently used by the graph
 *

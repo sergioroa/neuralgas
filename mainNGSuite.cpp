@@ -294,8 +294,9 @@ int main(int argc, char *argv[])
     }
 
     std::cout << std::endl;
+    dG->reset ();
     delete dG;
-    //delete na;
+    delete gng;
     
     return EXIT_SUCCESS;
 }

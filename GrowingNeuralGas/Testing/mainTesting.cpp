@@ -2,6 +2,7 @@
 #include <iostream>
 #include "ErrorTesting.h"
 #include <GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h>
+#include "tools/math_helpers.h"
 
 using namespace std;
 using namespace neuralgas;
@@ -42,8 +43,8 @@ int main(int argc, char *argv[])
     mgng->setFuncArray(funclambda,8);
 
     mgng->setData(v);
-    float max_value = mgng->maxValue(); 
-    float min_value = mgng->minValue(); 
+    float max_value = maxValue(v); 
+    float min_value = minValue(v); 
     mgng->setRefVectors(2,min_value,max_value);
     mgng->run();
     mgng->showGraph();
@@ -53,8 +54,8 @@ int main(int argc, char *argv[])
     for(unsigned int i=0; i < errors.size(); i++)
             std::cout << errors [i] << " ";
 
-    for( int i=0; i < 1500; i++)
-         delete (*v)[i];
+    // for( int i=0; i < 1500; i++)
+    //      delete (*v)[i];
     
     //delete v;
     delete mgng;

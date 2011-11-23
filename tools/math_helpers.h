@@ -96,6 +96,69 @@ double approx_gauss(const double& value)
              
 }             
 
+/** \brief Determines the maximal value within the given data set
+* \param data data set
+*/
+template<typename T> const T maxValue(std::vector< Vector<T>* >* _data)
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	T max_data_value = (*(*_data)[0])[0];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if ((*(*_data)[i])[j] > max_data_value )
+				max_data_value = (*(*_data)[i])[j];
+	return max_data_value;
+} 
+
+/** \brief Determines the minimal value within the given data set
+* \param data data set
+*/
+template<typename T> const T minValue(std::vector< Vector<T>* >* _data)
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	T min_data_value = (*(*_data)[0])[0];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) < min_data_value ) 
+				min_data_value = _data->operator[](i)->operator[](j);
+	return min_data_value;
+} 
+
+/** \brief Determines the minimal values in each dim within the given data set
+* \param data data set
+*/
+template<typename T> Vector<T> minValues(std::vector< Vector<T>* >* _data)
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	Vector<T> min_data_values ((*_data)[0]->size());
+	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
+		min_data_values[j] = (*(*_data)[0])[j];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) < min_data_values[j] ) 
+				min_data_values[j] = _data->operator[](i)->operator[](j);
+	return min_data_values;
+} 
+
+/** \brief Determines the maximal values in each dim within the given data set
+* \param data data set
+*/
+template<typename T> Vector<T> maxValues(std::vector< Vector<T>* >* _data)
+{
+	assert (_data->size());
+	assert ((*_data)[0]->size());
+	Vector<T> max_data_values ((*_data)[0]->size());
+	for (unsigned int j=0; j < (*_data)[0]->size(); j++)
+		max_data_values[j] = (*(*_data)[0])[j];
+	for ( unsigned int i = 0; i < _data->size(); i++)
+		for ( unsigned int j = 0; j < (*_data)[0]->size(); j++)
+			if (_data->operator[](i)->operator[](j) > max_data_values[j] ) 
+				max_data_values[j] = _data->operator[](i)->operator[](j);
+	return max_data_values;
+} 
 
 
 

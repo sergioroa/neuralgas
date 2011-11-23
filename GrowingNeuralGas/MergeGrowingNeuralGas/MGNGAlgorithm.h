@@ -135,8 +135,8 @@ template<typename T,typename S> MGNGAlgorithm<T,S>::MGNGAlgorithm(const unsigned
 template<typename T,typename S> MGNGAlgorithm<T,S>::~MGNGAlgorithm()
 {
 //if (_graphptr!=NULL) 
-  //    delete _graphptr;
-   _graphptr=NULL;                          
+    delete _graphptr;
+   // _graphptr=NULL;                          
 }
 
 /** \brief sets the rule for updating the node counter

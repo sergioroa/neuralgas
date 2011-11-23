@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
 	for (unsigned int i=0; i < data->size(); i++)
 		std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
-	gn.save("data.txt");
+	gn.save("data.dat");
 	llrgng->setData(gn.getData());
-	Vector<double> mins = llrgng->minValues();
-	Vector<double> maxs = llrgng->maxValues();
+	Vector<double> mins = minValues(gn.getData());
+	Vector<double> maxs = maxValues(gn.getData());
 	// double min = llrgng->minValue();
 	// double max = llrgng->maxValue();
 	for (unsigned int i=0; i< mins.size(); i++)
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 		a->exec();
 	
 	llrgng->wait ();
-	llrgng->save("nodes.txt");
+	llrgng->save("nodes.dat");
 	llrgng->showGraph ();
 
 	ErrorTesting<double,int> et(llrgng);

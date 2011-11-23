@@ -71,10 +71,10 @@ int main (int argc, char* argv[])
 		na.setOutputFormat (vectorial);
 	na.openCrySSMExFile ();
 	na.generate(size);
-	na.save("data.txt");
+	na.save("data.dat");
 	llrgng->setData(na.getData());
-	Vector<double> mins = llrgng->minValues();
-	Vector<double> maxs = llrgng->maxValues();
+	Vector<double> mins = minValues(na.getData());
+	Vector<double> maxs = maxValues(na.getData());
 	// double min = llrgng->minValue();
 	// double max = llrgng->maxValue();
 	for (unsigned int i=0; i< mins.size(); i++)
@@ -115,7 +115,7 @@ int main (int argc, char* argv[])
 		a->exec();
 	
 	llrgng->wait ();
-	llrgng->save("nodes.txt");
+	llrgng->save("nodes.dat");
 	llrgng->showGraph ();
 
 	ErrorTesting<double,int> et(llrgng);
