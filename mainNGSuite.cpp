@@ -255,13 +255,13 @@ int main(int argc, char *argv[])
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setAdaptationThreshold (0.0);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaximalEdgeAge (50);
 	    // static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.001);
-	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.00000000001);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setDataAccuracy (0.0001);
 	    if (dataset == _na)
 		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelEfficiencyConst (1.0);
 	    else if (dataset == _mg)
 		    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setModelEfficiencyConst (1.3);		    
-	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsErrorReduction (5);
-	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsMDLReduction (80);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsErrorReduction (3);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setMaxEpochsMDLReduction (400);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setSamplingMode (randomly);
 	    //gng->setStoppingCriterion (epochs);
 	    //gng->setMaxEpochs (100);
@@ -272,23 +272,23 @@ int main(int argc, char *argv[])
    
     //(static_cast< CDNAlgorithm<double,int>* > (ng[1]))->setEnergy(0.1);
     //na->save("data.txt");
-    dG->save("data.txt");
+    dG->save("data.dat");
     ng.run();
     std::vector<double> errors;
     for (int i=0; i < ng.size(); i++)
     {
         std::cout << "Algorithm " << i << std::endl;
         //errors = ng.getErrors(i,500);
-        errors = ng.getErrors(i,sizeofdata-1);
+        errors = ng.getErrors(i,sizeofdata);
         double total_error=0.0;
         ng[i]->showGraph();
-	ng[i]->save ("nodes.txt");
+	ng[i]->save ("nodes.dat");
         for(unsigned int j=0; j < errors.size(); j++)
         {
          //       std::cout << errors [j] << " ";
                 total_error+=errors[j];
         }
-        std::cout << "Total error: "<< total_error / sizeofdata <<std::endl;
+        std::cout << "Avg error: "<< total_error / sizeofdata <<std::endl;
     
         std::cout << std::endl;
     }

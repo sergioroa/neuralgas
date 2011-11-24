@@ -88,7 +88,7 @@ template < typename T, typename S > ErrorTesting<T,S>::ErrorTesting()
 }
 
 /** \brief cto taking a GNGModul ptr 
-*
+]*
 *   \param gngptr a ptr to a GNGModul or a thereof derived class for which the error shall be computed
 */
 template < typename T, typename S > ErrorTesting<T,S>::ErrorTesting(GNGModul<T,S>* gngptr)
@@ -224,7 +224,7 @@ template < typename T, typename S > void ErrorTesting<T,S>::calcErrors()
  else
  {
   for(unsigned int i = 0; i < _pastTimeSteps; i++)
-          _errors[i]=getShortestDistance(_gngptr->size() - _pastTimeSteps + i - 1);         
+          _errors[i]=getShortestDistance(_gngptr->size() - _pastTimeSteps + i);         
  }
 }
 

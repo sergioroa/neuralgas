@@ -82,6 +82,8 @@ public:
     void                    setFuncArray(T (*)(const unsigned int&),const unsigned int&); 
     // saves the nodes weight in a file
     void                    save(const char*, bool t = false);
+    // loads nodes
+    void                    setNodes( std::vector < Base_Node<T, S>* >* nodes);
     // sets the sampling mode for learning instances
     virtual void            setSamplingMode (unsigned int);
     //sets a user defined stopping criterion
@@ -365,6 +367,16 @@ template <typename T, typename S > Vector<T>& NeuralGas<T,S>::operator[](const u
 */
 template <typename T, typename S > const Vector<T>& NeuralGas<T,S>::operator[](const unsigned int& index) const
 {return *(*_data)[index];}
+
+/** \brief Loads the nodes weight from a file
+    \param filename
+    \param text if text file then true
+ */
+template<typename T, typename S> void NeuralGas<T,S>::setNodes( std::vector < Base_Node<T, S>* >* nodes)
+{
+  graphptr->setNodes (nodes);
+}
+
 
 } // namespace neuralgas
 

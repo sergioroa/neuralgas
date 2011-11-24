@@ -1,64 +1,48 @@
 #include <cstdlib>
 #include <iostream>
 #include "ErrorTesting.h"
-#include <GrowingNeuralGas/MergeGrowingNeuralGas/MGNGAlgorithm.h>
-#include "tools/math_helpers.h"
+#include <GrowingNeuralGas/LifelongRobustGNGAlgorithm/LLRGNGAlgorithm.h>
+#include "tools/helpers.h"
 
 using namespace std;
 using namespace neuralgas;
 
-float func(const unsigned int& time)
-{return 0.5 ;}
-
-float funclambda(const unsigned int& time)
-{return 3 ;}
-
-float functheta(const unsigned int& time)
-{return 100;}
-
-
 int main(int argc, char *argv[])
 {
 
-    std::vector< Vector<float>* >* v=new std::vector<Vector<float>* >;
-    for( int i=0; i < 1500; i++)
+    std::vector < Base_Node<double, int>* > nodes;
+    if (!readNodes ("nodes.dat", &nodes))
     {
-        Vector<float>* x;
-        float odd = 3.7 * i*i -  i*5.2+2.3;
-        float even =5.2 * i*i +  i*5.2+2.3;
-        if (i % 2 || i%3 == 0)
-           x = new Vector<float>(1,even);
-        else
-           x = new Vector<float>(1,odd);
-        v->push_back(x);
-       
+	std::cerr << "unable to read file nodes.dat" << std::endl;
+	return 1;
     }
-    MGNGAlgorithm<float,float>* mgng=new MGNGAlgorithm<float,float>(1);
     
+    assert (nodes.size());
+    unsigned int dim = nodes[0]->weight.size ();
+
+    std::vector<Vector<double>* >* data = new std::vector<Vector<double>* >;
+    if (!readData ("data.dat", data))
+    {
+	std::cerr << "unable to read file nodes.dat" << std::endl;
+	return 1;
+    }
+    assert (data->size());
+    assert (data->at(0)->size() == dim);
     
-    for(int i=0; i < NUM_PARAM; i++)
-            mgng->setFuncArray(func,i);
-
-    mgng->setFuncArray(functheta,6);
-    mgng->setFuncArray(funclambda,8);
-
-    mgng->setData(v);
-    float max_value = maxValue(v); 
-    float min_value = minValue(v); 
-    mgng->setRefVectors(2,min_value,max_value);
-    mgng->run();
-    mgng->showGraph();
-    ErrorTesting<float,float> et(mgng);
-
-    std::vector<float> errors = et.getErrors(30,true);
-    for(unsigned int i=0; i < errors.size(); i++)
-            std::cout << errors [i] << " ";
-
-    // for( int i=0; i < 1500; i++)
-    //      delete (*v)[i];
+    LLRGNGAlgorithm<double, int> gng (dim);
+    gng.setNodes ( &nodes );
+    gng.setData ( data );
     
-    //delete v;
-    delete mgng;
+    gng.showGraph ();
+
+    ErrorTesting<double,int> et(&gng);
+
+    std::vector<double> errors = et.getErrors(data->size());
+    double total_error=0.0;
+    for(unsigned int j=0; j < errors.size(); j++)
+	total_error+=errors[j];
+    std::cout << "Avg error: "<< total_error / data->size() <<std::endl;
+    std::cout << std::endl;
     
     return EXIT_SUCCESS;
 }

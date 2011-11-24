@@ -37,14 +37,6 @@ bool Voronoi::readData (const char* filename, bool text, bool deprecated)
 	
 }
 
-// bool Voronoi::readDataText (const char* filename, bool deprecated)
-// {
-//     resetData ();
-//     _data = new std::vector < Vector<double>* >;
-//     return neuralgas::readDataText (filename, _data, deprecated);
-// }
-
-
 bool Voronoi::readNodes (const char* filename, bool text, bool deprecated)
 {
     resetNodes ();
@@ -55,13 +47,6 @@ bool Voronoi::readNodes (const char* filename, bool text, bool deprecated)
 	return neuralgas::readNodes (filename, _neurons);
 }
 
-// bool Voronoi::readNodesText (const char* filename, bool deprecated)
-// {
-//     resetNodes ();
-//     _neurons = new std::vector < Base_Node<double, int>* >;
-//     return neuralgas::readNodesText (filename, _neurons, deprecated);
-// }
-
 bool Voronoi::saveData (const char* filename, bool text)
 {
     if (text)
@@ -69,12 +54,6 @@ bool Voronoi::saveData (const char* filename, bool text)
     else
 	return neuralgas::saveData (filename, _data);
 }
-
-// bool Voronoi::saveDataText (const char* filename)
-// {
-//     return neuralgas::saveDataText (filename, _data);
-// }
-
 
 bool Voronoi::saveNodes (const char* filename, bool text)
 {
@@ -84,11 +63,6 @@ bool Voronoi::saveNodes (const char* filename, bool text)
 	return neuralgas::saveNodes (filename, _neurons);
 	
 }
-
-// bool Voronoi::saveNodesText (const char* filename)
-// {
-//     return neuralgas::saveNodesText (filename, _neurons);
-// }
 
 void Voronoi::showData()
 {

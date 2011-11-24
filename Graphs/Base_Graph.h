@@ -155,7 +155,9 @@ template<typename T, typename S> class Base_Graph
              // removes an edge between the nodes given by their indeces if there exists one     
              virtual void                        rmEdge(const unsigned int&,const unsigned int&)=0;
              // saves the nodes weight in a file
-             bool                                save(const char*, bool t = false);             
+             bool                                save(const char*, bool t = false);
+             // loads nodes 
+             void                                setNodes( std::vector < Base_Node<T, S>* >* nodes);
              //returns a vector of ints representing the indices of the neighboring nodes
              std::vector<unsigned int>           getNeighbors(const unsigned int&) const;
              // Returns neighbors set cardinality for some node
@@ -303,11 +305,20 @@ template<typename T,typename S> Base_Node<T,S>& Base_Graph<T,S>::operator[](cons
 */
 template<typename T,typename S> bool Base_Graph<T,S>::save( const char* filename, bool text)
 {
-	if (text)
-		return neuralgas::saveNodesText (filename, &_nodes);
-	else
-		return neuralgas::saveNodes (filename, &_nodes);
+  if (text)
+    return neuralgas::saveNodesText (filename, &_nodes);
+  else
+    return neuralgas::saveNodes (filename, &_nodes);
 }
+
+/** \brief Loads nodes
+    \param nodes
+ */
+template<typename T, typename S> void Base_Graph<T,S>::setNodes( std::vector < Base_Node<T, S>* >* nodes)
+{
+  _nodes = *nodes;
+}
+
 
 
 /** \brief Inits the graph with the given number of nodes with random valued weight vectors.
