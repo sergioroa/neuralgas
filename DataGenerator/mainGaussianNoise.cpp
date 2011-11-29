@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	// llrgng->setTimeWindows (20, 100, 100);
 	llrgng->setTimeWindows (100, 60, size);
 	llrgng->setLearningRates (0.1, 0.001);
-	llrgng->setInsertionRate (size);
+	llrgng->setInsertionRate (size / 5);
 	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (50);
 	llrgng->setDataAccuracy (0.0001);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 	if (dataset == "1")
 		llrgng->setModelEfficiencyConst (1);
 	else
-		llrgng->setModelEfficiencyConst (1.5);
+		llrgng->setModelEfficiencyConst (1.3);
 	
 	llrgng->setSamplingMode (randomly);
 	//llrgng->setStoppingCriterion (epochs);
