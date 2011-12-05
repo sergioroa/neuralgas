@@ -480,7 +480,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//calculate insertion quality
 	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
-		calculateInitialRestrictingDistances ();
+		// calculateInitialRestrictingDistances ();
 		if (debugging)
 		{
 			mutex.lock();
