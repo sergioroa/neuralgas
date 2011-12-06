@@ -1024,7 +1024,7 @@ void LLRGNGAlgorithm<T,S>::calculateInitialRestrictingDistances ()
 
 		for (unsigned int t=0; t<this->size(); t++)
 		{
-			node->restricting_distance += 1.0 / (metric (node->weight, (*this)[t]) + 0.1);
+			node->restricting_distance += 1.0 / (metric (node->weight, (*this)[t]) + 0.01);
 		}
 		node->restricting_distance /= this->size();
 		node->restricting_distance = 1.0 / node->restricting_distance;
