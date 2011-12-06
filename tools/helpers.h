@@ -19,59 +19,19 @@ namespace neuralgas {
 template < typename T , typename S > struct Base_Node;
 
 template<typename T>
-void readlineData(const std::string& line, std::vector < Vector<T>* >* _data)
-{
-    int i=0;
-    while(line[i]!=' ')
-    {
-        i++;
-    }
-    Vector<T>* point = new Vector<T>(2);
-    point->at(0) = atof( (line.substr(0,i)).c_str());
-    point->at(1) = atof( (line.substr(i+1, line.size()-i - 2 )).c_str() );
-    _data->push_back(point);
-    std::cout << point->at(0) << " " << point->at(1) << std::endl;
-    
-}
-
-template<typename T, typename S>
-void readlineNode(const std::string& line, std::vector < Base_Node<T, S>* >* _nodes)
-{
-    int i=0;
-    while(line[i]!=' ')
-    {
-        i++;
-    }
-    Base_Node<T, S>* neuron = new Base_Node<T, S>;
-    neuron->weight.resize (2);
-    neuron->weight[0] = atof( (line.substr(0,i)).c_str() );
-    neuron->weight[1] = atof( (line.substr(i+1, line.size()-i - 2 )).c_str() );
-    _nodes->push_back(neuron);
-}
-
-template<typename T>
-bool readDataText(const char* filename, std::vector < Vector<T>* >* _data, bool flag_deprecate = false)
+bool readDataText(const char* filename, std::vector < Vector<T>* >* _data)
 {
     std::ifstream myfile (filename);
     assert ( _data != NULL );
 
     if (myfile.is_open())
     {
-
+	char comment;
 	int size, dim;
-	if (flag_deprecate)
-	{
-	    std::string line;
-	    while ( myfile.good() )
-	    {
-		getline (myfile,line);
-		readlineData(line, _data);
-	    }
-	    myfile.close();
-	    return true;
-	}
 
+	myfile >> comment;
 	myfile >> size;
+	myfile >> comment;
 	myfile >> dim;
 	for (int i=0; i < size; i++)
 	{
@@ -144,7 +104,10 @@ bool saveDataText(const char* filename, std::vector < Vector<T>* >* _data)
     {
 	int size = _data->size();
 	int dim = _data->at(0)->size();
+	char comment = '#';
+	myfile << comment << " ";
 	myfile << size << std::endl; 
+	myfile << comment << " ";
 	myfile << dim << std::endl;
 	for(int i = 0; i < size; i++)
 	{      
@@ -186,27 +149,19 @@ void showNodes (std::vector < Base_Node<T, S>* >* _nodes)
 
 
 template<typename T, typename S>
-bool readNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _nodes, bool deprecated = false)
+bool readNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
 {
     assert ( _nodes != NULL );
     std::ifstream myfile (filename);
     
     if (myfile.is_open())
     {
+	char comment;
 	int size, dim;
-	if (deprecated)
-	{
-	    std::string line;
-	    while ( myfile.good() )
-	    {
-		getline (myfile,line);
-		readlineNode(line, _nodes);
-	    }
-	    myfile.close ();
-	    return true;
-	}
 
+	myfile >> comment;
 	myfile >> size;
+	myfile >> comment;
 	myfile >> dim;
 	for (int i=0; i<size; i++)
 	{
@@ -257,11 +212,11 @@ bool saveNodes(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
 {
     std::ofstream myfile (filename, std::ios::out | std::ios::binary);
     assert (_nodes->size());
-    int size = _nodes->size();
-    int dim = _nodes->at(0)->weight.size();
 
     if (myfile.is_open())
     {
+	int size = _nodes->size();
+	int dim = _nodes->at(0)->weight.size();
 	myfile.write ((const char*)&size, sizeof (size));
 	myfile.write ((const char*)&dim, sizeof (dim));
 	for (int i=0; i<size; i++)
@@ -281,23 +236,26 @@ bool saveNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _node
 {
     std::ofstream myfile (filename);
     assert (_nodes->size());
-    unsigned int size = _nodes->size();
-    unsigned int dim = _nodes->at(0)->weight.size();
     
     if (myfile.is_open())
     {
+	char comment = '#';
+	unsigned int size = _nodes->size();
+	unsigned int dim = _nodes->at(0)->weight.size();
+	myfile << comment << " ";
 	myfile << size << std::endl;
+	myfile << comment << " ";
 	myfile << dim << std::endl;
-       for(unsigned int i = 0; i < size; i++)
-       {      
-	   for(unsigned int j=0; j < dim; j++)
-	       myfile << _nodes->at(i)->weight[j] << " ";
-	   if (i != size-1)
-	       myfile << std::endl;
-       }
+	for(unsigned int i = 0; i < size; i++)
+	{      
+	    for(unsigned int j=0; j < dim; j++)
+		myfile << _nodes->at(i)->weight[j] << " ";
+	    if (i != size-1)
+		myfile << std::endl;
+	}
        
-       myfile.close();
-       return true;
+	myfile.close();
+	return true;
     }
     return false;
 

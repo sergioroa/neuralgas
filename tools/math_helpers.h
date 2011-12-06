@@ -21,7 +21,7 @@ namespace neuralgas {
   \param value variable
   \return result
 */
-double approx_gauss(const double& value)
+inline double approx_gauss(const double& value)
 {
       double dz = 10E-5;
       double integral = 0.0;
@@ -42,7 +42,8 @@ double approx_gauss(const double& value)
   
   \param a1 first uniformly distributed random variable
   \param a2 second uniformly distributed random variable
-*/void box_muller(double& a1, double& a2)
+*/
+inline void box_muller(double& a1, double& a2)
 {
      double rho = sqrt( -2* (log(a1)));
      double phi = 2*M_PI*a2;
@@ -60,7 +61,8 @@ double approx_gauss(const double& value)
   \param _sigma2 second std dev
   
   \return normal distributed bi-dimensional vector
-*/Vector<double>* normal_distribution(const double& m1, const double& m2, const double& _sigma1, const double& _sigma2)
+*/
+inline Vector<double>* normal_distribution(const double& m1, const double& m2, const double& _sigma1, const double& _sigma2)
 {
  Vector<double>* v=new Vector<double>(2);
 

@@ -19,7 +19,6 @@
 #include <string>
 #include "VoronoiDiagramGenerator.h"
 #include <Graphs/Base_Graph.h>
-#include <tools/helpers.h>
 
 namespace neuralgas {
 
@@ -34,8 +33,8 @@ class Voronoi
 public:
     Voronoi ();
     ~Voronoi ();
-    bool readData(const char*, bool t=false, bool d = false );
-    bool readNodes(const char*, bool t = false, bool d = false );
+    bool readData(const char*, bool t=false );
+    bool readNodes(const char*, bool t = false );
     bool saveData(const char*, bool t = false);
     bool saveNodes(const char*, bool t = false);
     void calcVoronoiImage();

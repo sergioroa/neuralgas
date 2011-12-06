@@ -26,23 +26,23 @@ Voronoi::~Voronoi ()
     
 }
 
-bool Voronoi::readData (const char* filename, bool text, bool deprecated)
+bool Voronoi::readData (const char* filename, bool text)
 {
     resetData ();
     _data = new std::vector < Vector<double>* >;
     if (text)
-	return neuralgas::readDataText (filename, _data, deprecated);
+	return neuralgas::readDataText (filename, _data);
     else
 	return neuralgas::readData (filename, _data);
 	
 }
 
-bool Voronoi::readNodes (const char* filename, bool text, bool deprecated)
+bool Voronoi::readNodes (const char* filename, bool text)
 {
     resetNodes ();
     _neurons = new std::vector < Base_Node<double, int>* >;
     if (text)
-	return neuralgas::readNodesText (filename, _neurons, deprecated);
+	return neuralgas::readNodesText (filename, _neurons);
     else
 	return neuralgas::readNodes (filename, _neurons);
 }

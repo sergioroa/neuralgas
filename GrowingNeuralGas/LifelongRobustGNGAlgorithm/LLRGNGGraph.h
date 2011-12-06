@@ -252,9 +252,9 @@ void LLRGNGNode<T,S>::updateRestrictingDistance (T last_error)
 	//update restricting distance
 	prev_restricting_distance = restricting_distance;
 	if (last_error >= restricting_distance)
-		restricting_distance = 1 / (0.5 * (1.0 / restricting_distance + 1.0 / last_error));
+		restricting_distance = 1 / (0.5 * (1.0 / restricting_distance + 1.0 / (last_error + 0.0001)));
 	else
-		restricting_distance = 0.5 * (restricting_distance + last_error);
+		restricting_distance = 0.5 * (restricting_distance + last_error + 0.0001);
 
 
 }

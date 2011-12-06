@@ -17,6 +17,7 @@
 #include <vector>
 #include <limits>
 #include <Graphs/Base_Graph.h>
+#include <tools/math_helpers.h>
 
 /** \namespace neuralgas
     \brief Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
@@ -79,7 +80,15 @@ public:
     //inline void             setMetric(T (*)(const Vector<T>& a,const Vector<T>& b));
     inline void             setMetric(Metric); 
     //assigns int depending functions to the parameters 
-    void                    setFuncArray(T (*)(const unsigned int&),const unsigned int&); 
+    void                    setFuncArray(T (*)(const unsigned int&),const unsigned int&);
+    //determines the maximal value within the given data set
+    const T                 maxValue() const;
+    //determines the minimal value within the given data set
+    const T                 minValue() const;
+    //determines the maximal values for each dim within the given data set
+    Vector<T>               maxValues() const;
+    //determines the minimal values for each dim within the given data set
+    Vector<T>               minValues() const;
     // saves the nodes weight in a file
     void                    save(const char*, bool t = false);
     // loads nodes
@@ -141,6 +150,35 @@ template<typename T,typename S>
 void NeuralGas<T,S>::setFuncArray(T (*func)(const unsigned int& time),const unsigned int& index)
 {
  _funcArray[index]=func;
+}
+
+/** \brief Determines the maximal value within the given data set
+ *
+ */
+template<typename T,typename S> const T NeuralGas<T,S>::maxValue() const
+{
+    return neuralgas::maxValue (_data);
+}
+/** \brief Determines the minimal value within the given data set
+ *
+ */
+template<typename T,typename S> const T NeuralGas<T,S>::minValue() const
+{
+    return neuralgas::minValue (_data);
+}
+/** \brief Determines the minimal values in each dim within the given data set
+ *
+ */
+template<typename T,typename S> Vector<T> NeuralGas<T,S>::minValues() const
+{
+    return neuralgas::minValues (_data);
+}
+/** \brief Determines the maximal values in each dim within the given data set
+ *
+ */
+template<typename T,typename S> Vector<T> NeuralGas<T,S>::maxValues() const
+{
+    return neuralgas::maxValues (_data);
 }
 
 /** \brief Cto with the dimension of the vectors. 

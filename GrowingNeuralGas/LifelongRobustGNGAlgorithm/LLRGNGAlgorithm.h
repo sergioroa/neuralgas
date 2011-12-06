@@ -11,7 +11,6 @@
 #define LLRGNGALGORITHM_H
 
 #include <GrowingNeuralGas/GNGModul.h>
-#include <GrowingNeuralGas/GNGGraph.h>
 #include "LLRGNGGraph.h"
 #include <algorithm>
 #include <QThread>
@@ -143,6 +142,8 @@ protected:
 	void calculateValueRange ();
 	// calculate initial restricting distances for every node
 	void calculateInitialRestrictingDistances ();
+	// check if restricting distances are overflowed
+	void checkOverflowedRestrictingDistances ();
 	//defines the update rule for the winner node by using a given data vector index
 	void updateWinnerWeight(const unsigned int&, const unsigned int&, T& distance);
 	//defines the update rule for a neighboring node by using a given data vector index
@@ -636,7 +637,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//remove nodes without any edge
 	if (this->rmNotConnectedNodes())
 		calculateInitialRestrictingDistances ();
-		
+
+	// checkOverflowedRestrictingDistances ();
 
 
 }
@@ -1010,7 +1012,7 @@ void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 
 }
 
-/** \brief calculate initial restrictive distances for every node
+/** \brief calculate initial restricting distances for every node
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::calculateInitialRestrictingDistances ()
@@ -1022,7 +1024,7 @@ void LLRGNGAlgorithm<T,S>::calculateInitialRestrictingDistances ()
 
 		for (unsigned int t=0; t<this->size(); t++)
 		{
-			node->restricting_distance += 1.0 / metric (node->weight, (*this)[t]);
+			node->restricting_distance += 1.0 / (metric (node->weight, (*this)[t]) + 0.1);
 		}
 		node->restricting_distance /= this->size();
 		node->restricting_distance = 1.0 / node->restricting_distance;
@@ -1031,6 +1033,22 @@ void LLRGNGAlgorithm<T,S>::calculateInitialRestrictingDistances ()
 	
 }
 
+/** \brief check if restricting distances are overflowed and if so recalculate them
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::checkOverflowedRestrictingDistances ()
+{
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
+		if (isnan(node->restricting_distance))
+		{
+			calculateInitialRestrictingDistances ();
+			return;
+		}
+	}
+
+}
 
 } // namespace neuralgas
 
