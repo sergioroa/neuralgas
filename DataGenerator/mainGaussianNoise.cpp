@@ -21,7 +21,8 @@ int main(int argc, char *argv[])
 		("debug,d", "debug using a Qt Widget for Voronoi visualization")
 		("size,s", po::value (&size)->default_value (1000), "dataset size")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
-		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter");
+		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
+		("mdl,m", "save MDL history to a file mdl.txt");
 
 	// Declare an options description instance which will include
 	// all the options
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
 	// llrgng->setTimeWindows (20, 100, 100);
 	llrgng->setTimeWindows (100, 60, size);
 	llrgng->setLearningRates (0.1, 0.001);
-	llrgng->setInsertionRate (size / 5);
+	llrgng->setInsertionRate (size);
 	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (50);
 	llrgng->setDataAccuracy (0.0001);
@@ -123,7 +124,10 @@ int main(int argc, char *argv[])
 	//llrgng->setStoppingCriterion (epochs);
 	//llrgng->setMaxEpochs (1);
 	llrgng->setStoppingCriterion (stability);
+	if (vm.count("mdl"))
+		llrgng->saveMDLHistory ("mdl.txt");
 
+	
 	llrgng->begin();
 
 	if (vm.count("debug"))

@@ -107,7 +107,7 @@ int main (int argc, char* argv[])
 	//llrgng->setStoppingCriterion (epochs);
 	//llrgng->setMaxEpochs (100);
 	llrgng->setStoppingCriterion (stability);
-
+	// llrgng->saveMDLHistory ("mdl.txt");
 	
 	llrgng->begin();
 

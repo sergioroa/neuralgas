@@ -125,6 +125,8 @@ public:
 	void setMaxEpochsErrorReduction (unsigned int);
 	// set maximum nr of epochs after mdl reduction is expected
 	void setMaxEpochsMDLReduction (unsigned int);
+	// save MDL history in text files
+	void saveMDLHistory (const char*);
 protected:
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
@@ -144,6 +146,10 @@ protected:
 	void calculateInitialRestrictingDistances ();
 	// check if restricting distances are overflowed
 	void checkOverflowedRestrictingDistances ();
+	// save MDL history in text files
+	void saveMDLHistory ();
+	// close MDL history file
+	void closeMDLHistory ();
 	//defines the update rule for the winner node by using a given data vector index
 	void updateWinnerWeight(const unsigned int&, const unsigned int&, T& distance);
 	//defines the update rule for a neighboring node by using a given data vector index
@@ -185,6 +191,8 @@ protected:
 	unsigned int nr_of_insertions;
 	/// flag for tracking if a dislocated node was found in previous insertion epoch
 	bool insert_this_iter;
+	/// flag for saving MDL history
+	std::ofstream* mdl_history;
 };
 
 /** \brief cto initializing the class 
@@ -202,7 +210,8 @@ LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned in
 	max_epochs_error_reduction (5),
 	max_epochs_mdl_reduction (80),
 	last_epoch_mdl_reduction (0),
-	model_efficiency_const (1.0)
+	model_efficiency_const (1.0),
+	mdl_history (NULL)
 {
 	_graphptr = new LLRGNGGraph<T,S>(dim, window);
 	this->graphptr = _graphptr;
@@ -295,7 +304,7 @@ void LLRGNGAlgorithm<T,S>::setMaximalEdgeAge (unsigned int maximal_edge_age)
 	_graphptr->setMaximalEdgeAge (maximal_edge_age) ;
 }
 
-/** set \p data_accuracy constant
+/** \brief set \p data_accuracy constant
  *  \param accuracy maximal data precision or minimal quantization constant
  */
 template<typename T, typename S>
@@ -304,13 +313,48 @@ void LLRGNGAlgorithm<T,S>::setDataAccuracy (T accuracy)
 	data_accuracy = accuracy;
 }
 
-/** set \p model_efficiency_const constant to balance the contribution of model efficiency for MDL calculation
- * \param constant set model complexity contribution
+/** \brief set \p model_efficiency_const constant to balance the contribution of model efficiency for MDL calculation
+ *  \param constant set model complexity contribution
  */
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::setModelEfficiencyConst (T constant)
 {
 	model_efficiency_const = constant;
+}
+
+/** \brief set \p mdl_history file
+ *  \param filename file name for saving the MDL history
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::saveMDLHistory (const char* filename)
+{
+	mdl_history = new std::ofstream (filename);
+
+	if (!mdl_history->is_open())
+	{
+		closeMDLHistory ();
+	}
+}
+
+/** \brief store new value in \p mdl_history file
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::saveMDLHistory ()
+{
+	*mdl_history << mdl;
+	if (epoch == last_epoch_mdl_reduction)
+		*mdl_history << " " << min_mdl;
+	*mdl_history << std::endl;
+}
+
+/** \brief close \p mdl_history file
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::closeMDLHistory ()
+{
+	mdl_history->close();
+	delete mdl_history;
+	mdl_history = NULL;
 }
 
 /** \brief Defines the update rule for a node given by the second index 
@@ -403,6 +447,8 @@ void LLRGNGAlgorithm<T,S>::run()
 					if (stable_graph)
 						break;
 				}
+				if (mdl_history != NULL)
+					saveMDLHistory ();
 				if (stable_graph)
 					break;
 				epoch++;
@@ -432,6 +478,8 @@ void LLRGNGAlgorithm<T,S>::run()
 					if (stable_graph)
 						break;
 				}
+				if (mdl_history != NULL)
+					saveMDLHistory ();
 				if (stable_graph)
 					break;
 				epoch++;
@@ -442,6 +490,8 @@ void LLRGNGAlgorithm<T,S>::run()
 		}
 
 	}
+	if (mdl_history != NULL)
+		closeMDLHistory ();
 }
 
 /** \brief a learning cycle for instance t
@@ -621,8 +671,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 
 				nr_of_insertions = 1;
 			}
-		}
-		
+		}		
 	}
 
 	if (!stable_graph)
