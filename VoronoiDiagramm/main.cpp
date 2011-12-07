@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     if (argc > 1)
 	    if (std::string(argv[1]) == "-w")
 		    v.setWhiteBackground ();
-    if (!v.readData(filename_data.c_str(), true))
+    if (!v.readData(filename_data.c_str()))
     {
 	    std::cerr << "unable to read file data.dat" << std::endl;
 	    return 1;
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     std::cout << "data: " << std::endl;
     v.showData();
     //v.setSize(500,1000);
-    if (!v.readNodes(filename_neurons.c_str(), true))
+    if (!v.readNodes(filename_neurons.c_str()))
     {
 	    std::cerr << "unable to read file nodes.dat" << std::endl;
 	    return 1;
