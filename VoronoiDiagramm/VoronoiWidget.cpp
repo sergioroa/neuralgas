@@ -69,6 +69,7 @@ VoronoiMainWindow::VoronoiMainWindow(QWidget *parent)
 
 VoronoiMainWindow::~VoronoiMainWindow()
 {
+	delete vw;
 }
 
 void VoronoiMainWindow::customEvent(QEvent* e) {

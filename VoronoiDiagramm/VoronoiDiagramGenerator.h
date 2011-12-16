@@ -56,7 +56,6 @@ struct FreeNodeArrayList
 {
 	struct	Freenode* memory;
 	struct	FreeNodeArrayList* next;
-
 };
 
 struct	Freelist	

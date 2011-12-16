@@ -35,6 +35,8 @@ VoronoiDiagramGenerator::VoronoiDiagramGenerator()
 {
 	siteidx = 0;
 	sites = 0;
+	ELhash = 0;
+	PQhash = 0;
 
 	allMemoryList = new FreeNodeArrayList;
 	allMemoryList->memory = 0;
@@ -70,7 +72,9 @@ bool VoronoiDiagramGenerator::generateVoronoi(double *xValues, double *yValues, 
 	debug = 1;
 	sorted = 0; 
 	freeinit(&sfl, sizeof (Site));
-		
+
+	if (sites != 0)
+		delete sites;
 	sites = (struct Site *) myalloc(nsites*sizeof( *sites));
 
 	if(sites == 0)
@@ -134,6 +138,8 @@ bool VoronoiDiagramGenerator::ELinitialize()
 	int i;
 	freeinit(&hfl, sizeof **ELhash);
 	ELhashsize = 2 * sqrt_nsites;
+	if (ELhash != 0)
+		delete ELhash;
 	ELhash = (struct Halfedge **) myalloc ( sizeof *ELhash * ELhashsize);
 
 	if(ELhash == 0)
@@ -558,6 +564,8 @@ bool VoronoiDiagramGenerator::PQinitialize()
 	PQcount = 0;
 	PQmin = 0;
 	PQhashsize = 4 * sqrt_nsites;
+	if (PQhash != 0)
+		delete PQhash;
 	PQhash = (struct Halfedge *) myalloc(PQhashsize * sizeof *PQhash);
 
 	if(PQhash == 0)
@@ -624,16 +632,16 @@ void VoronoiDiagramGenerator::cleanup()
 	{
 		prev = current;
 		current = current->next;
-		free(prev->memory);
+		if (prev->memory != 0)
+			free(prev->memory);
 		delete prev;
 		prev = 0;
 	}
 
-	if(current != 0 && current->memory != 0)
-	{
+	if(current->memory != 0)
 		free(current->memory);
+	if (current != 0)
 		delete current;
-	}
 
 	allMemoryList = new FreeNodeArrayList;
 	allMemoryList->next = 0;
