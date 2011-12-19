@@ -85,6 +85,8 @@ struct LLRGNGNode : Base_Node<T,S>
 	// T utifactor;
 	/// repulsion constant for updating weights
 	T repulsion;
+	/// mode for calculating mean distances
+	unsigned int mean_distance_mode;
 };
 
 /// \brief default \p LLRGNGNode cto
@@ -213,28 +215,47 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, c
 	prev_avgerror = 0.0;
 	last_avgerror = 0.0;
 
-	
-	for (unsigned int i=windowbegin_last_avgerror; i < errors_size; i++) 
-		last_avgerror += 1.0 / errors[i];
-	for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
-		prev_avgerror += 1.0 / errors[i];	
-	
-	prev_avgerror = smoothing_prev / prev_avgerror;
-	last_avgerror = smoothing_last / last_avgerror;
+	if (mean_distance_mode == harmonic)
+	{
+		for (unsigned int i=windowbegin_last_avgerror; i < errors_size; i++) 
+			last_avgerror += 1.0 / errors[i];
+		for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
+			prev_avgerror += 1.0 / errors[i];	
+		
+		prev_avgerror = smoothing_prev / prev_avgerror;
+		last_avgerror = smoothing_last / last_avgerror;
+		
+		for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
+		{
+			dim_last_avgerror[i] = 0.0;
+			for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
+				dim_last_avgerror[i] += 1.0 / dim_errors[j][i];
+			dim_last_avgerror[i] = smoothing_last / dim_last_avgerror[i];
+		}
+	}
+	else if (mean_distance_mode == arithmetic)
+	{
+		for (unsigned int i=windowbegin_last_avgerror; i < errors_size; i++) 
+			last_avgerror += errors[i];
+		for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
+			prev_avgerror += errors[i];	
+		
+		prev_avgerror = prev_avgerror / smoothing_prev;
+		last_avgerror = last_avgerror / smoothing_last;
+
+		for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
+		{
+			dim_last_avgerror[i] = 0.0;
+			for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
+				dim_last_avgerror[i] += dim_errors[j][i];
+			dim_last_avgerror[i] = dim_last_avgerror[i] / smoothing_last;
+		}
+	}
 
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
 	repulsion = last_avgerror * 0.4;
-
-	for (unsigned int i=0; i<dim_last_avgerror.size(); i++)
-	{
-		dim_last_avgerror[i] = 0.0;
-		for (unsigned int j=windowbegin_last_avgerror; j < errors_size; j++)
-			dim_last_avgerror[i] += 1.0 / dim_errors[j][i];
-		dim_last_avgerror[i] = smoothing_last / dim_last_avgerror[i];
-	}
-
 	
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
@@ -329,6 +350,8 @@ public:
 	T getNodeMinLastAvgError (const unsigned int);
 	// set last epoch where an error reduction for a node was achieved
 	void setLastEpochImprovement (const unsigned int, unsigned int);
+	// set mean distance calculation mode
+	void setMeanDistanceMode (unsigned int);
 	friend class LLRGNGAlgorithm<T,S>;
 
 protected:
@@ -354,7 +377,9 @@ protected:
 	// T utifactor;
 	/// current model efficiency value
 	T model_efficiency;
-
+	/// mode for calculating mean distances
+	unsigned int mean_distance_mode;
+		
 };
 
 /** \brief cto Graph creation (node and edges weights share dimensionality)
@@ -375,7 +400,8 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_
 	age_time_window (1),
 	max_errors_size (max_error_window),
 	// utifactor (0),
-	model_efficiency (0)
+	model_efficiency (0),
+	mean_distance_mode (harmonic)
 {
 }
 
@@ -398,7 +424,8 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 	age_time_window (g.age_time_window),
 	max_errors_size (g.max_errors_size),
 	// utifactor (g.utifactor),
-	model_efficiency (g.model_efficiency)
+	model_efficiency (g.model_efficiency),
+	mean_distance_mode (g.mean_distance_mode)
 {
 
 	this->_dimNode = g._dimNode;
@@ -442,6 +469,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->errors = copynode->errors;
 		node->dim_errors = copynode->dim_errors;
 		node->efficiency = copynode->efficiency;
+		node->mean_distance_mode = copynode->mean_distance_mode;
 		// node->utifactor = copynode->utifactor;
 	}
 }
@@ -480,6 +508,7 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	n->dim_last_avgerror.resize (this->_dimNode);
 	n->dim_errors.resize (1);
 	n->dim_errors[0].resize (this->_dimNode);
+	n->mean_distance_mode = mean_distance_mode;
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
 		for (unsigned int i=0; i<this->_dimNode; i++)
 			n->dim_errors[0][i] = (this->high_limits[i] - this->low_limits[i])*(this->high_limits[i] - this->low_limits[i]);
@@ -789,6 +818,21 @@ void LLRGNGGraph<T,S>::setLastEpochImprovement (const unsigned int index, unsign
 {
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->last_epoch_improvement = epoch;
 }
+
+/** \brief set mean distance calculation mode
+    \param mode mean distance calculation mode
+*/
+template<typename T, typename S>
+void LLRGNGGraph<T,S>::setMeanDistanceMode (unsigned int mode)
+{
+	mean_distance_mode = mode;
+	for (unsigned int i=0; i < this->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (this->_nodes[i]);
+		node->mean_distance_mode = mode;
+	}
+}
+
 
 } // namespace neuralgas
 

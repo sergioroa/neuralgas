@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	po::options_description desc("Allowed parameters:");
 	desc.add_options()
 		("help,h", "produce help message")
-		("debug,d", "debug using a Qt Widget for Voronoi visualization")
+		("visualize,v", "use a Qt Widget for Voronoi visualization")
 		("size,s", po::value (&size)->default_value (1000), "dataset size")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
@@ -42,13 +42,13 @@ int main(int argc, char *argv[])
 	QApplication *a;
 	VoronoiMainWindow *vWindow;
 	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
-	if (vm.count("debug"))
+	if (vm.count("visualize"))
 	{
 		a = new QApplication (argc, argv);
 		vWindow = new VoronoiMainWindow;
 		vWindow->setMutex (llrgng->getMutex ());
 		vWindow->setWaitCondition (llrgng->getWaitCondition ());
-		llrgng->setDebugging (true);
+		llrgng->setVisualizing (true);
 		// vWindow->moveToThread(QApplication::instance()->thread());
 		llrgng->connect (llrgng, SIGNAL(updateData(SeqNeurons*)), vWindow, SLOT (updateData(SeqNeurons*)));
 		llrgng->connect (llrgng, SIGNAL(initializeData(SeqData*, SeqNeurons*, unsigned int)), vWindow, SLOT (initializeData(SeqData*, SeqNeurons*, unsigned int)));
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	llrgng->setRefVectors(2,mins,maxs);
 	// llrgng->setRefVectors(2,mins,maxs);
 
-	if (vm.count("debug"))
+	if (vm.count("visualize"))
 		vWindow->show ();
 
 	// llrgng->setTimeWindows (20, 100, 100);
@@ -124,13 +124,14 @@ int main(int argc, char *argv[])
 	//llrgng->setStoppingCriterion (epochs);
 	//llrgng->setMaxEpochs (1);
 	llrgng->setStoppingCriterion (stability);
+	// llrgng->setMeanDistanceMode (arithmetic);
 	if (vm.count("mdl"))
 		llrgng->saveMDLHistory ("mdl.txt");
 
 	
 	llrgng->begin();
 
-	if (vm.count("debug"))
+	if (vm.count("visualize"))
 		a->exec();
 	
 	llrgng->wait ();

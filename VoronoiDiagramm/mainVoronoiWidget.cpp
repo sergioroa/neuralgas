@@ -14,12 +14,12 @@ int main(int argc, char *argv[])
     std::string filename_neurons = "nodes.dat";
     if (!m.vw->voronoi->readData(filename_data.c_str()))
     {
-	    std::cerr << "unable to read file data.txt" << std::endl;
+	    std::cerr << "unable to read file data.dat" << std::endl;
 	    return 1;
     }
     if (!m.vw->voronoi->readNodes(filename_neurons.c_str()))
     {
-	    std::cerr << "unable to read file nodes.txt" << std::endl;
+	    std::cerr << "unable to read file nodes.dat" << std::endl;
 	    return 1;
     }
     m.vw->voronoi->getMaxMinValue ();

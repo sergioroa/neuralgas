@@ -17,7 +17,7 @@ int main (int argc, char* argv[])
 	po::options_description desc("Allowed parameters:");
 	desc.add_options()
 		("help,h", "produce help message")
-		("debug,d", "debug using a Qt Widget for Voronoi visualization")
+		("visualize,v", "use a Qt Widget for Voronoi visualization")
 		("size", po::value (&size)->default_value (1000), "dataset size")
 		("sigma", po::value (&sigma)->default_value (0.1), "sigma std dev parameter")
 		("transprob,p", po::value (&transProb)->default_value (0.1), "transition probability parameter")
@@ -42,14 +42,14 @@ int main (int argc, char* argv[])
 	QApplication *a;
 	VoronoiMainWindow *vWindow;
 	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
-	if (vm.count("debug"))
+	if (vm.count("visualize"))
 	{
 		a = new QApplication (argc, argv);
 		vWindow = new VoronoiMainWindow;
 		// llrgng->allocGUI (/*argc, argv*/);
 		vWindow->setMutex (llrgng->getMutex ());
 		vWindow->setWaitCondition (llrgng->getWaitCondition ());
-		llrgng->setDebugging (true);
+		llrgng->setVisualizing (true);
 		// vWindow->moveToThread(QApplication::instance()->thread());
 		llrgng->connect (llrgng, SIGNAL(updateData(SeqNeurons*)), vWindow, SLOT (updateData(SeqNeurons*)));
 		llrgng->connect (llrgng, SIGNAL(initializeData(SeqData*, SeqNeurons*, unsigned int)), vWindow, SLOT (initializeData(SeqData*, SeqNeurons*, unsigned int)));
@@ -87,7 +87,7 @@ int main (int argc, char* argv[])
 	
 	llrgng->setRefVectors(2,mins,maxs);
 	// llrgng->setRefVectors(2,min,max);
-	if (vm.count("debug"))
+	if (vm.count("visualize"))
 		vWindow->show();
 
 	// llrgng->setTimeWindows (20, 100, 100);
@@ -111,7 +111,7 @@ int main (int argc, char* argv[])
 	
 	llrgng->begin();
 
-	if (vm.count("debug"))
+	if (vm.count("visualize"))
 		a->exec();
 	
 	llrgng->wait ();

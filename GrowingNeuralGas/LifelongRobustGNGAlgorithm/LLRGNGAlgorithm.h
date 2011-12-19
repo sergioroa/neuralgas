@@ -29,7 +29,7 @@ class LLRGNGThread : public QThread {
 public:
 	LLRGNGThread ()
 	{
-		debugging = false;
+		visualizing = false;
 	}
 	~LLRGNGThread ()
 	{
@@ -38,9 +38,9 @@ public:
 		mutex.unlock();
 	}
 	virtual void run () = 0;
-	void setDebugging (bool debug)
+	void setVisualizing (bool visualize)
 	{
-		debugging = debug;
+		visualizing = visualize;
 	}
 	void begin ()
 	{
@@ -66,7 +66,7 @@ signals:
 protected:
 	QMutex mutex;
 	QWaitCondition condition;
-	bool debugging;
+	bool visualizing;
 
 };
 
@@ -125,6 +125,8 @@ public:
 	void setMaxEpochsErrorReduction (unsigned int);
 	// set maximum nr of epochs after mdl reduction is expected
 	void setMaxEpochsMDLReduction (unsigned int);
+	// set mean distance calculation mode
+	void setMeanDistanceMode (unsigned int);
 	// save MDL history in text files
 	void saveMDLHistory (const char*);
 protected:
@@ -186,8 +188,11 @@ protected:
 	T value_range;
 	/// constant to balance contribution of model efficiency in minimum description length calculation
 	T model_efficiency_const;
+	/// mode for calculating mean distances
+	unsigned int mean_distance_mode;
 	/// number of bits needed to encode a vector (calculated in \p calculateValueRange)
 	T bits_vector;
+	/// either 2 or 1 insertions, depending on if a node was previously deleted or not
 	unsigned int nr_of_insertions;
 	/// flag for tracking if a dislocated node was found in previous insertion epoch
 	bool insert_this_iter;
@@ -211,6 +216,7 @@ LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned in
 	max_epochs_mdl_reduction (80),
 	last_epoch_mdl_reduction (0),
 	model_efficiency_const (1.0),
+	mean_distance_mode (harmonic),
 	mdl_history (NULL)
 {
 	_graphptr = new LLRGNGGraph<T,S>(dim, window);
@@ -250,9 +256,10 @@ void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,cons
 	// random values
 	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
 
-	calculateInitialRestrictingDistances ();
+	if (mean_distance_mode == harmonic)
+		calculateInitialRestrictingDistances ();
 
-	if (debugging)
+	if (visualizing)
 		emit initializeData (this->_data, _graphptr->getNodes());
 
 }
@@ -370,7 +377,7 @@ void LLRGNGAlgorithm<T,S>::updateWinnerWeight(const unsigned int& item_index,con
 	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(&(*_graphptr)[node_index]);
 	// T distance = getDistance ((*this)[item_index], node_index);
 	T amplitude;
-	if (distance >= node->prev_restricting_distance)
+	if (distance >= node->prev_restricting_distance && mean_distance_mode == harmonic)
 		amplitude = node->restricting_distance;
 	else
 		amplitude = distance;
@@ -397,21 +404,24 @@ void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,c
 
 	T distance = _graphptr->getDistance ((*this)[item_index], node_index);
 	T amplitude;
-	if (distance >= node->prev_restricting_distance)
+	if (distance >= node->prev_restricting_distance && mean_distance_mode == harmonic)
 		amplitude = node->restricting_distance;
 	else
 		amplitude = distance;
 	
 	node->weight += node->learning_rate * amplitude * ( (*this)[item_index]-node->weight) / distance;
 
-	T dist_avg;
-	typename std::map<unsigned int, T>::iterator it;
-	for (it = distances_winner.begin(); it != distances_winner.end(); it++)
-		dist_avg += it->second;
-	
-	dist_avg /= distances_winner.size();
-
-	node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - (*_graphptr)[winner_index].weight) / distances_winner[node_index];
+	if (mean_distance_mode == harmonic)
+	{
+		T dist_avg;
+		typename std::map<unsigned int, T>::iterator it;
+		for (it = distances_winner.begin(); it != distances_winner.end(); it++)
+			dist_avg += it->second;
+		
+		dist_avg /= distances_winner.size();
+		
+		node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - (*_graphptr)[winner_index].weight) / distances_winner[node_index];
+	}
 
 }
 
@@ -532,7 +542,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	if (i % (unsigned int)(insertion_rate /** _graphptr->size()*/) == 0 )
 	{
 		// calculateInitialRestrictingDistances ();
-		if (debugging)
+		if (visualizing)
 		{
 			mutex.lock();
 			emit updateData(_graphptr->getNodes());
@@ -561,10 +571,11 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			{
 				if (_graphptr->deleteInactiveNodes(b, s))
 				{
-					calculateInitialRestrictingDistances ();
+					if (mean_distance_mode == harmonic)
+						calculateInitialRestrictingDistances ();
 					updateMinimalGraphMDL();
 
-					if (debugging)
+					if (visualizing)
 					{
 						mutex.lock();
 						emit updateData(_graphptr->getNodes());
@@ -590,9 +601,10 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						this->graphptr = _graphptr;
 						this->_graphModulptr = _graphptr;
 						insert_this_iter = false;
-						calculateInitialRestrictingDistances ();
+						if (mean_distance_mode == harmonic)
+							calculateInitialRestrictingDistances ();
 						updateMinimalGraphMDL();
-						if (debugging)
+						if (visualizing)
 						{
 							mutex.lock();
 							emit updateData(_graphptr->getNodes());
@@ -656,8 +668,10 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 							_graphptr->setAge(q,node_index,0.0);
 							_graphptr->setAge(f,node_index,0.0);
 
-							calculateInitialRestrictingDistances ();
-							if (debugging)
+							
+							if (mean_distance_mode == harmonic)
+								calculateInitialRestrictingDistances ();
+							if (visualizing)
 							{
 								mutex.lock();
 								emit updateData(_graphptr->getNodes());
@@ -684,7 +698,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
 
 	//remove nodes without any edge
-	if (this->rmNotConnectedNodes())
+	if (this->rmNotConnectedNodes() && mean_distance_mode == harmonic)
 		calculateInitialRestrictingDistances ();
 
 	// checkOverflowedRestrictingDistances ();
@@ -709,7 +723,8 @@ void LLRGNGAlgorithm<T,S>::updateParams (unsigned int& t, unsigned int& b, unsig
 		T min_error = _graphptr->getNodeMinLastAvgError (b);
 		T distance = _graphptr->getDistance ((*this)[t], b);
 		_graphptr->updateAvgError (b, distance, dim_distances);
-		_graphptr->updateRestrictingDistance (b, distance);
+		if (mean_distance_mode == harmonic)
+			_graphptr->updateRestrictingDistance (b, distance);
 		std::vector<unsigned int> b_neighbors = _graphptr->getNeighbors(b);
 
 		//for (unsigned int j=0; j < b_neighbors.size(); j++)
@@ -958,6 +973,16 @@ void LLRGNGAlgorithm<T,S>::setMaxEpochsMDLReduction (unsigned int epochs)
 	max_epochs_mdl_reduction = epochs;
 }
 
+/** \brief set mean distance calculation mode
+    \param mode mean distance calculation mode
+*/
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::setMeanDistanceMode (unsigned int mode)
+{
+	mean_distance_mode = mode;
+	_graphptr->setMeanDistanceMode (mode);
+}
+
 
 /** \brief check if minimal error for all nodes has not changed for more than \p max_epochs_error_reduction
  */
@@ -1033,7 +1058,7 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;
 
-	if (debugging)
+	if (visualizing)
 	{
 		mutex.lock();
 		emit updateData(_graphptr->getNodes());

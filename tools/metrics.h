@@ -17,6 +17,14 @@
 namespace neuralgas
 {
 
+/**
+ * \enum _meandistance_mode
+ * \brief for using different mechanisms for calculating mean distances
+ */
+enum _meandistance_mode {harmonic, /**< calculate harmonic mean distances  */
+			 arithmetic /**< calculate arithmetic mean distances */
+};
+
 //! \brief The euclidean distance function
 /*! 
   
