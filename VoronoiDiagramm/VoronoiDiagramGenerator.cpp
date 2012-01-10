@@ -16,6 +16,7 @@
 * This code was originally written by Stephan Fortune in C code.  I, Shane O'Sullivan, 
 * have since modified it, encapsulating it in a C++ class and, fixing memory leaks and 
 * adding accessors to the Voronoi Edges.
+* Additional memory leaks fixing by Sergio Roa.
 * Permission to use, copy, modify, and distribute this software for any
 * purpose without fee is hereby granted, provided that this entire notice
 * is included in all copies of any software which is or includes a copy
