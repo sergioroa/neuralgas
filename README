@@ -1,0 +1,33 @@
+These are instructions to install NeuralGas on an Ubuntu machine.
+Probably this code works also in MacOS (however it has not been tested).
+Please let us know if you want a version for Windows or feel free to
+provide the appropriate compilation scripts.
+
+Install following packages (Ubuntu 10.04 and higher):
+qt4-qmake
+libqt4-dev
+
+Install the boost dev package. In Ubuntu 10.04 you can install libboost1.40-dev 
+or libboost-dev and libboost-program-options-dev. In Ubuntu 11.04 just
+libboost1.42-dev and libboost-program-options1.42-dev.
+
+Procedures to install NeuralGas:
+
+Go to the NeuralGas root directory and type the following commands:
+
+$ mkdir build
+$ cd build
+$ ccmake ..
+
+At this point you can provide additional flags to your configuration and type 
+the character [c] (configure) twice. If everything worked fine, you can finally 
+type [g] for generating the makefile. The final commands are:
+
+$ make
+$ sudo make install
+
+Enjoy!
+
+Please send your comments to:
+
+Sergio Roa (sergio.roa@dfki.de)
