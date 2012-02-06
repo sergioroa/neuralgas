@@ -57,35 +57,40 @@ template< typename T, typename S > class NeuralGas;
  */
 template < typename T , typename S > struct Base_Node
 {
-  Base_Node()
-  {
-   num_connections=0;
-   func=NULL;  
-  }
+	friend class boost::serialization::access;
+	Base_Node()
+	{
+		num_connections=0;
+		func=NULL;  
+	}
 
-  virtual ~Base_Node()
-  { 
-    int esize = edges.size(); 
-    for(int i = 0; i < esize; i++)
-        if (edges[i]!=NULL)
-        {
-		delete edges[i];
-                // edges[i] = NULL;
-        }  
+	virtual ~Base_Node()
+	{ 
+		int esize = edges.size(); 
+		for(int i = 0; i < esize; i++)
+			if (edges[i]!=NULL)
+			{
+				delete edges[i];
+				// edges[i] = NULL;
+			}  
     
-  }
-  /** \brief Calls the user defined function and applies it on this node
-  */
-  virtual void update(const unsigned int& index=0){(*func)(this);}  
-  //user defined function called in update for changing the node's values
-  void (*func) (Base_Node<T,S>*);
-  // number of connected nodes to this node
-  int num_connections;
-  // weight vectors as data vector
-  Vector<T> weight;
-  // edge vector containing the edges of the node  
-  std::vector< Base_Edge<S,T>* > edges;
-
+	}
+	/** \brief Calls the user defined function and applies it on this node
+	 */
+	virtual void update(const unsigned int& index=0){(*func)(this);}  
+	//user defined function called in update for changing the node's values
+	void (*func) (Base_Node<T,S>*);
+	// number of connected nodes to this node
+	int num_connections;
+	// weight vectors as data vector
+	Vector<T> weight;
+	// edge vector containing the edges of the node  
+	std::vector< Base_Edge<S,T>* > edges;
+private:
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int) {
+		ar & BOOST_SERIALIZATION_NVP(weight);
+	}
 };  
 
 /** \class Base_Edge
@@ -98,21 +103,21 @@ template < typename T , typename S > struct Base_Node
 template < typename T , typename S> struct Base_Edge
 {
   
-  Base_Edge(){in = NULL; out=NULL;}
-  ~Base_Edge(){//in = NULL; out=NULL;
-                    }
+	Base_Edge(){in = NULL; out=NULL;}
+	~Base_Edge(){//in = NULL; out=NULL;
+	}
 
-  /** \brief Calls the user defined function and applies it on this edge
-  */
-  virtual void update(){(*func)(this);}
-  //user definded function called in update for changing the edges's values
-  void (*func) (Base_Edge<T,S>*);
-  // weight vectors as data vector
-  Vector<T> weight;
-  //ptr to the ingoing node
-  Base_Node<S,T>* in;
-  //ptr to the outgoing node
-  Base_Node<S,T>* out;
+	/** \brief Calls the user defined function and applies it on this edge
+	 */
+	virtual void update(){(*func)(this);}
+	//user definded function called in update for changing the edges's values
+	void (*func) (Base_Edge<T,S>*);
+	// weight vectors as data vector
+	Vector<T> weight;
+	//ptr to the ingoing node
+	Base_Node<S,T>* in;
+	//ptr to the outgoing node
+	Base_Node<S,T>* out;
 };  
 
 /** \class Base_Graph
@@ -145,78 +150,84 @@ template < typename T , typename S> struct Base_Edge
  */
 template<typename T, typename S> class Base_Graph
 {
-      public:
-	     typedef T (Base_Graph::*Metric)(const Vector<T>&,const Vector<T>&) const;
-             //cto creating a graph with the same dimension for node and edge weight vectors
-             Base_Graph(const unsigned int&);
-             //dummy copy constructor. Copying procedures should be done in derived classes
-             Base_Graph (const Base_Graph&) {}
+	friend class boost::serialization::access;
+	
+public:
+	typedef T (Base_Graph::*Metric)(const Vector<T>&,const Vector<T>&) const;
+	//cto creating a graph with the same dimension for node and edge weight vectors
+	Base_Graph(const unsigned int&);
+	//dummy copy constructor. Copying procedures should be done in derived classes
+	Base_Graph (const Base_Graph&) {}
+	/// dummy constructor (for serialization)
+	Base_Graph () {}
                          
-             //cto creating a graph with the different dimension for node and edge weight vectors
-             Base_Graph(const unsigned int&,const unsigned int&);
+	//cto creating a graph with the different dimension for node and edge weight vectors
+	Base_Graph(const unsigned int&,const unsigned int&);
              
-             //std dto
-             virtual ~Base_Graph();            
-             //returning a reference to the node indexed by the given index
-             Base_Node<T,S>&                     operator[](const unsigned int&);
-             //returning a const reference to the node indexed by the given index
-             Base_Node<T,S>&                     operator[](const unsigned int&) const;
-             //inits the graph with the given number of nodes with random valued weight vectors
-	     void                                initRandomGraph(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	//std dto
+	virtual ~Base_Graph();            
+	//returning a reference to the node indexed by the given index
+	Base_Node<T,S>&                     operator[](const unsigned int&);
+	//returning a const reference to the node indexed by the given index
+	Base_Node<T,S>&                     operator[](const unsigned int&) const;
+	//inits the graph with the given number of nodes with random valued weight vectors
+	void                                initRandomGraph(const unsigned int&,const Vector<T>&, const Vector<T>&);
 	//adds a new uninitialized, edgeless node into the graph
-             void                                addNode(void);
-             // removes the node given by the index, removes its edges and updates the number of connections of its neighbors
-             virtual void                        rmNode(const unsigned int&); 
-             // adds an edge between the nodes given by their indeces      
-             virtual void                        addEdge(const unsigned int&,const unsigned int&)=0;
-             // removes an edge between the nodes given by their indeces if there exists one     
-             virtual void                        rmEdge(const unsigned int&,const unsigned int&)=0;
-             // saves the nodes weight in a file
-             bool                                save(const char*, bool t = false);
-             // loads nodes 
-             void                                setNodes( std::vector < Base_Node<T, S>* >* nodes);
-             //returns a vector of ints representing the indices of the neighboring nodes
-             std::vector<unsigned int>           getNeighbors(const unsigned int&) const;
-             // Returns neighbors set cardinality for some node
-             int                                 getNeighborsSize(const unsigned int&) const;
-             //returns whether the node of the given index has neighbors or not
-             inline bool                         isConnected(const unsigned int&) const;
-             //applies the given func to all nodes
-             inline void                         applyFunc2AllNodes(void (*func)(Base_Node<T,S>*,const float&),const float&);
-             //applies the given func to the neighboring nodes 
-             inline void                         applyFunc2Neighbors(const unsigned int&,void (*func)(Base_Node<T,S>*,const float&),const float&);
-             //calls the update function declared within the node struct
-             inline void                         update();
-             //returns the number of nodes currently in the graph
-             inline unsigned int                 size(void) const;
-	     //sets a user defined metric, used as distance of reference and data vector 
-             inline void                         setMetric(Metric); 
-             // pre-specified metric is the standard L2 euclidean metric
-             virtual T                           metric(const Vector<T>&, const Vector<T>&) const;
+	void                                addNode(void);
+	// removes the node given by the index, removes its edges and updates the number of connections of its neighbors
+	virtual void                        rmNode(const unsigned int&); 
+	// adds an edge between the nodes given by their indeces      
+	virtual void                        addEdge(const unsigned int&,const unsigned int&)=0;
+	// removes an edge between the nodes given by their indeces if there exists one     
+	virtual void                        rmEdge(const unsigned int&,const unsigned int&)=0;
+	// saves the nodes weight in a file
+	bool                                save(const char*, bool t = false);
+	// loads nodes 
+	void                                setNodes( std::vector < Base_Node<T, S>* >* nodes);
+	//returns a vector of ints representing the indices of the neighboring nodes
+	std::vector<unsigned int>           getNeighbors(const unsigned int&) const;
+	// Returns neighbors set cardinality for some node
+	int                                 getNeighborsSize(const unsigned int&) const;
+	//returns whether the node of the given index has neighbors or not
+	inline bool                         isConnected(const unsigned int&) const;
+	//applies the given func to all nodes
+	inline void                         applyFunc2AllNodes(void (*func)(Base_Node<T,S>*,const float&),const float&);
+	//applies the given func to the neighboring nodes 
+	inline void                         applyFunc2Neighbors(const unsigned int&,void (*func)(Base_Node<T,S>*,const float&),const float&);
+	//calls the update function declared within the node struct
+	inline void                         update();
+	//returns the number of nodes currently in the graph
+	inline unsigned int                 size(void) const;
+	//sets a user defined metric, used as distance of reference and data vector 
+	inline void                         setMetric(Metric); 
+	// pre-specified metric is the standard L2 euclidean metric
+	virtual T                           metric(const Vector<T>&, const Vector<T>&) const;
 
-             // Returns distances from a node to a set of nodes
-             std::map<unsigned int, T>           get1toMDistances (const unsigned int&, std::vector<unsigned int>&);
+	// Returns distances from a node to a set of nodes
+	std::map<unsigned int, T>           get1toMDistances (const unsigned int&, std::vector<unsigned int>&);
 
-             void                                showGraph();
+	void                                showGraph();
 
-	     // get nodes vector
-	     inline std::vector< Base_Node<T,S>* >* getNodes ();
+	// get nodes vector
+	inline std::vector< Base_Node<T,S>* >* getNodes ();
 
-      protected:
-             //returns a pointer to a node of a type that is currently used by the graph
-             virtual Base_Node<T,S>*             newNode();
-             //returns a pointer to an edge of a type that is currently used by the graph
-             virtual Base_Edge<S,T>*             newEdge();
-             // array of pointer to the nodes of the graph
-             std::vector< Base_Node<T,S>* >      _nodes;            
+protected:
+	//returns a pointer to a node of a type that is currently used by the graph
+	virtual Base_Node<T,S>*             newNode();
+	//returns a pointer to an edge of a type that is currently used by the graph
+	virtual Base_Edge<S,T>*             newEdge();
+	// array of pointer to the nodes of the graph
+	std::vector< Base_Node<T,S>* >      _nodes;            
             
-             // dimension of the node's weight vectors
-             unsigned int                        _dimNode;
-             // dimension of the edge's weight vectors
-             unsigned int                        _dimEdge;
-             //user specified metric
-             Metric _metric_to_use;
-	//private:
+	// dimension of the node's weight vectors
+	unsigned int                        _dimNode;
+	// dimension of the edge's weight vectors
+	unsigned int                        _dimEdge;
+	//user specified metric
+	Metric _metric_to_use;
+private:
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int);
 
 };
 
@@ -643,6 +654,15 @@ template < typename T, typename S > inline void Base_Graph<T,S>::setMetric(Metri
 {
   _metric_to_use=metric_to_use;
 }
+
+template<typename T, typename S>
+template<class Archive>
+void 
+Base_Graph<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
+{
+  ar & BOOST_SERIALIZATION_NVP(_nodes);
+}
+
 
 } //namespace neuralgas
 

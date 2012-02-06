@@ -47,6 +47,7 @@ namespace neuralgas {
 template<typename T,typename S>
 struct LLRGNGNode : Base_Node<T,S>
 {
+	friend class boost::serialization::access;
 	// default \p LLRGNGNode cto
 	LLRGNGNode ();
 	// default \p LLRGNGNode dto
@@ -104,6 +105,11 @@ struct LLRGNGNode : Base_Node<T,S>
 	T repulsion;
 	/// mode for calculating mean distances
 	unsigned int mean_distance_mode;
+private:
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int) {
+		ar & boost::serialization::base_object<Base_Node<T, S> >(*this);
+	}
 };
 
 /// \brief default \p LLRGNGNode cto
@@ -318,7 +324,10 @@ template<typename T, typename S> class LLRGNGAlgorithm;
 template<typename T, typename S>
 class LLRGNGGraph : public GNGModulGraph<T,S>
 {
+	friend class boost::serialization::access;
 public:
+	// default cto.
+	LLRGNGGraph ();
 	/// cto Graph creation (node and edges weights share dimensionality)
 	LLRGNGGraph (const unsigned int&, const unsigned int&);
 	/// copy constructor
@@ -396,6 +405,9 @@ protected:
 	T model_efficiency;
 	/// mode for calculating mean distances
 	unsigned int mean_distance_mode;
+private:
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int);
 		
 };
 
@@ -421,6 +433,29 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_
 	mean_distance_mode (harmonic)
 {
 }
+
+/** \brief Default constructor (Should only be used for serialization)
+ */
+template<typename T, typename S>
+LLRGNGGraph<T,S>::LLRGNGGraph () :
+	Base_Graph<T,S>(0),
+	UGraph<T,S>(0),
+	TGraph<T,S>(0),
+	GNGModulGraph<T,S>(0),
+	adaptation_threshold (0),
+	winner_learning_rate (0),
+	neighbors_learning_rate (0),
+	maximal_edge_age (0),
+	smoothing_window (0),
+	error_time_window (0),
+	age_time_window (0),
+	max_errors_size (0),
+	// utifactor (0),
+	model_efficiency (0),
+	mean_distance_mode (harmonic)
+{
+}
+
 
 /** \brief copy constructor.
  *   Calls UGraph and Base_Graph customized copy constructors (they are empty)
@@ -848,6 +883,14 @@ void LLRGNGGraph<T,S>::setMeanDistanceMode (unsigned int mode)
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (this->_nodes[i]);
 		node->mean_distance_mode = mode;
 	}
+}
+
+template<typename T, typename S>
+template<class Archive>
+void 
+LLRGNGGraph<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
+{
+	ar & boost::serialization::base_object<Base_Graph<T, S> >(*this);
 }
 
 

@@ -42,7 +42,6 @@ namespace neuralgas {
  */
 class LLRGNGThread : public QThread {
 	Q_OBJECT
-	
 public:
 	LLRGNGThread ()
 	{
@@ -98,8 +97,11 @@ protected:
 template<typename T, typename S>
 class LLRGNGAlgorithm : public GNGModul<T,S>, public LLRGNGThread
 {
+	friend class boost::serialization::access;
 public:
 
+	// default cto.
+	LLRGNGAlgorithm ();
 	// cto class initialization
 	LLRGNGAlgorithm (const unsigned int& dim, const unsigned int&);
 	// std dto
@@ -215,6 +217,10 @@ protected:
 	bool insert_this_iter;
 	/// flag for saving MDL history
 	std::ofstream* mdl_history;
+private:
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int);
+
 };
 
 /** \brief cto initializing the class 
@@ -240,6 +246,28 @@ LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned in
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 }
+
+/** \brief Default constructor (Should only be used for serialization)
+*
+* \param dim is the dimension of the node weights
+*/
+template<typename T,typename S>
+LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm():
+	GNGModul<T,S>(0),
+	max_nodes (0),
+	data_accuracy (0),
+	mdl (0),
+	min_mdl (0),
+	min_mdl_graphptr (0),
+	max_epochs_error_reduction (0),
+	max_epochs_mdl_reduction (0),
+	last_epoch_mdl_reduction (0),
+	model_efficiency_const (0),
+	mean_distance_mode (harmonic),
+	mdl_history (0)
+{
+}
+
 
 /** \brief std dto
 */
@@ -1139,6 +1167,14 @@ void LLRGNGAlgorithm<T,S>::checkOverflowedRestrictingDistances ()
 		}
 	}
 
+}
+
+template<typename T, typename S>
+template<class Archive>
+void 
+LLRGNGAlgorithm<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
+{
+  ar & BOOST_SERIALIZATION_NVP(_graphptr);
 }
 
 } // namespace neuralgas

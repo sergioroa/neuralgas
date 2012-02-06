@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <boost/serialization/serialization.hpp>
 
 namespace neuralgas {
 
@@ -40,42 +41,42 @@ namespace neuralgas {
  */
 template<typename T> class Vector : public std::vector<T>
 {
-  
+  	friend class boost::serialization::access;
 public:
-	 /// default constructor
-         inline Vector(){this->resize(1);}
-	 /// constructor specifying dimension
-         inline Vector(const int& dim){this->resize(dim);}
-	 /// constructor specifying dimension and values
-         inline Vector(const int& dim,const T& value){this->resize(dim,value);}
-	 // copy constructor
-         inline Vector(const std::vector<T>& v);
-         //operator+= based on the operations = and +
-         inline Vector<T>& operator+=(const Vector<T>&);
-         //operator-= based on the operations = and -
-         inline Vector<T>& operator-=(const Vector<T>&);
-         //operator*= for scalars based on the operations = and *
-         template<typename S> inline Vector<T>& operator*=(const S&);
-         //operator/= for scalars based on the operations = and /
-         template<typename S> inline Vector<T>& operator/=(const S&);
-         // operator+ adding two vectors and returning a new result vector         
-         inline Vector<T> operator+(const Vector<T>&);
-         // const operator+ adding two const vectors and returning a new result vector         
-         inline Vector<T> operator+(const Vector<T>&) const;
-         // operator- subtracting two const vectors and returning a new result vector
-         inline Vector<T> operator-(const Vector<T>&);
-         // operator- subtracting two const vectors and returning a new result vector
-         inline Vector<T> operator-(const Vector<T>&) const;
-         // operator* multiplies a vector by an arbitrary scalar from the right 
-         template<typename S> inline Vector<T> operator*(const S&);
-         // operator* const multiplies a vector by an arbitrary scalar from the right 
-         template<typename S> inline Vector<T> operator*(const S&) const;
-         // operator/ divides a vector by an arbitrary scalar from the right        
-         template<typename S> inline Vector<T> operator/(const S&);
-         // operator/ const divides a vector by an arbitrary scalar from the right 
-         template<typename S> inline Vector<T> operator/(const S&) const;
+	/// default constructor
+	inline Vector(){this->resize(1);}
+	/// constructor specifying dimension
+	inline Vector(const int& dim){this->resize(dim);}
+	/// constructor specifying dimension and values
+	inline Vector(const int& dim,const T& value){this->resize(dim,value);}
+	// copy constructor
+	inline Vector(const std::vector<T>& v);
+	//operator+= based on the operations = and +
+	inline Vector<T>& operator+=(const Vector<T>&);
+	//operator-= based on the operations = and -
+	inline Vector<T>& operator-=(const Vector<T>&);
+	//operator*= for scalars based on the operations = and *
+	template<typename S> inline Vector<T>& operator*=(const S&);
+	//operator/= for scalars based on the operations = and /
+	template<typename S> inline Vector<T>& operator/=(const S&);
+	// operator+ adding two vectors and returning a new result vector         
+	inline Vector<T> operator+(const Vector<T>&);
+	// const operator+ adding two const vectors and returning a new result vector         
+	inline Vector<T> operator+(const Vector<T>&) const;
+	// operator- subtracting two const vectors and returning a new result vector
+	inline Vector<T> operator-(const Vector<T>&);
+	// operator- subtracting two const vectors and returning a new result vector
+	inline Vector<T> operator-(const Vector<T>&) const;
+	// operator* multiplies a vector by an arbitrary scalar from the right 
+	template<typename S> inline Vector<T> operator*(const S&);
+	// operator* const multiplies a vector by an arbitrary scalar from the right 
+	template<typename S> inline Vector<T> operator*(const S&) const;
+	// operator/ divides a vector by an arbitrary scalar from the right        
+	template<typename S> inline Vector<T> operator/(const S&);
+	// operator/ const divides a vector by an arbitrary scalar from the right 
+	template<typename S> inline Vector<T> operator/(const S&) const;
       
-         /** \brief friend operator* permitting a multiplication from the left with an arbitrary type
+	/** \brief friend operator* permitting a multiplication from the left with an arbitrary type
          *
          * Operators where the left element is not a class element have to be global or friend operators.
          * This friend operator* permits a multiplication from the left with an arbitray type 
@@ -83,14 +84,17 @@ public:
          * \param factor is the scalar by which the vector is multiplied
          * \param v is the vector that is multiplied by the scalar 
          */   
-         template<typename S> friend inline Vector<T> operator*(const S& factor,const Vector<T>& v)
-         {
-          return v*factor;
-         }
+	template<typename S> friend inline Vector<T> operator*(const S& factor,const Vector<T>& v)
+	{
+		return v*factor;
+	}
         
- private:
-         // dummy variable for operator[] that is returned if given index is out of range
-         T _dummy;         
+private:
+	// dummy variable for operator[] that is returned if given index is out of range
+	T _dummy;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int);
+
 };
 
 /** operator+= based on the operations = and +
@@ -359,6 +363,15 @@ inline Vector<T>::Vector (const std::vector<T>& v)
   for (unsigned int i=0; i<v.size(); i++)
     this->at(i) = v[i];
 }
+
+template<typename T>
+template<class Archive>
+void 
+Vector<T>::serialize(Archive & ar, const unsigned int /* file_version */) 
+{
+	ar & boost::serialization::base_object<std::vector<T> >(*this);
+}
+
 
 } // namespace neuralgas
 

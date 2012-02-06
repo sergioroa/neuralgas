@@ -30,6 +30,7 @@
 #include <Graphs/Vector.h>
 #include <fstream>
 #include <iostream>
+#include <boost/serialization/serialization.hpp>
 
 namespace neuralgas {
 
