@@ -45,6 +45,8 @@ namespace neuralgas {
  */
 template<typename A,typename B> struct TEdge : Base_Edge<A,B>
 {
+  friend class boost::serialization::access;
+
   TEdge()
   {age=0;}
 
@@ -60,7 +62,14 @@ template<typename A,typename B> struct TEdge : Base_Edge<A,B>
   // returns the age
   float getAge() const {return age;}
 
-};  
+private:
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int) {
+    ar & boost::serialization::base_object<Base_Edge<A, B> >(*this);
+    ar & BOOST_SERIALIZATION_NVP(age);
+  }
+
+};
 
 
 /** \class TGraph

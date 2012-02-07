@@ -90,6 +90,7 @@ private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int) {
 		ar & BOOST_SERIALIZATION_NVP(weight);
+		ar & BOOST_SERIALIZATION_NVP(edges);
 	}
 };  
 
@@ -102,6 +103,7 @@ private:
  */
 template < typename T , typename S> struct Base_Edge
 {
+	friend class boost::serialization::access;
   
 	Base_Edge(){in = NULL; out=NULL;}
 	~Base_Edge(){//in = NULL; out=NULL;
@@ -118,6 +120,13 @@ template < typename T , typename S> struct Base_Edge
 	Base_Node<S,T>* in;
 	//ptr to the outgoing node
 	Base_Node<S,T>* out;
+
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int) {
+		ar & BOOST_SERIALIZATION_NVP(in);
+		ar & BOOST_SERIALIZATION_NVP(out);
+	}
+
 };  
 
 /** \class Base_Graph
