@@ -97,7 +97,7 @@ template<typename T,typename S> class TGraph : public virtual Base_Graph<T,S>
     //cto creating a graph with the same dimension for node and edge weight vectors
     TGraph(const unsigned int& dim):Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
-    TGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}  
+    TGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}
     //get the age of the edge going from the first parameter to the second
     float                            getAge(const unsigned int&, const unsigned int&) const;
     //set the age of the edge going from the first parameter to the second

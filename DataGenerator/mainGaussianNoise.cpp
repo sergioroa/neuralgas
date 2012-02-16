@@ -130,8 +130,8 @@ int main(int argc, char *argv[])
 	llrgng->setDataAccuracy (0.0001);
 	// llrgng->setDataAccuracy (0.00000000001);
 	//llrgng->setMaxNodes (5);
-	llrgng->setMaxEpochsErrorReduction (3);
-	llrgng->setMaxEpochsMDLReduction (400);
+	llrgng->setMaxEpochsErrorReduction (5);
+	llrgng->setMaxEpochsMDLReduction (600);
 	if (dataset == "1")
 		llrgng->setModelEfficiencyConst (1);
 	else
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	//llrgng->setStoppingCriterion (epochs);
 	//llrgng->setMaxEpochs (1);
 	llrgng->setStoppingCriterion (stability);
-	// llrgng->setMeanDistanceMode (arithmetic);
+	//llrgng->setMeanDistanceMode (arithmetic);
 	if (vm.count("mdl"))
 		llrgng->saveMDLHistory ("mdl.txt");
 

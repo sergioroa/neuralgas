@@ -456,17 +456,15 @@ void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,c
 	
 	node->weight += node->learning_rate * amplitude * ( (*this)[item_index]-node->weight) / distance;
 
-	if (mean_distance_mode == harmonic)
-	{
-		T dist_avg;
-		typename std::map<unsigned int, T>::iterator it;
-		for (it = distances_winner.begin(); it != distances_winner.end(); it++)
-			dist_avg += it->second;
+	// T dist_avg;
+	// typename std::map<unsigned int, T>::iterator it;
+	// for (it = distances_winner.begin(); it != distances_winner.end(); it++)
+	// 	dist_avg += it->second;
 		
-		dist_avg /= distances_winner.size();
+	// dist_avg /= distances_winner.size();
 		
-		node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - (*_graphptr)[winner_index].weight) / distances_winner[node_index];
-	}
+	// node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - winner->weight) / distances_winner[node_index];
+
 
 }
 
@@ -710,6 +708,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 							int node_index = _graphptr->size()-1;
 							std::cout << "adding node " << node_index << "..." << std::endl;
 							_graphptr->calculateInheritedParams (node_index, q, f);
+							_graphptr->setLastEpochImprovement (node_index, epoch);
 							_graphptr->setAge(q,node_index,0.0);
 							_graphptr->setAge(f,node_index,0.0);
 
@@ -742,9 +741,9 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	//remove all edges older than the maximal value for age
 	this->rmOldEdges (_graphptr->getMaximalEdgeAge());
 
-	//remove nodes without any edge
-	if (this->rmNotConnectedNodes() && mean_distance_mode == harmonic)
-		calculateInitialRestrictingDistances ();
+	// //remove nodes without any edge
+	// if (this->rmNotConnectedNodes() && mean_distance_mode == harmonic)
+	// 	calculateInitialRestrictingDistances ();
 
 	// checkOverflowedRestrictingDistances ();
 
@@ -891,8 +890,8 @@ T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph)
 		for (unsigned int i=0; i<this->getDimension(); i++)
 		{
 			node_item_efficiency += std::max(log2((fabs((*this)[t][i] -  (*graph)[b].weight[i])) / data_accuracy), 1.0);
-			node->efficiency += node_item_efficiency;
 		}
+		node->efficiency += node_item_efficiency;
 		graph->model_efficiency += node_item_efficiency;
 	}
 	/*for (unsigned int i=0; i < graph->size(); i++)
@@ -1051,7 +1050,6 @@ template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 {
 
-	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
@@ -1065,6 +1063,7 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 		std::cout << "node " << i << " learning rate: " << node->learning_rate << std::endl;
 		// std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
 	}
+	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
 
 	std::cout << "mdl: " << calculateMinimumDescriptionLength ();
 
@@ -1122,7 +1121,7 @@ void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 	for(unsigned int t = 0; t < this->size(); t++)
 		for (unsigned int i=0; i<this->getDimension(); i++)
 			avg_values += (*this)[t][i];
-	avg_values /= T (this->size());
+	avg_values /= T (this->size() * this->getDimension());
 	value_range = avg_values - _graphptr->getLowLimit ();
 
 	std::cout << "value range: " << value_range << std::endl;

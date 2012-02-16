@@ -56,8 +56,6 @@ template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
                         UGraph(const unsigned int& dim) : Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
                         UGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}
-    //dummy copy constructor. Copying procedures should be done in derived classes
-    UGraph (const UGraph& g) : Base_Graph<T,S> (g) {}
 
     //std dto
                         virtual ~UGraph(){}
