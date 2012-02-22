@@ -139,7 +139,7 @@ public:
 	// gets maximal partition
 	unsigned int getMaxNodes () const;
 	// calculate the Minimum Description Length of the current graph and dataset
-	T calculateMinimumDescriptionLength ();
+	T calculateMinimumDescriptionLength (bool calculate_model_efficiency = true);
 	// set maximum nr of epochs after avg error reduction is expected
 	void setMaxEpochsErrorReduction (unsigned int);
 	// set maximum nr of epochs after mdl reduction is expected
@@ -152,13 +152,14 @@ protected:
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
 	// update the graph with minimal description length
-	void updateMinimalGraphMDL ();
+	void updateMinimalGraphMDL (bool calculate_model_efficiency = true);
 	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
 	bool minimalMDL ();
 	// find graph with a node that is not properly located according to MDL principle
 	LLRGNGGraph<T,S>* findDislocatedNodeGraph (unsigned int&, unsigned int&, unsigned int&);
 	// calculate model efficiency (error) of a graph
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph);
+	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsigned int&);
 	// mark the current graph as stable in order to stop the algorithm
 	void markAsStableGraph ();
 	// calculate value range of data
@@ -211,8 +212,8 @@ protected:
 	unsigned int mean_distance_mode;
 	/// number of bits needed to encode a vector (calculated in \p calculateValueRange)
 	T bits_vector;
-	/// either 2 or 1 insertions, depending on if a node was previously deleted or not
-	unsigned int nr_of_insertions;
+	/// allow 2 insertions, depending on if a node was previously deleted or not
+	unsigned int insertions;
 	/// flag for tracking if a dislocated node was found in previous insertion epoch
 	bool insert_this_iter;
 	/// flag for saving MDL history
@@ -465,6 +466,9 @@ void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,c
 		
 	// node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - winner->weight) / distances_winner[node_index];
 
+	// node->weight += (node->weight - exp (-distances_winner[node_index] / winner->repulsion) * winner->weight);
+	// node->weight += exp (-distances_winner[node_index] / winner->repulsion) * 2 * dist_avg * (node->weight - winner->weight) / distances_winner[node_index];
+
 
 }
 
@@ -489,7 +493,7 @@ void LLRGNGAlgorithm<T,S>::run()
 		{
 			epoch = 0;
 			stable_graph = false;
-			nr_of_insertions = 1;
+			insertions = 0;
 			insert_this_iter = true;
 			calculateValueRange ();
 			do
@@ -521,7 +525,7 @@ void LLRGNGAlgorithm<T,S>::run()
 		{
 			epoch = 0;
 			stable_graph = false;
-			nr_of_insertions = 1;
+			insertions = 0;
 			insert_this_iter = true;
 			calculateValueRange ();
 			do {
@@ -633,7 +637,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					}
 
 				}
-				if (nr_of_insertions == 1)
+				if (insertions == 0)
 				{
 					LLRGNGGraph<T,S>* dislocated_node_graphptr = findDislocatedNodeGraph (b, s, dislocated_node);
 					if (dislocated_node_graphptr != NULL)
@@ -646,7 +650,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						insert_this_iter = false;
 						if (mean_distance_mode == harmonic)
 							calculateInitialRestrictingDistances ();
-						updateMinimalGraphMDL();
+						updateMinimalGraphMDL(false);
 						if (visualizing)
 						{
 							mutex.lock();
@@ -669,65 +673,66 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			// std::vector<unsigned int> dislocated_nodes = findDislocatedNodes ();
 			// std::cout << "nr. of dislocated nodes: " << dislocated_nodes.size() << std::endl;
 
-			// unsigned int nr_of_insertions = 1;
+			// unsigned int insertions = 1;
 			// if (dislocated_node_graphptr != NULL)
-			// 	nr_of_insertions = 2;
+			// 	insertions = 2;
 			if (insert_this_iter == false)
 			{
 				insert_this_iter = true;
+				insertions = 2;
 				updateParams (t,b,s);
-				nr_of_insertions = 2;
 				return;
 			}
 			else
 			{
+				if (insertions > 0) 
+					insertions--;
+
 				for (unsigned int j=0; j<_graphptr->size(); j++)
 				{
 					_graphptr->calculateInsertionQuality (j);
 					_graphptr->calculateInsertionCriterion (j);
 				}
 				
-				std::vector<int> q_nodes = maxInsertionCriterionNodes();
+				// std::vector<int> q_nodes = maxInsertionCriterionNodes();
 				//for (unsigned int d=0; d<dislocated_nodes.size(); d++)
 				//{
-				for (unsigned int n=0; n<nr_of_insertions; n++)
-				{
-					// int q = maxInsertionCriterionNode ();
-					int q = q_nodes[n];
+				// for (unsigned int n=0; n<insertions; n++)
+				// {
+				int q = maxInsertionCriterionNode ();
+				// int q = q_nodes[n];
 		
-					// find node among neighbours of q with maximal value of
-					//quality measure of insertion
-					if (q != -1)
+				// find node among neighbours of q with maximal value of
+				//quality measure of insertion
+				if (q != -1)
+				{
+					std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
+					int f = maxInsertionQualityNode (q_neighbors);
+					if (f != -1)
 					{
-						std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
-						int f = maxInsertionQualityNode (q_neighbors);
-						if (f != -1)
-						{
-							_graphptr->rmEdge (q, f);
-							_graphptr->addNode ();
-							int node_index = _graphptr->size()-1;
-							std::cout << "adding node " << node_index << "..." << std::endl;
-							_graphptr->calculateInheritedParams (node_index, q, f);
-							_graphptr->setLastEpochImprovement (node_index, epoch);
-							_graphptr->setAge(q,node_index,0.0);
-							_graphptr->setAge(f,node_index,0.0);
+						_graphptr->rmEdge (q, f);
+						_graphptr->addNode ();
+						int node_index = _graphptr->size()-1;
+						std::cout << "adding node " << node_index << "..." << std::endl;
+						_graphptr->calculateInheritedParams (node_index, q, f);
+						_graphptr->setLastEpochImprovement (node_index, epoch);
+						_graphptr->setAge(q,node_index,0.0);
+						_graphptr->setAge(f,node_index,0.0);
 
 							
-							if (mean_distance_mode == harmonic)
-								calculateInitialRestrictingDistances ();
-							if (visualizing)
-							{
-								mutex.lock();
-								emit updateData(_graphptr->getNodes());
-								condition.wait (&mutex);
-								mutex.unlock();
-							}
-
+						if (mean_distance_mode == harmonic)
+							calculateInitialRestrictingDistances ();
+						if (visualizing)
+						{
+							mutex.lock();
+							emit updateData(_graphptr->getNodes());
+							condition.wait (&mutex);
+							mutex.unlock();
 						}
+
 					}
 				}
-
-				nr_of_insertions = 1;
+				// }
 			}
 		}		
 	}
@@ -883,9 +888,7 @@ T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph)
 		/*T distance = */graph->getWinner(b,s,(*this)[t]);
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*graph)[b]);
 		node->items_counter++;
-		// node->utifactor += distance;
-		
-		// winner_per_item[t] = b;
+		node->data.push_back (t);
 		T node_item_efficiency = 0;
 		for (unsigned int i=0; i<this->getDimension(); i++)
 		{
@@ -894,27 +897,50 @@ T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph)
 		node->efficiency += node_item_efficiency;
 		graph->model_efficiency += node_item_efficiency;
 	}
-	/*for (unsigned int i=0; i < graph->size(); i++)
-	{
-		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*graph)[i]);
-		if (node->items_counter > 0)
-			node->utifactor /= (T) node->items_counter;
-		graph->utifactor += node->utifactor;
-	}*/
 	return graph->model_efficiency;
 
 
 }
 
+//! \brief recalculate model efficiency of a graph when looking for dislocated nodes
+/*! \param graph
+    \param rmnode_index index of the removed node
+  \return model efficiency
+*/
+template<typename T, typename S>
+T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsigned int& rmnode_index)
+{
+	LLRGNGNode<T,S>* rmnode = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[rmnode_index]);
+	for(unsigned int t = 0; t < rmnode->data.size(); t++)
+	{
+		unsigned int b, s;
+		graph->getWinner(b,s,(*this)[rmnode->data[t]]);
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*graph)[b]);
+		node->items_counter++;
+		node->data.push_back (rmnode->data[t]);
+		T node_item_efficiency = 0;
+		for (unsigned int i=0; i<this->getDimension(); i++)
+		{
+			node_item_efficiency += std::max(log2((fabs((*this)[rmnode->data[t]][i] -  (*graph)[b].weight[i])) / data_accuracy), 1.0);
+		}
+		node->efficiency += node_item_efficiency;	
+	}
+	graph->model_efficiency = 0;
+	for (unsigned int i=0; i < graph->size(); i++)
+		graph->model_efficiency += static_cast<LLRGNGNode<T,S>& > ((*graph)[i]).efficiency;
+	return graph->model_efficiency;
+}
+
 //! \brief Calculate MDL for the current \p _graphptr
 template<typename T, typename S>
-T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength ()
+T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength (bool calculate_model_efficiency)
 {
 	// items_per_winner = std::vector<unsigned int> (_graphptr->size());
 	//std::vector<int> winner_per_item (this->size(), -1);
 	// std::vector<T> mdl_per_item (this->size());
 	// mdl = 0;
-	calculateModelEfficiency (_graphptr);
+	if (calculate_model_efficiency)
+		calculateModelEfficiency (_graphptr);
 	mdl = model_efficiency_const * _graphptr->model_efficiency;
 	T L_inliers = this->size() * log2 (_graphptr->size());
 	
@@ -942,7 +968,7 @@ LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& w
 		LLRGNGGraph<T,S>* pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
 		pruned_graphs.push_back (pruned_graph);
 		pruned_graph->rmNode (i);
-		calculateModelEfficiency (pruned_graph);
+		calculateModelEfficiency (pruned_graph, i);
 	}
 	dislocated_node = _graphptr->size();
 	T min_change = 0;
@@ -1047,7 +1073,7 @@ bool LLRGNGAlgorithm<T,S>::minimalAvgErrors ()
 /** \brief update the graph with minimal description length
  */
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
+void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL (bool calculate_model_efficiency)
 {
 
 	for (unsigned int i=0; i < _graphptr->size(); i++)
@@ -1057,15 +1083,16 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL ()
 		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
 		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
 		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
-		std::cout << "node " << i << " repulsion: " << node->repulsion << std::endl;
-		std::cout << "node " << i << " restricting d.: " << node->restricting_distance << std::endl;
+		// std::cout << "node " << i << " repulsion: " << node->repulsion << std::endl;
+		if (mean_distance_mode == harmonic)
+			std::cout << "node " << i << " restricting d.: " << node->restricting_distance << std::endl;
 		// std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
 		std::cout << "node " << i << " learning rate: " << node->learning_rate << std::endl;
 		// std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
 	}
 	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
 
-	std::cout << "mdl: " << calculateMinimumDescriptionLength ();
+	std::cout << "mdl: " << calculateMinimumDescriptionLength (calculate_model_efficiency);
 
 	if (min_mdl > mdl )
 	{

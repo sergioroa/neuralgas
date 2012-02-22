@@ -29,6 +29,7 @@ using namespace neuralgas;
 int main(int argc, char *argv[])
 {
 	int size;
+	int insertion_rate;
 	double whitenoise_prob;
 	string dataset;
 
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
 		("help,h", "produce help message")
 		("visualize,v", "use a Qt Widget for Voronoi visualization")
 		("size,s", po::value (&size)->default_value (1000), "dataset size")
+		("insertionrate,i", po::value (&insertion_rate)->default_value (1000), "insertion rate")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
 		("mdl,m", "save MDL history to a file mdl.txt");
@@ -122,9 +124,10 @@ int main(int argc, char *argv[])
 		vWindow->show ();
 
 	// llrgng->setTimeWindows (20, 100, 100);
-	llrgng->setTimeWindows (100, 60, size);
-	llrgng->setLearningRates (0.1, 0.001);
-	llrgng->setInsertionRate (size);
+	// llrgng->setTimeWindows (100, 60, size);
+	llrgng->setTimeWindows (50, 30, size);
+	llrgng->setLearningRates (0.3, 0.001);
+	llrgng->setInsertionRate (insertion_rate);
 	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (50);
 	llrgng->setDataAccuracy (0.0001);
@@ -141,7 +144,7 @@ int main(int argc, char *argv[])
 	//llrgng->setStoppingCriterion (epochs);
 	//llrgng->setMaxEpochs (1);
 	llrgng->setStoppingCriterion (stability);
-	//llrgng->setMeanDistanceMode (arithmetic);
+        // llrgng->setMeanDistanceMode (arithmetic);
 	if (vm.count("mdl"))
 		llrgng->saveMDLHistory ("mdl.txt");
 

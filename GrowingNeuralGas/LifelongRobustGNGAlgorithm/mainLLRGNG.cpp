@@ -109,7 +109,7 @@ int main (int argc, char* argv[])
 
 	// llrgng->setTimeWindows (20, 100, 100);
 	llrgng->setTimeWindows (100, 60, 80*size);
-	llrgng->setLearningRates (0.1, 0.001);
+	llrgng->setLearningRates (0.3, 0.001);
 	llrgng->setInsertionRate (size);
 	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (50);

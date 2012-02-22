@@ -99,12 +99,12 @@ struct LLRGNGNode : Base_Node<T,S>
 	unsigned int items_counter;
 	/// model efficiency contribution to total MDL
 	T efficiency;
-	/// utility factor contribution for this node for evaluating node relocation
-	// T utifactor;
 	/// repulsion constant for updating weights
-	T repulsion;
+	// T repulsion;
 	/// mode for calculating mean distances
 	unsigned int mean_distance_mode;
+	/// data set indices that the node covers (only used for calculating mdl values)
+	std::vector< unsigned int > data;
 private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int) {
@@ -137,7 +137,9 @@ void LLRGNGNode<T,S>::calculateLearningQuality ()
 	// learning_quality = (last_avgerror /*+ 1*/) / (prev_avgerror /*+ 1*/);
 	// learning_quality = (last_avgerror - prev_avgerror);
 	// learning_quality = (last_avgerror / prev_avgerror - 1) * (last_avgerror / prev_avgerror - 1);
-	learning_quality = exp (last_avgerror / prev_avgerror - 1);
+	// learning_quality = exp (last_avgerror / prev_avgerror - 1);
+	learning_quality = - (log (last_avgerror) - log( prev_avgerror));
+
 }
 
 /// \brief calculate \p insertion_quality measure
@@ -175,10 +177,16 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 	// 	learning_rate = rate_decision_boundary * default_rate;
 	// else
 	//         learning_rate = default_rate;
+	// if (rate_decision_boundary > 1)
+	// 	learning_rate = default_rate;
 	if (rate_decision_boundary > 1)
 		learning_rate = default_rate;
-	else
-		learning_rate = rate_decision_boundary * default_rate;
+	else if (rate_decision_boundary > 0.1)
+		learning_rate = rate_decision_boundary * default_rate;	
+	else if (rate_decision_boundary <= 0.1)
+		learning_rate = 0.1 * default_rate;
+	// else
+	// 	learning_rate = rate_decision_boundary * default_rate;
 	
 }
 
@@ -278,7 +286,7 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, c
 	if (min_last_avgerror > last_avgerror)
 		min_last_avgerror = last_avgerror;
 
-	repulsion = last_avgerror * 0.4;
+	// repulsion = last_avgerror * 0.3;
 	
 	// learningProgressHistory.push_back (-(last_avgerror - prev_avgerror));
 
@@ -399,8 +407,6 @@ protected:
 	unsigned int age_time_window;
 	/// maximal size of error vector
 	const unsigned int max_errors_size;
-	/// utility factor for evaluating node relocation
-	// T utifactor;
 	/// current model efficiency value
 	T model_efficiency;
 	/// mode for calculating mean distances
@@ -428,7 +434,6 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_
 	error_time_window (1),
 	age_time_window (1),
 	max_errors_size (max_error_window),
-	// utifactor (0),
 	model_efficiency (0),
 	mean_distance_mode (harmonic)
 {
@@ -450,7 +455,6 @@ LLRGNGGraph<T,S>::LLRGNGGraph () :
 	error_time_window (0),
 	age_time_window (0),
 	max_errors_size (0),
-	// utifactor (0),
 	model_efficiency (0),
 	mean_distance_mode (harmonic)
 {
@@ -475,7 +479,6 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 	error_time_window (g.error_time_window),
 	age_time_window (g.age_time_window),
 	max_errors_size (g.max_errors_size),
-	// utifactor (g.utifactor),
 	model_efficiency (g.model_efficiency),
 	mean_distance_mode (g.mean_distance_mode)
 {
@@ -512,7 +515,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->last_avgerror = copynode->last_avgerror;
 		node->restricting_distance = copynode->restricting_distance;
 		node->prev_restricting_distance = copynode->prev_restricting_distance;
-		node->repulsion = copynode->repulsion;
+		// node->repulsion = copynode->repulsion;
 		node->min_last_avgerror = copynode->min_last_avgerror;
 		node->last_epoch_improvement = copynode->last_epoch_improvement;
 		node->age = copynode->age;
@@ -522,7 +525,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 		node->dim_errors = copynode->dim_errors;
 		node->efficiency = copynode->efficiency;
 		node->mean_distance_mode = copynode->mean_distance_mode;
-		// node->utifactor = copynode->utifactor;
+		node->data = copynode->data;
 	}
 }
 
@@ -554,7 +557,7 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 		n->last_avgerror = (this->high_limit - this->low_limit) * (this->high_limit - this->low_limit);		
 	//default inherited errors (used when initializing reference vectors)
 	n->prev_avgerror = n->last_avgerror;
-	n->repulsion = 0.001;
+	// n->repulsion = 0.001;
 	n->errors.push_back (n->last_avgerror);
 	n->min_last_avgerror = n->last_avgerror;
 	n->dim_last_avgerror.resize (this->_dimNode);
@@ -649,7 +652,7 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	node->weight = first_node->weight + 2 * first_node->dim_last_avgerror;
 	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
 	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
-	node->repulsion = node->last_avgerror * 0.4;
+	// node->repulsion = node->last_avgerror * 0.3;
 
 	node->min_last_avgerror = node->last_avgerror;
 	
@@ -842,14 +845,13 @@ int LLRGNGGraph<T,S>::findLessItemsNode ()
 template<typename T, typename S>
 void LLRGNGGraph<T,S>::resetMDLCounters ()
 {
-	// utifactor = 0;
 	model_efficiency = 0;
 	for (unsigned int i=0; i < this->size(); i++)
 	{
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (this->_nodes[i]);
 		node->items_counter = 0;
 		node->efficiency = 0;
-		// node->utifactor = 0;
+		node->data.clear ();
 	}
 }
 
