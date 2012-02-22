@@ -177,8 +177,6 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
 	// 	learning_rate = rate_decision_boundary * default_rate;
 	// else
 	//         learning_rate = default_rate;
-	// if (rate_decision_boundary > 1)
-	// 	learning_rate = default_rate;
 	if (rate_decision_boundary > 1)
 		learning_rate = default_rate;
 	else if (rate_decision_boundary > 0.1)

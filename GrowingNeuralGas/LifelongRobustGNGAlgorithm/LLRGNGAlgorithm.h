@@ -464,7 +464,7 @@ void LLRGNGAlgorithm<T,S>::updateNeighborWeight(const unsigned int& item_index,c
 		
 	// dist_avg /= distances_winner.size();
 		
-	// node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - winner->weight) / distances_winner[node_index];
+	// node->weight += exp (-distances_winner[node_index] / node->repulsion) * 2 * dist_avg * (node->weight - (*_graphptr)[winner_index].weight) / distances_winner[node_index];
 
 	// node->weight += (node->weight - exp (-distances_winner[node_index] / winner->repulsion) * winner->weight);
 	// node->weight += exp (-distances_winner[node_index] / winner->repulsion) * 2 * dist_avg * (node->weight - winner->weight) / distances_winner[node_index];
