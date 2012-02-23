@@ -56,9 +56,13 @@ template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
                         UGraph(const unsigned int& dim) : Base_Graph<T,S>(dim){}
     //cto creating a graph with the different dimension for node and edge weight vectors
                         UGraph(const unsigned int& dimNode,const unsigned int& dimEdge) : Base_Graph<T,S>(dimNode,dimEdge){}
+    /// dummy cto
+                        UGraph () {};
+    // copy cto
+                        UGraph (const UGraph&);
+    // dto
+                        virtual ~UGraph ();
 
-    //std dto
-                        virtual ~UGraph(){}
     //returns whether the two nodes are connected by an edge
     inline bool         areConnected(const unsigned int&,const unsigned int&)const;
     // adds an edge between the nodes given by their indices      
@@ -67,6 +71,38 @@ template<typename T,typename S> class UGraph : virtual public Base_Graph<T,S>
     void                rmEdge(const unsigned int&,const unsigned int&);
 
 };  
+
+/** \brief copy cto
+*
+* \param graph the graph to be copied from
+*/
+template<typename T,typename S> UGraph<T,S>::UGraph(const UGraph& g) :
+	Base_Graph<T,S> (g)
+{
+	for (unsigned int i=0; i < g.size(); i++)
+		for (unsigned int j=0; j<g._nodes[i]->edges.size(); j++)
+			if ( g._nodes[i]->edges[j] != NULL )
+			{
+				this->addEdge (i, j);
+				this->_nodes[i]->edges[j]->weight = g._nodes[i]->edges[j]->weight;
+			}
+}
+
+/** \brief dto Graph deletion
+ */
+template<typename T, typename S>
+UGraph<T,S>::~UGraph ()
+{
+	for (unsigned int i=0; i<this->size(); i++)
+		for (unsigned int j=i+1; j<this->_nodes[i]->edges.size(); j++)
+			if (this->_nodes[i]->edges[j] != NULL)
+				delete this->_nodes[i]->edges[j];
+	
+	for (unsigned int i=0; i<this->size(); i++)
+		this->_nodes[i]->edges.clear();
+			     
+}
+
 
 /** \brief returns whether the two nodes are connected by an edge
 */

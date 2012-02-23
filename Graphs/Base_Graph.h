@@ -166,7 +166,7 @@ public:
 	//cto creating a graph with the same dimension for node and edge weight vectors
 	Base_Graph(const unsigned int&);
 	//dummy copy constructor. Copying procedures should be done in derived classes
-	Base_Graph (const Base_Graph&) {}
+	Base_Graph (const Base_Graph&);
 	/// dummy constructor (for serialization)
 	Base_Graph () {}
                          
@@ -288,6 +288,24 @@ template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const unsigned int& 
   ::srand( (unsigned)time( NULL ) );                    //inits the random function 
 }
 
+/** \brief copy cto
+*
+* \param graph the graph to be copied from
+*/
+template<typename T,typename S> Base_Graph<T,S>::Base_Graph(const Base_Graph& g)
+{ 
+	_dimNode = g._dimNode;
+	_dimEdge = g._dimEdge;
+	unsigned int gsize = g.size();
+	
+	for (unsigned int i=0; i < gsize; i++)
+	{
+		addNode();
+		_nodes[i]->weight = g._nodes[i]->weight;
+		
+	}	
+}
+
 /** \brief std dto
 */
 template<typename T,typename S> Base_Graph<T,S>::~Base_Graph()
@@ -353,7 +371,22 @@ template<typename T,typename S> bool Base_Graph<T,S>::save( const char* filename
  */
 template<typename T, typename S> void Base_Graph<T,S>::setNodes( std::vector < Base_Node<T, S>* >* nodes)
 {
-  _nodes = *nodes;
+  for(unsigned int i = 0; i < size(); i++)
+    delete  _nodes[i];                                // delete ptrs to the nodes
+  _nodes.clear();
+
+  for (unsigned int i=0; i<nodes->size(); i++)
+  {
+    addNode();
+    _nodes[i]->weight = (*nodes)[i]->weight;
+  }
+  for (unsigned int i=0; i < nodes->size(); i++)
+    for (unsigned int j=0; j<(*nodes)[i]->edges.size(); j++)
+      if ( (*nodes)[i]->edges[j] != NULL )
+      {
+        this->addEdge (i, j);
+        this->_nodes[i]->edges[j]->weight = (*nodes)[i]->edges[j]->weight;
+      }
 }
 
 

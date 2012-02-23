@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
 	int insertion_rate;
 	double whitenoise_prob;
 	string dataset;
+	unsigned int max_epochs_mdl_reduction;
+	unsigned int max_epochs_error_reduction;
 
 	po::options_description desc("Allowed parameters:");
 	desc.add_options()
@@ -39,9 +41,11 @@ int main(int argc, char *argv[])
 		("visualize,v", "use a Qt Widget for Voronoi visualization")
 		("size,s", po::value (&size)->default_value (1000), "dataset size")
 		("insertionrate,i", po::value (&insertion_rate)->default_value (1000), "insertion rate")
+		("maxepochsmdl,m", po::value (&max_epochs_mdl_reduction)->default_value (400), "Set maximum nr of epochs after mdl reduction is expected")
+		("maxepochserror,e", po::value (&max_epochs_error_reduction)->default_value (3), "Set maximum nr of epochs after error reduction is expected")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
-		("mdl,m", "save MDL history to a file mdl.txt");
+		("mdl,o", "save MDL history to a file mdl.txt");
 
 	// Declare an options description instance which will include
 	// all the options
@@ -133,8 +137,8 @@ int main(int argc, char *argv[])
 	llrgng->setDataAccuracy (0.0001);
 	// llrgng->setDataAccuracy (0.00000000001);
 	//llrgng->setMaxNodes (5);
-	llrgng->setMaxEpochsErrorReduction (5);
-	llrgng->setMaxEpochsMDLReduction (600);
+	llrgng->setMaxEpochsErrorReduction (max_epochs_error_reduction);
+	llrgng->setMaxEpochsMDLReduction (max_epochs_mdl_reduction);
 	if (dataset == "1")
 		llrgng->setModelEfficiencyConst (1);
 	else

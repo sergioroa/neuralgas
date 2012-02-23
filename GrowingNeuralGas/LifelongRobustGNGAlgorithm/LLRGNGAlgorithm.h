@@ -195,7 +195,8 @@ protected:
 	/// current minimal mdl
 	T min_mdl;
 	/// current minimal graph (mdl criterion)
-	LLRGNGGraph<T,S>* min_mdl_graphptr;
+	// LLRGNGGraph<T,S>* min_mdl_graphptr;
+	UGraph<T,S>* min_mdl_graphptr;
 	/// maximal nr of epochs for checking for mean errors non-reduction
 	unsigned int max_epochs_error_reduction;
 	/// maximal nr of epochs for checking \p mdl reduction
@@ -601,7 +602,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		{
 			std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
 			min_mdl = mdl;
-			min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
+			// min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
+			min_mdl_graphptr = new UGraph<T,S>(static_cast<UGraph<T,S>& >(*_graphptr));
 				
 		}
 		if (minimalMDL ())
@@ -1098,7 +1100,8 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL (bool calculate_model_efficienc
 		std::cout << "\t\t\t\t <-- is minimal!" << std::endl;
 		min_mdl = mdl;
 		delete min_mdl_graphptr;
-		min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
+		// min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
+		min_mdl_graphptr = new UGraph<T,S>(static_cast<UGraph<T,S>& >(*_graphptr));
 		last_epoch_mdl_reduction = epoch;
 	}
 	else
@@ -1122,8 +1125,13 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 {
+	Vector<T> low_limits = _graphptr->getLowLimits();
+	Vector<T> high_limits = _graphptr->getHighLimits();
 	delete _graphptr;
-	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
+	_graphptr = new LLRGNGGraph<T,S>(this->getDimension());
+	_graphptr->setLowLimits (low_limits);
+	_graphptr->setHighLimits (high_limits);
+	_graphptr->setNodes (min_mdl_graphptr->getNodes());
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;

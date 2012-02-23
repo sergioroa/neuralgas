@@ -466,10 +466,10 @@ LLRGNGGraph<T,S>::LLRGNGGraph () :
  */
 template<typename T,typename S>
 LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
-	Base_Graph<T,S>(g),
-	UGraph<T,S>(g),
-	TGraph<T,S>(g),
-	GNGModulGraph<T,S>(g),
+	Base_Graph<T,S>(),
+	UGraph<T,S>(),
+	TGraph<T,S>(),
+	GNGModulGraph<T,S>(),
 	adaptation_threshold (g.adaptation_threshold),
 	winner_learning_rate (g.winner_learning_rate),
 	neighbors_learning_rate (g.neighbors_learning_rate),
@@ -485,6 +485,10 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
 	this->_dimNode = g._dimNode;
 	this->_dimEdge = g._dimEdge;
 	this->_metric_to_use = g._metric_to_use;
+	this->low_limit = g.low_limit;
+	this->high_limit = g.high_limit;
+	this->low_limits = g.low_limits;
+	this->high_limits = g.high_limits;
 	unsigned int gsize = g.size();
 	
 	for (unsigned int i=0; i < gsize; i++)
@@ -532,15 +536,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph (const LLRGNGGraph& g) :
  */
 template<typename T, typename S>
 LLRGNGGraph<T,S>::~LLRGNGGraph ()
-{
-	for (unsigned int i=0; i<this->size(); i++)
-		for (unsigned int j=i+1; j<this->_nodes[i]->edges.size(); j++)
-			if (this->_nodes[i]->edges[j] != NULL)
-				delete this->_nodes[i]->edges[j];
-	
-	for (unsigned int i=0; i<this->size(); i++)
-		this->_nodes[i]->edges.clear();
-			     
+{			     
 }
 
 
@@ -552,8 +548,6 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	LLRGNGNode<T,S>* n = new LLRGNGNode<T,S>;
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
 		n->last_avgerror = metric (this->high_limits, this->low_limits);
-	else
-		n->last_avgerror = (this->high_limit - this->low_limit) * (this->high_limit - this->low_limit);		
 	//default inherited errors (used when initializing reference vectors)
 	n->prev_avgerror = n->last_avgerror;
 	// n->repulsion = 0.001;
@@ -566,9 +560,6 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
 		for (unsigned int i=0; i<this->_dimNode; i++)
 			n->dim_errors[0][i] = (this->high_limits[i] - this->low_limits[i])*(this->high_limits[i] - this->low_limits[i]);
-	else
-		for (unsigned int i=0; i<this->_dimNode; i++)
-			n->dim_errors[0][i] = (this->high_limit - this->low_limit)*(this->high_limit - this->low_limit);
 	return n; 
 }
 
