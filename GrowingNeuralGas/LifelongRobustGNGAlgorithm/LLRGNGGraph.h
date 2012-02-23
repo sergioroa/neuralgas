@@ -115,6 +115,7 @@ private:
 /// \brief default \p LLRGNGNode cto
 template<typename T, typename S>
 LLRGNGNode<T,S>::LLRGNGNode () :
+	last_epoch_improvement (0),
 	age (1),
 	learning_rate (0),
 	items_counter (0),

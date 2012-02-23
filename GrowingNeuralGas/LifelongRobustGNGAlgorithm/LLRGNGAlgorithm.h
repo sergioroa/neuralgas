@@ -483,6 +483,7 @@ void LLRGNGAlgorithm<T,S>::run()
 	assert (insertion_rate);
 
 	unsigned int tsize = this->size();
+	calculateValueRange ();
 	if (this->sampling_mode == sequential)
 	{
 		if (this->stopping_criterion == epochs)
@@ -495,7 +496,6 @@ void LLRGNGAlgorithm<T,S>::run()
 			stable_graph = false;
 			insertions = 0;
 			insert_this_iter = true;
-			calculateValueRange ();
 			do
 			{
 				for(unsigned int t = 0; t < tsize; t++)
@@ -527,7 +527,6 @@ void LLRGNGAlgorithm<T,S>::run()
 			stable_graph = false;
 			insertions = 0;
 			insert_this_iter = true;
-			calculateValueRange ();
 			do {
 				for(unsigned int t = 0; t < tsize; t++)
 				{
@@ -1144,7 +1143,7 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 {
-	T avg_values;
+	T avg_values = 0;
 	for(unsigned int t = 0; t < this->size(); t++)
 		for (unsigned int i=0; i<this->getDimension(); i++)
 			avg_values += (*this)[t][i];
