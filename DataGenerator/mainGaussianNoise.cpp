@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 	string dataset;
 	unsigned int max_epochs_mdl_reduction;
 	unsigned int max_epochs_error_reduction;
+	double model_efficiency;
 
 	po::options_description desc("Allowed parameters:");
 	desc.add_options()
@@ -45,7 +46,8 @@ int main(int argc, char *argv[])
 		("maxepochserror,e", po::value (&max_epochs_error_reduction)->default_value (3), "Set maximum nr of epochs after error reduction is expected")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
-		("mdl,o", "save MDL history to a file mdl.txt");
+		("mdl,o", "save MDL history to a file mdl.txt")
+		("modelefficiency,c", po::value (&model_efficiency)->default_value (1), "model efficiency constant");
 
 	// Declare an options description instance which will include
 	// all the options
@@ -142,7 +144,7 @@ int main(int argc, char *argv[])
 	if (dataset == "1")
 		llrgng->setModelEfficiencyConst (1);
 	else
-		llrgng->setModelEfficiencyConst (1);
+		llrgng->setModelEfficiencyConst (model_efficiency);
 	
 	llrgng->setSamplingMode (randomly);
 	//llrgng->setStoppingCriterion (epochs);

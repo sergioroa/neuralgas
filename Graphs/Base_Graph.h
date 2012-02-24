@@ -533,7 +533,6 @@ template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNe
   assert (index < nsize );
 
   std::vector<unsigned int> result_v;
-  int num_of_neighbors = _nodes[index]->num_connections;
   int found_neighbors = 0;
   
   for (unsigned int i=0; i < nsize /*&& found_neighbors < num_of_neighbors*/; i++)
@@ -543,7 +542,7 @@ template<typename T,typename S> std::vector<unsigned int> Base_Graph<T,S>::getNe
         found_neighbors++;
     }
   //if the following is false, something must be wrong
-  assert (found_neighbors <= num_of_neighbors);
+  assert (found_neighbors <= _nodes[index]->num_connections);
   return result_v;
 }
 
