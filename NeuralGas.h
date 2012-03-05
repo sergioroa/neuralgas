@@ -293,12 +293,25 @@ template<typename T,typename S> void NeuralGas<T,S>::setStoppingCriterion(unsign
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::setData(std::vector< Vector<T>* >* data)
 {
-  _data       = data;
+	// _data       = data;
+  if (_data != NULL) {
+    for(unsigned int i = 0; i < _data->size(); i++)
+      delete  _data->at(i);                                // delete ptrs to the nodes
+    _data->clear();
+  }
+  else
+    _data = new std::vector< Vector<T>* >;
+
+  for (unsigned int i=0; i < data->size(); i++) {
+    Vector<T> *new_item = new Vector<T>(*data->at(i));
+    _data->push_back (new_item);
+  }
+
 }
 
-/** \brief Adds a single datum
+/** \brief Adds a single item
 *
-*   \param to_add the datum to add
+*   \param to_add the item to add
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::addData(Vector<T>* to_add)
 {_data->push_back(to_add);}

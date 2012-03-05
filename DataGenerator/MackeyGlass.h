@@ -57,6 +57,7 @@ class MackeyGlass : public DataGenerator<double>
 
 MackeyGlass::MackeyGlass() : DataGenerator<double>(1)
 {
+ _memory = NULL;
  setPastTimeSteps(0);
  setBoundary(0.0);
  setPower(1);
@@ -66,7 +67,7 @@ MackeyGlass::MackeyGlass() : DataGenerator<double>(1)
 MackeyGlass::~MackeyGlass()
 {
  if (_memory != NULL)
-    delete _memory;
+     delete _memory;
 
 }
 

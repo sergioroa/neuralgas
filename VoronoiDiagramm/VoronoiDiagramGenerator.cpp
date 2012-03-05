@@ -140,7 +140,7 @@ bool VoronoiDiagramGenerator::ELinitialize()
 	freeinit(&hfl, sizeof **ELhash);
 	ELhashsize = 2 * sqrt_nsites;
 	if (ELhash != 0)
-		delete ELhash;
+		free (ELhash);
 	ELhash = (struct Halfedge **) myalloc ( sizeof *ELhash * ELhashsize);
 
 	if(ELhash == 0)
@@ -566,7 +566,7 @@ bool VoronoiDiagramGenerator::PQinitialize()
 	PQmin = 0;
 	PQhashsize = 4 * sqrt_nsites;
 	if (PQhash != 0)
-		delete PQhash;
+		free(PQhash);
 	PQhash = (struct Halfedge *) myalloc(PQhashsize * sizeof *PQhash);
 
 	if(PQhash == 0)

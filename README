@@ -26,6 +26,16 @@ type [g] for generating the makefile. The final commands are:
 $ make
 $ sudo make install
 
+Installed programs are:
+
+- NGSuite. Used for testing learning with two different data sets (MackeyGlass and NoisyAutomata) with different learning algorithms.
+- LLRGNG. Testing of the Lifelong Robust GNG alg. with a simple distribution of 3 Gaussians.
+- GaussianNoise. Testing of the Lifelong Robust GNG alg. with any mixture of Gaussians.
+- EBGNG. Testing of a simple Error based GNG alg. with the MackeyGlass data set.
+- GNGTesting. Verify the Average Error of some GNG graph given some data.
+- VoronoiDiagramm. Generation of a Voronoi diagram as an image, given nodes and data.
+- VoronoiWidget. Generation of a Voronoi diagram in a Qt Window, given nodes and data.
+
 Enjoy!
 
 Please send your comments to:

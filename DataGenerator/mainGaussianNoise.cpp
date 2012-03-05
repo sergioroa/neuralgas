@@ -87,32 +87,32 @@ int main(int argc, char *argv[])
 		}
 	}
 		
-	GaussianNoise gn;
+	GaussianNoise* gn = new GaussianNoise;
 	if (dataset == "1")
-		gn.setCanonicalDataset ();
+		gn->setCanonicalDataset ();
 	else if (dataset == "2")
-		gn.setCustomizedDataset ();
+		gn->setCustomizedDataset ();
 	else
 	{
 		const char* filename = dataset.c_str();
-		if (!gn.readCustomizedDataset (filename))
+		if (!gn->readCustomizedDataset (filename))
 		{
 			cerr << "Error opening file..." << endl;
 			return 1;
 		}
 	}
 	if (vm.count("whitenoise_prob"))
-		gn.setWhiteNoiseProb (whitenoise_prob);
-	gn.generate(size);
-	vector<Vector<double>*>* data = gn.getData();
+		gn->setWhiteNoiseProb (whitenoise_prob);
+	gn->generate(size);
+	vector<Vector<double>*>* data = gn->getData();
 	
 	for (unsigned int i=0; i < data->size(); i++)
 		std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
-	gn.save("data.dat");
-	llrgng->setData(gn.getData());
-	Vector<double> mins = minValues(gn.getData());
-	Vector<double> maxs = maxValues(gn.getData());
+	gn->save("data.dat");
+	llrgng->setData(gn->getData());
+	Vector<double> mins = minValues(gn->getData());
+	Vector<double> maxs = maxValues(gn->getData());
 	// double min = llrgng->minValue();
 	// double max = llrgng->maxValue();
 	for (unsigned int i=0; i< mins.size(); i++)
@@ -122,9 +122,9 @@ int main(int argc, char *argv[])
 	}
 	// cout << "min: " << min << endl;
 	// cout << "max: " << max << endl;
+	delete gn;
 	
 	llrgng->setRefVectors(2,mins,maxs);
-	// llrgng->setRefVectors(2,mins,maxs);
 
 	if (vm.count("visualize"))
 		vWindow->show ();
@@ -171,8 +171,12 @@ int main(int argc, char *argv[])
 		total_error += errors[i];
 	
 	std::cout << total_error / size <<std::endl;
-	gn.reset();
 	delete llrgng;
+	if (vm.count("visualize"))
+	{
+		delete vWindow;
+		delete a;
+	}
 	
 	return EXIT_SUCCESS;
 }

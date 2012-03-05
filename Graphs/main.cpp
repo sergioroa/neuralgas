@@ -48,7 +48,9 @@ int main(int argc, char *argv[])
     ugraph.showGraph();
 */
     DGraph<float,int> dgraph(10);
-    dgraph.initRandomGraph(2, 0, 2);
+    Vector<float> low_limits (10, 0);
+    Vector<float> high_limits (10, 2);
+    dgraph.initRandomGraph(2, low_limits, high_limits);
     dgraph.addNode();
     dgraph.getID();
     dgraph.addEdge(0,1);

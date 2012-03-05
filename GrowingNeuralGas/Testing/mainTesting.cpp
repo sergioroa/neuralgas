@@ -37,28 +37,28 @@ int main(int argc, char *argv[])
     assert (nodes.size());
     unsigned int dim = nodes[0]->weight.size ();
 
-    std::vector<Vector<double>* >* data = new std::vector<Vector<double>* >;
-    if (!readData ("data.dat", data))
+    std::vector<Vector<double>* > data;
+    if (!readData ("data.dat", &data))
     {
 	std::cerr << "unable to read file data.dat" << std::endl;
 	return 1;
     }
-    assert (data->size());
-    assert (data->at(0)->size() == dim);
+    assert (data.size());
+    assert (data.at(0)->size() == dim);
     
     LLRGNGAlgorithm<double, int> gng (dim);
     gng.setNodes ( &nodes );
-    gng.setData ( data );
+    gng.setData ( &data );
     
     gng.showGraph ();
 
     ErrorTesting<double,int> et(&gng);
 
-    std::vector<double> errors = et.getErrors(data->size());
+    std::vector<double> errors = et.getErrors(data.size());
     double total_error=0.0;
     for(unsigned int j=0; j < errors.size(); j++)
 	total_error+=errors[j];
-    std::cout << "Avg error: "<< total_error / data->size() <<std::endl;
+    std::cout << "Avg error: "<< total_error / data.size() <<std::endl;
     std::cout << std::endl;
     
     return EXIT_SUCCESS;

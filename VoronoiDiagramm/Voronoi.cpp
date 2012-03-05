@@ -37,9 +37,9 @@ Voronoi::~Voronoi ()
     resetNodes();
 
     if (_xValues != NULL)
-	delete _xValues;
+	delete[] _xValues;
     if (_yValues != NULL)
-	delete _yValues;
+	delete[] _yValues;
     
 }
 
@@ -185,9 +185,9 @@ void Voronoi::setSizefromData(const int& somesideSize)
 void Voronoi::setNeurons()
 {
     if (_xValues != NULL)
-	delete _xValues;
+	delete[] _xValues;
     if (_yValues != NULL)
-	delete _yValues;
+	delete[] _yValues;
     _xValues = new double[_neurons->size()];
     _yValues = new double[_neurons->size()];
 
