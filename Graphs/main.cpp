@@ -20,6 +20,7 @@
 #include "TGraph.h"
 #include "DGraph.h"
 #include "UGraph.h"
+#include <GrowingNeuralGas/LifelongRobustGNGAlgorithm/LLRGNGGraph.h>
 #include "Base_Graph.h"
 
 using namespace std;
@@ -47,16 +48,22 @@ int main(int argc, char *argv[])
     ugraph.rmEdge(0,2);
     ugraph.showGraph();
 */
-    DGraph<float,int> dgraph(10);
-    Vector<float> low_limits (10, 0);
-    Vector<float> high_limits (10, 2);
-    dgraph.initRandomGraph(2, low_limits, high_limits);
-    dgraph.addNode();
-    dgraph.getID();
-    dgraph.addEdge(0,1);
-    dgraph.addNode();
-    dgraph.addEdge(0,2);
-    dgraph.showGraph();
+    LLRGNGGraph<float,int> ugraph(9);
+    Vector<float> low_limits (9, 0);
+    Vector<float> high_limits (9, 2);
+    ugraph.initRandomGraph(2, low_limits, high_limits);
+    for (unsigned int i=0; i<1000; i++)
+	    ugraph.addNode();
+    
+    for (unsigned int i=0; i<ugraph.size(); i++)
+	    for (unsigned int j=0; j<ugraph.size(); j++)
+	    {
+		    // dgraph.getID();
+		    ugraph.addEdge(i,j);
+	    }
+    // dgraph.addNode();
+    // dgraph.addEdge(0,2);
+    ugraph.showGraph();
 
  /*   TGraph<float,int> Tgraph(10);
     Tgraph.initRandomGraph(2);

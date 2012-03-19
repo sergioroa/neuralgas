@@ -156,7 +156,7 @@ protected:
 	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
 	bool minimalMDL ();
 	// find graph with a node that is not properly located according to MDL principle
-	LLRGNGGraph<T,S>* findDislocatedNodeGraph (unsigned int&, unsigned int&, unsigned int&);
+	bool findDislocatedNodeGraph (unsigned int&, unsigned int&);
 	// calculate model efficiency (error) of a graph
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph);
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsigned int&);
@@ -197,6 +197,8 @@ protected:
 	/// current minimal graph (mdl criterion)
 	// LLRGNGGraph<T,S>* min_mdl_graphptr;
 	UGraph<T,S>* min_mdl_graphptr;
+	/// temporal graph to store a graph without a dislocated node of \p _graphptr that minimizes \p mdl
+	LLRGNGGraph<T,S>* dislocated_node_graphptr;
 	/// maximal nr of epochs for checking for mean errors non-reduction
 	unsigned int max_epochs_error_reduction;
 	/// maximal nr of epochs for checking \p mdl reduction
@@ -230,7 +232,7 @@ private:
 * \param dim is the dimension of the node weights
 */
 template<typename T,typename S>
-LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned int& window = 200):
+LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned int& window = 81):
 	GNGModul<T,S>(dim),
 	max_nodes (0),
 	data_accuracy (0.001),
@@ -603,7 +605,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 			std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
 			min_mdl = mdl;
 			// min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
-			min_mdl_graphptr = new UGraph<T,S>(static_cast<UGraph<T,S>& >(*_graphptr));
+			min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
 				
 		}
 		if (minimalMDL ())
@@ -614,7 +616,6 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		//find node with maximal value of insertion criterion when the graph is not improving more
 		if (minimalAvgErrors ())
 		{
-			unsigned int dislocated_node;
 			if (_graphptr->size() > 2)
 			{
 				if (_graphptr->deleteInactiveNodes(b, s))
@@ -640,8 +641,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 				}
 				if (insertions == 0)
 				{
-					LLRGNGGraph<T,S>* dislocated_node_graphptr = findDislocatedNodeGraph (b, s, dislocated_node);
-					if (dislocated_node_graphptr != NULL)
+					if (findDislocatedNodeGraph (b, s))
 					{
 						std::cout << "deleting nodes..." << std::endl;
 						delete _graphptr;
@@ -665,10 +665,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 							markAsStableGraph ();
 							return;
 						}
-
 					}
-					else delete dislocated_node_graphptr;
-						
 				}
 			}
 			// std::vector<unsigned int> dislocated_nodes = findDislocatedNodes ();
@@ -953,45 +950,47 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength (bool calculate_model_
 
 }
 
-//! \brief find nodes that are not properly located according to MDL principle
-
-/*! \return graph_neg_mdl_change graph with more negative mdl change containing a node that is dislocated
+//! \brief find nodes that are not properly located according to MDL principle. Sets \p dislocated_node_graphptr to
+/*! a graph with without a dislocated node which minimizes MDL.
+  \return graph_neg_mdl_change which is true if graph was found
 */
 template<typename T, typename S>
-LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& winner, unsigned int& snd_winner, unsigned int& dislocated_node)
+bool LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& winner, unsigned int& snd_winner)
 {
 	// test dislocated nodes creating pruned graphs
-	std::vector<LLRGNGGraph<T,S>* > pruned_graphs;
 	if (_graphptr->size() <= 2)
-		return NULL;
-	for (unsigned int i=0; i<_graphptr->size(); i++)
-	{
-		LLRGNGGraph<T,S>* pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
-		pruned_graphs.push_back (pruned_graph);
-		pruned_graph->rmNode (i);
-		calculateModelEfficiency (pruned_graph, i);
-	}
-	dislocated_node = _graphptr->size();
+		return false;
+
 	T min_change = 0;
 	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
 	std::cout << "mod complex. change: " << model_complexity_change << std::endl;
-	
-	for (unsigned int i=0; i < _graphptr->size(); i++)
+	unsigned int dislocated_node = _graphptr->size();
+	dislocated_node_graphptr = NULL;
+
+	LLRGNGGraph<T,S>* pruned_graph; 
+	for (unsigned int i=0; i<_graphptr->size(); i++)
 	{
-		T change = model_complexity_change + model_efficiency_const * (pruned_graphs[i]->model_efficiency - _graphptr->model_efficiency);
+		pruned_graph = new LLRGNGGraph<T,S>(*_graphptr);
+		pruned_graph->rmNode (i);
+		calculateModelEfficiency (pruned_graph, i);
+
+		T change = model_complexity_change + model_efficiency_const * (pruned_graph->model_efficiency - _graphptr->model_efficiency);
 		if (change < min_change)
 		{
 			
-			std::cout << "eff pruned: " << pruned_graphs[i]->model_efficiency << std::endl;
+			std::cout << "eff pruned: " << pruned_graph->model_efficiency << std::endl;
 			std::cout << "change: " << change << std::endl;
 			dislocated_node = i;
 			min_change = change;
+			if (dislocated_node_graphptr != NULL)
+				delete dislocated_node_graphptr;
+			dislocated_node_graphptr = new LLRGNGGraph<T,S> (*pruned_graph);
 		}
+		delete pruned_graph;
 	}
-	LLRGNGGraph<T,S>* graph_neg_mdl_change;
+	bool graph_neg_mdl_change = false;
 	if (dislocated_node != _graphptr->size())
 	{
-		graph_neg_mdl_change = pruned_graphs[dislocated_node];
 		if (winner > dislocated_node)
 			winner--;
 		else if (winner == dislocated_node)
@@ -1000,16 +999,9 @@ LLRGNGGraph<T,S>* LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& w
 			snd_winner--;
 		else if (snd_winner == dislocated_node)
 			snd_winner = _graphptr->size();
+		graph_neg_mdl_change = true;
 	}
-	else
-		graph_neg_mdl_change = NULL;
-	for (unsigned int i=0; i < _graphptr->size(); i++)
-		if (i != dislocated_node)
-		{
-			LLRGNGGraph<T,S>* graph_to_del = pruned_graphs[i];
-			delete graph_to_del;
-		}
-	pruned_graphs.clear ();
+
 	return graph_neg_mdl_change;
 }
 
@@ -1101,7 +1093,7 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL (bool calculate_model_efficienc
 		min_mdl = mdl;
 		delete min_mdl_graphptr;
 		// min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
-		min_mdl_graphptr = new UGraph<T,S>(static_cast<UGraph<T,S>& >(*_graphptr));
+		min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
 		last_epoch_mdl_reduction = epoch;
 	}
 	else

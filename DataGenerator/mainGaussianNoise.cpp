@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	
-	QApplication *a;
-	VoronoiMainWindow *vWindow;
+	QApplication *a = NULL;
+	VoronoiMainWindow *vWindow = NULL;
 	LLRGNGAlgorithm<double, int>* llrgng = new LLRGNGAlgorithm<double, int>(2);
 	if (vm.count("visualize"))
 	{

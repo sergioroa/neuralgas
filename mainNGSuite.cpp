@@ -108,8 +108,8 @@ int main(int argc, char *argv[])
     else
 	    display_error_msg (argv);
     
-    GNGModul<double, int> *gng;
-    unsigned int algorithm;
+    GNGModul<double, int> *gng = NULL;
+    unsigned int algorithm = _gng;
     //MGNGAlgorithm<double,int>* mgng    = new MGNGAlgorithm<double,int>(1);
     //GNGAlgorithm<double,int>* gng      = new GNGAlgorithm<double,int>(1);
     //EBGNGAlgorithm<double,int>* ebgng  = new EBGNGAlgorithm<double,int>(2);
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == _llbgng)
     {
-	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setTimeWindows (100, 60, sizeofdata);
+	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setTimeWindows (50, 30, sizeofdata);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setLearningRates (0.1, 0.001);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setInsertionRate (sizeofdata);
 	    static_cast<LLRGNGAlgorithm<double,int>*>(gng)->setAdaptationThreshold (0.0);

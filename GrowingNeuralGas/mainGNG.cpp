@@ -49,21 +49,21 @@ int main(int argc, char *argv[])
         v->push_back(x);
        
     }
-    GNGAlgorithm<float,float> mgng(1);
+    GNGAlgorithm<float,float> gng(1);
     
     
     for(int i=0; i < NUM_PARAM; i++)
-            mgng.setFuncArray(func,i);
+            gng.setFuncArray(func,i);
 
-    mgng.setFuncArray(functheta,7);
-    mgng.setFuncArray(funclambda,6);
+    gng.setFuncArray(functheta,7);
+    gng.setFuncArray(funclambda,6);
 
-    mgng.setData(v);
-    float max_value = maxValue(v); 
-    float min_value = minValue(v); 
-    mgng.setRefVectors(2,min_value,max_value);
-    mgng.run();
-    mgng.showGraph();
+    gng.setData(v);
+    Vector<float> max_values = maxValues(v); 
+    Vector<float> min_values = minValues(v); 
+    gng.setRefVectors(2,min_values,max_values);
+    gng.run();
+    gng.showGraph();
     for( int i=0; i < 1500; i++)
          delete (*v)[i];
     

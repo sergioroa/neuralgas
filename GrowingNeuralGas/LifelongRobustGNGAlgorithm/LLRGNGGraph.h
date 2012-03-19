@@ -221,22 +221,22 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, c
 	unsigned int windowbegin_prev_avgerror;
 	unsigned int windowlast_prev_avgerror;
 	unsigned int windowbegin_last_avgerror;
-	if (errors.size () <= smoothing + timewindow) {
+	if (errors_size <= smoothing + timewindow) {
 		windowbegin_prev_avgerror = 0;
 	}
 	else
 		windowbegin_prev_avgerror = errors_size -1 - (timewindow + smoothing);
 
-	if (errors.size () <= timewindow)
+	if (errors_size <= timewindow)
 		windowlast_prev_avgerror = (unsigned int)ceil((errors_size - 1) * smoothing_ratio);
 	else
 		windowlast_prev_avgerror = errors_size - 1 - timewindow;
 
 	
-	if (errors.size () <= smoothing) {
+	if (errors_size <= smoothing) {
 		windowbegin_last_avgerror = (unsigned int)ceil((errors_size - 1) * timewindow_ratio);
-		smoothing_prev = errors_size - windowbegin_last_avgerror;
-		smoothing_last = errors_size - windowbegin_last_avgerror;
+		smoothing_last = smoothing_prev = errors_size - windowbegin_last_avgerror;
+		// smoothing_last = errors_size - windowbegin_last_avgerror;
 	}
 	else
 		windowbegin_last_avgerror = errors_size - 1 - smoothing;
@@ -405,7 +405,7 @@ protected:
 	/// age time window constant
 	unsigned int age_time_window;
 	/// maximal size of error vector
-	const unsigned int max_errors_size;
+	unsigned int max_errors_size;
 	/// current model efficiency value
 	T model_efficiency;
 	/// mode for calculating mean distances
@@ -420,7 +420,7 @@ private:
     \param dim dimensionality
  */
 template<typename T, typename S>
-LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_error_window = 200) :
+LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_error_window = 81) :
 	Base_Graph<T,S>(dim),
 	UGraph<T,S>(dim),
 	TGraph<T,S>(dim),

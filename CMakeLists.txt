@@ -3,13 +3,18 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "RELEASE" CACHE STRING
+      "Choose the type of build, options are: DEBUG RELEASE RELWITHDEBINFO MINSIZEREL."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
 
 # NeuralGas
 PROJECT(NeuralGas)
 
 # Project root directory
-GET_FILENAME_COMPONENT(PROJECT_ROOT .. ABSOLUTE)
-SET(NEURALGAS_ROOT ${PROJECT_ROOT}/trunk CACHE INTERNAL "Path prefix for NeuralGas package")
+GET_FILENAME_COMPONENT(PROJECT_ROOT . ABSOLUTE)
+SET(NEURALGAS_ROOT ${PROJECT_ROOT} CACHE INTERNAL "Path prefix for NeuralGas package")
 
 ## Look for Boost libraries
 # SET(CMAKE_MODULE_PATH ${NEURALGAS_ROOT})

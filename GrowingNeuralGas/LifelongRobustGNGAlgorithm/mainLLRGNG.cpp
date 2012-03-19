@@ -56,8 +56,8 @@ int main (int argc, char* argv[])
 		return 0;
 	}
 
-	QApplication *a;
-	VoronoiMainWindow *vWindow;
+	QApplication *a = NULL;
+	VoronoiMainWindow *vWindow = NULL;
 	LLRGNGAlgorithm<double, int> llrgng (2);
 	if (vm.count("visualize"))
 	{
@@ -108,7 +108,8 @@ int main (int argc, char* argv[])
 		vWindow->show();
 
 	// llrgng.setTimeWindows (20, 100, 100);
-	llrgng.setTimeWindows (100, 60, 80*size);
+	// llrgng.setTimeWindows (100, 60, 80*size);
+	llrgng.setTimeWindows (50, 30, 80*size);
 	llrgng.setLearningRates (0.3, 0.001);
 	llrgng.setInsertionRate (size);
 	llrgng.setAdaptationThreshold (0.0);
@@ -117,7 +118,7 @@ int main (int argc, char* argv[])
 	// llrgng.setDataAccuracy (0.00000000001);
 	// llrgng.setMaxNodes (3);
 	llrgng.setMaxEpochsErrorReduction (5);
-	llrgng.setMaxEpochsMDLReduction (80);
+	llrgng.setMaxEpochsMDLReduction (40);
 	llrgng.setModelEfficiencyConst (1);
 
 	llrgng.setSamplingMode (randomly);

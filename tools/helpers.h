@@ -279,7 +279,6 @@ bool saveNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _node
 
 }
 
-
 } // namespace neuralgas
 
 #endif // HELPERS_H
