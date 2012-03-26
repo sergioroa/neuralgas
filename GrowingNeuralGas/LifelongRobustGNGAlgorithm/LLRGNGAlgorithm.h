@@ -128,8 +128,6 @@ public:
 	void setModelEfficiencyConst (T);
 	// find node with maximal value of insertion criterion
 	int maxInsertionCriterionNode ();
-	// find two nodes with maximal value of insertion criterion
-	std::vector<int> maxInsertionCriterionNodes ();
 	// find node with maximal value of insertion quality among some nodes
 	int maxInsertionQualityNode (const std::vector<unsigned int>&);
 	/// show graph for visualization
@@ -155,8 +153,8 @@ protected:
 	void updateMinimalGraphMDL (bool calculate_model_efficiency = true);
 	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
 	bool minimalMDL ();
-	// find graph with a node that is not properly located according to MDL principle
-	bool findDislocatedNodeGraph (unsigned int&, unsigned int&);
+	// recursively find nodes that are not properly located according to MDL principle
+	void findDislocatedNodesStableGraph ();
 	// calculate model efficiency (error) of a graph
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph);
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsigned int&);
@@ -195,8 +193,8 @@ protected:
 	/// current minimal mdl
 	T min_mdl;
 	/// current minimal graph (mdl criterion)
-	// LLRGNGGraph<T,S>* min_mdl_graphptr;
-	UGraph<T,S>* min_mdl_graphptr;
+	LLRGNGGraph<T,S>* min_mdl_graphptr;
+	// UGraph<T,S>* min_mdl_graphptr;
 	/// temporal graph to store a graph without a dislocated node of \p _graphptr that minimizes \p mdl
 	LLRGNGGraph<T,S>* dislocated_node_graphptr;
 	/// maximal nr of epochs for checking for mean errors non-reduction
@@ -215,10 +213,6 @@ protected:
 	unsigned int mean_distance_mode;
 	/// number of bits needed to encode a vector (calculated in \p calculateValueRange)
 	T bits_vector;
-	/// allow 2 insertions, depending on if a node was previously deleted or not
-	unsigned int insertions;
-	/// flag for tracking if a dislocated node was found in previous insertion epoch
-	bool insert_this_iter;
 	/// flag for saving MDL history
 	std::ofstream* mdl_history;
 private:
@@ -279,8 +273,8 @@ template<typename T,typename S>
 LLRGNGAlgorithm<T,S>::~LLRGNGAlgorithm()
 {
 	delete _graphptr;
-	if (this->stopping_criterion == stability && min_mdl_graphptr != NULL)
-		delete min_mdl_graphptr;
+	// if (this->stopping_criterion == stability && min_mdl_graphptr != NULL)
+	// 	delete min_mdl_graphptr;
 }
 
 /** \brief Sets the number of initial reference vectors. This is the first function
@@ -497,8 +491,6 @@ void LLRGNGAlgorithm<T,S>::run()
 		{
 			epoch = 0;
 			stable_graph = false;
-			insertions = 0;
-			insert_this_iter = true;
 			do
 			{
 				for(unsigned int t = 0; t < tsize; t++)
@@ -528,8 +520,6 @@ void LLRGNGAlgorithm<T,S>::run()
 		{
 			epoch = 0;
 			stable_graph = false;
-			insertions = 0;
-			insert_this_iter = true;
 			do {
 				for(unsigned int t = 0; t < tsize; t++)
 				{
@@ -604,8 +594,8 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		{
 			std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
 			min_mdl = mdl;
-			// min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
-			min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
+			min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
+			// min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
 				
 		}
 		if (minimalMDL ())
@@ -639,98 +629,45 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					}
 
 				}
-				if (insertions == 0)
-				{
-					if (findDislocatedNodeGraph (b, s))
-					{
-						std::cout << "deleting nodes..." << std::endl;
-						delete _graphptr;
-						_graphptr = dislocated_node_graphptr;
-						this->graphptr = _graphptr;
-						this->_graphModulptr = _graphptr;
-						insert_this_iter = false;
-						if (mean_distance_mode == harmonic)
-							calculateInitialRestrictingDistances ();
-						updateMinimalGraphMDL(false);
-						if (visualizing)
-						{
-							mutex.lock();
-							emit updateData(_graphptr->getNodes());
-							condition.wait (&mutex);
-							mutex.unlock();
-						}
-
-						if (minimalMDL ())
-						{
-							markAsStableGraph ();
-							return;
-						}
-					}
-				}
 			}
-			// std::vector<unsigned int> dislocated_nodes = findDislocatedNodes ();
-			// std::cout << "nr. of dislocated nodes: " << dislocated_nodes.size() << std::endl;
 
-			// unsigned int insertions = 1;
-			// if (dislocated_node_graphptr != NULL)
-			// 	insertions = 2;
-			if (insert_this_iter == false)
+			for (unsigned int j=0; j<_graphptr->size(); j++)
 			{
-				insert_this_iter = true;
-				insertions = 2;
-				updateParams (t,b,s);
-				return;
+				_graphptr->calculateInsertionQuality (j);
+				_graphptr->calculateInsertionCriterion (j);
 			}
-			else
-			{
-				if (insertions > 0) 
-					insertions--;
-
-				for (unsigned int j=0; j<_graphptr->size(); j++)
-				{
-					_graphptr->calculateInsertionQuality (j);
-					_graphptr->calculateInsertionCriterion (j);
-				}
 				
-				// std::vector<int> q_nodes = maxInsertionCriterionNodes();
-				//for (unsigned int d=0; d<dislocated_nodes.size(); d++)
-				//{
-				// for (unsigned int n=0; n<insertions; n++)
-				// {
-				int q = maxInsertionCriterionNode ();
-				// int q = q_nodes[n];
+			int q = maxInsertionCriterionNode ();
 		
-				// find node among neighbours of q with maximal value of
-				//quality measure of insertion
-				if (q != -1)
+			// find node among neighbours of q with maximal value of
+			//quality measure of insertion
+			if (q != -1)
+			{
+				std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
+				int f = maxInsertionQualityNode (q_neighbors);
+				if (f != -1)
 				{
-					std::vector<unsigned int> q_neighbors = _graphptr->getNeighbors(q);
-					int f = maxInsertionQualityNode (q_neighbors);
-					if (f != -1)
-					{
-						_graphptr->rmEdge (q, f);
-						_graphptr->addNode ();
-						int node_index = _graphptr->size()-1;
-						std::cout << "adding node " << node_index << "..." << std::endl;
-						_graphptr->calculateInheritedParams (node_index, q, f);
-						_graphptr->setLastEpochImprovement (node_index, epoch);
-						_graphptr->setAge(q,node_index,0.0);
-						_graphptr->setAge(f,node_index,0.0);
+					_graphptr->rmEdge (q, f);
+					_graphptr->addNode ();
+					int node_index = _graphptr->size()-1;
+					std::cout << "adding node " << node_index << "..." << std::endl;
+					_graphptr->calculateInheritedParams (node_index, q, f);
+					_graphptr->setLastEpochImprovement (node_index, epoch);
+					_graphptr->setAge(q,node_index,0.0);
+					_graphptr->setAge(f,node_index,0.0);
 
 							
-						if (mean_distance_mode == harmonic)
-							calculateInitialRestrictingDistances ();
-						if (visualizing)
-						{
-							mutex.lock();
-							emit updateData(_graphptr->getNodes());
-							condition.wait (&mutex);
-							mutex.unlock();
-						}
-
+					if (mean_distance_mode == harmonic)
+						calculateInitialRestrictingDistances ();
+					if (visualizing)
+					{
+						mutex.lock();
+						emit updateData(_graphptr->getNodes());
+						condition.wait (&mutex);
+						mutex.unlock();
 					}
+
 				}
-				// }
 			}
 		}		
 	}
@@ -825,29 +762,6 @@ int LLRGNGAlgorithm<T,S>::maxInsertionCriterionNode ()
 	}
 	return q;
 }
-
-/** \brief find two nodes with maximal values of insertion criterion
- */
-template<typename T, typename S>
-std::vector<int> LLRGNGAlgorithm<T,S>::maxInsertionCriterionNodes ()
-{
-	assert (_graphptr->size());
-	T max_value = (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[0]))->insertion_criterion;
-	std::vector<int> q (2);
-	q[0] = 0;
-	for (unsigned int i=1; i < _graphptr->size(); i++)
-	{
-		T value = (static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]))->insertion_criterion;
-		if (max_value < value)
-		{
-			max_value = value;
-			q[1] = q[0];
-			q[0] = i;
-		}
-	}
-	return q;
-}
-
  
 /** \brief find node with maximal value of insertion quality among some nodes
  *  \param nodes vector of nodes to query
@@ -950,16 +864,17 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength (bool calculate_model_
 
 }
 
-//! \brief find nodes that are not properly located according to MDL principle. Sets \p dislocated_node_graphptr to
-/*! a graph with without a dislocated node which minimizes MDL.
-  \return graph_neg_mdl_change which is true if graph was found
+/** \brief recursively find nodes that are not properly located according to MDL principle
+    at the end of learning phase.
+    Sets \p dislocated_node_graphptr and _graphptr to
+    a graph without a dislocated node which minimizes MDL.
 */
 template<typename T, typename S>
-bool LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& winner, unsigned int& snd_winner)
+void LLRGNGAlgorithm<T,S>::findDislocatedNodesStableGraph ()
 {
 	// test dislocated nodes creating pruned graphs
 	if (_graphptr->size() <= 2)
-		return false;
+		return;
 
 	T min_change = 0;
 	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
@@ -988,23 +903,16 @@ bool LLRGNGAlgorithm<T,S>::findDislocatedNodeGraph (unsigned int& winner, unsign
 		}
 		delete pruned_graph;
 	}
-	bool graph_neg_mdl_change = false;
 	if (dislocated_node != _graphptr->size())
 	{
-		if (winner > dislocated_node)
-			winner--;
-		else if (winner == dislocated_node)
-			winner = _graphptr->size();
-		if (snd_winner > dislocated_node)
-			snd_winner--;
-		else if (snd_winner == dislocated_node)
-			snd_winner = _graphptr->size();
-		graph_neg_mdl_change = true;
+		delete _graphptr;
+		_graphptr = dislocated_node_graphptr;
+		calculateMinimumDescriptionLength (false);
+		findDislocatedNodesStableGraph ();
 	}
 
-	return graph_neg_mdl_change;
+	return;
 }
-
 
 
 /** \brief get maximal number of partitions
@@ -1092,8 +1000,8 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL (bool calculate_model_efficienc
 		std::cout << "\t\t\t\t <-- is minimal!" << std::endl;
 		min_mdl = mdl;
 		delete min_mdl_graphptr;
-		// min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
-		min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
+		min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
+		// min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
 		last_epoch_mdl_reduction = epoch;
 	}
 	else
@@ -1117,13 +1025,15 @@ bool LLRGNGAlgorithm<T,S>::minimalMDL ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 {
-	Vector<T> low_limits = _graphptr->getLowLimits();
-	Vector<T> high_limits = _graphptr->getHighLimits();
+	// Vector<T> low_limits = _graphptr->getLowLimits();
+	// Vector<T> high_limits = _graphptr->getHighLimits();
 	delete _graphptr;
-	_graphptr = new LLRGNGGraph<T,S>(this->getDimension());
-	_graphptr->setLowLimits (low_limits);
-	_graphptr->setHighLimits (high_limits);
-	_graphptr->setNodes (min_mdl_graphptr->getNodes());
+	// _graphptr = new LLRGNGGraph<T,S>(this->getDimension());
+	// _graphptr->setLowLimits (low_limits);
+	// _graphptr->setHighLimits (high_limits);
+	// _graphptr->setNodes (min_mdl_graphptr->getNodes());
+	_graphptr = min_mdl_graphptr;
+	findDislocatedNodesStableGraph ();
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
 	stable_graph = true;

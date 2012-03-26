@@ -117,7 +117,7 @@ int main (int argc, char* argv[])
 	llrgng.setDataAccuracy (0.0001);
 	// llrgng.setDataAccuracy (0.00000000001);
 	// llrgng.setMaxNodes (3);
-	llrgng.setMaxEpochsErrorReduction (5);
+	llrgng.setMaxEpochsErrorReduction (3);
 	llrgng.setMaxEpochsMDLReduction (40);
 	llrgng.setModelEfficiencyConst (1);
 
