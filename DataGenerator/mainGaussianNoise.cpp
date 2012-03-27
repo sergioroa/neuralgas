@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 		("visualize,v", "use a Qt Widget for Voronoi visualization")
 		("size,s", po::value (&size)->default_value (1000), "dataset size")
 		("insertionrate,i", po::value (&insertion_rate)->default_value (1000), "insertion rate")
-		("maxepochsmdl,m", po::value (&max_epochs_mdl_reduction)->default_value (100), "Set maximum nr of epochs after mdl reduction is expected")
+		("maxepochsmdl,m", po::value (&max_epochs_mdl_reduction)->default_value (300), "Set maximum nr of epochs after mdl reduction is expected")
 		("maxepochserror,e", po::value (&max_epochs_error_reduction)->default_value (3), "Set maximum nr of epochs after error reduction is expected")
 		("datafile,f", po::value (&dataset)->default_value ("1"), "dataset file: use 1 for canonical and 2 for customized input from console")
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	llrgng->setInsertionRate (insertion_rate);
 	llrgng->setAdaptationThreshold (0.0);
 	llrgng->setMaximalEdgeAge (50);
-	llrgng->setDataAccuracy (0.0001);
+	llrgng->setDataAccuracy (0.001);
 	// llrgng->setDataAccuracy (0.00000000001);
 	//llrgng->setMaxNodes (5);
 	llrgng->setMaxEpochsErrorReduction (max_epochs_error_reduction);
