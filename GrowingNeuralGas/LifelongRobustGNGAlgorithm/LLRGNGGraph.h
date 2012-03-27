@@ -249,7 +249,7 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, c
 	{
 		for (unsigned int i=windowbegin_last_avgerror; i < errors_size; i++) 
 			last_avgerror += 1.0 / errors[i];
-		for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
+		for (unsigned int i=windowbegin_prev_avgerror; i<=windowlast_prev_avgerror; i++)
 			prev_avgerror += 1.0 / errors[i];	
 		
 		prev_avgerror = smoothing_prev / prev_avgerror;
@@ -267,7 +267,7 @@ void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, c
 	{
 		for (unsigned int i=windowbegin_last_avgerror; i < errors_size; i++) 
 			last_avgerror += errors[i];
-		for (unsigned int i=windowbegin_prev_avgerror; i<windowlast_prev_avgerror; i++)
+		for (unsigned int i=windowbegin_prev_avgerror; i<=windowlast_prev_avgerror; i++)
 			prev_avgerror += errors[i];	
 		
 		prev_avgerror = prev_avgerror / smoothing_prev;
@@ -640,14 +640,17 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	// node->weight = 2 * first_node->weight + snd_node->weight / -3;
 	// node->weight = (first_node->weight + snd_node->weight) / 2;
 	node->weight = first_node->weight + 2 * first_node->dim_last_avgerror;
-	node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
-	node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
+	// node->prev_avgerror = (first_node->prev_avgerror + snd_node->prev_avgerror) / 2;
+	// node->last_avgerror = (first_node->last_avgerror + snd_node->last_avgerror) / 2;
+	node->prev_avgerror = node->last_avgerror = 0;
 	// node->repulsion = node->last_avgerror * 0.3;
 
 	node->min_last_avgerror = node->last_avgerror;
 	
 	assert (node->errors.size() == 1);
-	node->errors.front() = node->last_avgerror;
+	// node->errors.front() = node->last_avgerror;
+	node->errors.pop_back();
+	node->dim_errors.pop_back();
 
 	
 }
