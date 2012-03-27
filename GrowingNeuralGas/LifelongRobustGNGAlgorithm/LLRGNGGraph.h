@@ -633,7 +633,7 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 {
 	LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[index]);
 	LLRGNGNode<T,S>* first_node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[first_index]);
-	LLRGNGNode<T,S>* snd_node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[snd_index]);
+	// LLRGNGNode<T,S>* snd_node = static_cast<LLRGNGNode<T,S>* >(this->_nodes[snd_index]);
 
 	// node->weight = first_node->weight + (snd_node->weight - node->weight) * 0.25;
 	// node->weight = 2 * first_node->weight + snd_node->weight / 3;
