@@ -124,16 +124,16 @@ int main(int argc, char *argv[])
 		// copy(data->begin()+i*subset_size,data->begin()+(i+1)*subset_size,subset->begin());
 
 		llrgng->addData (subset);
-		Vector<double> mins = llrgng->minValues();
-		Vector<double> maxs = llrgng->maxValues();
-		for (unsigned int j=0; j< mins.size(); j++)
-		{
-			cout << "min: " << mins[i] << endl;
-			cout << "max: " << maxs[i] << " for dim " << i << endl;
-		}
 		
 		if (i == 0)
 		{
+			Vector<double> mins = llrgng->minValues();
+			Vector<double> maxs = llrgng->maxValues();
+			for (unsigned int j=0; j< mins.size(); j++)
+			{
+				cout << "min: " << mins[i] << endl;
+				cout << "max: " << maxs[i] << " for dim " << i << endl;
+			}
 			llrgng->setRefVectors(2,mins,maxs);
 			// llrgng->setTimeWindows (20, 100, 100);
 			// llrgng->setTimeWindows (100, 60, size);
@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
 
 		llrgng->wait ();
 		
+		subset->clear();
 		delete subset;
 	}
 

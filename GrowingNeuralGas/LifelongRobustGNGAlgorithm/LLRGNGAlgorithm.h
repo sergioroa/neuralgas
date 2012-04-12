@@ -1068,7 +1068,7 @@ void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 		for (unsigned int i=0; i<this->getDimension(); i++)
 			avg_values += (*this)[t][i];
 	avg_values /= T (this->size() * this->getDimension());
-	value_range = avg_values - _graphptr->getLowLimit ();
+	value_range = avg_values - this->minValue ();
 
 	std::cout << "value range: " << value_range << std::endl;
 

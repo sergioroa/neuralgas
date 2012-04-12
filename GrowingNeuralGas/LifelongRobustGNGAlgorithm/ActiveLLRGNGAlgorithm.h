@@ -96,7 +96,8 @@ void ActiveLLRGNGAlgorithm<T,S>::run()
 			{
 				unsigned int selected_index = ::rand() % selected_indices.size();
 				std::vector<unsigned int> winners = this->learning_loop (selected_indices[selected_index], t);
-				this->updateMinimalGraphMDL();
+				/*if (this->_graphptr->getNeighborsSize(selected_index) > winners.size())
+					this->updateMinimalGraphMDL();*/
 				addNewDataIndices (winners);
 				if (this->stable_graph)
 					break;
@@ -150,7 +151,7 @@ inline void ActiveLLRGNGAlgorithm<T,S>::addNewDataIndices (std::vector<unsigned 
 	
 }
 
-/** \bruef Initialize data (only for visualization in Qt Widget) */
+/** \brief Initialize data (only for visualization in Qt Widget) */
 template<typename T, typename S> void ActiveLLRGNGAlgorithm<T,S>::initializeDataVisualization ()
 {
 	if (this->visualizing)
