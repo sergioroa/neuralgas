@@ -35,7 +35,7 @@ namespace neuralgas {
  *  \brief A version of LLRGNGAlgorithm that actively selects samples for learning
 */
 template<typename T, typename S>
-class ActiveLLRGNGAlgorithm : public LLRGNGAlgorithm<T,S>
+class ActiveLLRGNGAlgorithm : virtual public LLRGNGAlgorithm<T,S>
 {
 public:
 	// cto class initialization
