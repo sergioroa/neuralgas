@@ -91,7 +91,7 @@ public:
     //adds a single datum
     inline void             addData(Vector<T>*);
     //adds an arbitrary number of data
-    inline void             addData(std::vector< Vector<T>* >*);
+    inline virtual void     addData(std::vector< Vector<T>* >*);
     // sets the number of inital reference vectors
     virtual void            setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&)=0;
     //sets a user defined metric, used as distance of reference and data vector 
@@ -289,6 +289,7 @@ template<typename T,typename S> void NeuralGas<T,S>::setStoppingCriterion(unsign
 * If a run already took place and the function setRefVectors is not called until the next run
 * then the underlying graph persists and will fit to this newly added data, allowing
 * a succesiv adaption of the graph.
+* A copy of the data pointer is done. Thus, please delete properly the memory if needed.
 * \param *data is the given data
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::setData(std::vector< Vector<T>* >* data)
@@ -322,7 +323,7 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(Vector<T
 */
 template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vector< Vector<T>* >* to_add)
 {
-  for(unsigned int i=0;i < to_add.size(); i++)
+  for(unsigned int i=0;i < to_add->size(); i++)
     _data->push_back( (*to_add)[i]);
 }
 

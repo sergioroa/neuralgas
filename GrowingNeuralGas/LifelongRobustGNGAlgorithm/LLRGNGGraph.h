@@ -103,7 +103,7 @@ struct LLRGNGNode : Base_Node<T,S>
 	// T repulsion;
 	/// mode for calculating mean distances
 	unsigned int mean_distance_mode;
-	/// data set indices that the node covers (only used for calculating mdl values)
+	/// data set indices that the node covers (used for calculating mdl values and for active learning)
 	std::vector< unsigned int > data;
 private:
 	template<class Archive>
@@ -646,6 +646,9 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 	// node->repulsion = node->last_avgerror * 0.3;
 
 	node->min_last_avgerror = node->last_avgerror;
+	first_node->last_avgerror = first_node->prev_avgerror = 0;
+	first_node->errors.clear();
+	first_node->dim_errors.clear();
 	
 	assert (node->errors.size() == 1);
 	// node->errors.front() = node->last_avgerror;

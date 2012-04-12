@@ -177,7 +177,7 @@ protected:
 	/// Base_Graph casted pointer to thereof derived class GNGGraph
 	LLRGNGGraph<T,S>* _graphptr;
 	//a learning cycle for instance
-        void learning_loop ( unsigned int, unsigned int );
+	std::vector<unsigned int> learning_loop ( unsigned int, unsigned int );
 	// update params like age, avg errors, etc.
 	void updateParams (unsigned int&, unsigned int&, unsigned int&);
 	/// insertion rate constant
@@ -273,8 +273,8 @@ template<typename T,typename S>
 LLRGNGAlgorithm<T,S>::~LLRGNGAlgorithm()
 {
 	delete _graphptr;
-	// if (this->stopping_criterion == stability && min_mdl_graphptr != NULL)
-	// 	delete min_mdl_graphptr;
+	if (this->stopping_criterion == stability && min_mdl_graphptr != NULL)
+		delete min_mdl_graphptr;
 }
 
 /** \brief Sets the number of initial reference vectors. This is the first function
@@ -548,8 +548,10 @@ void LLRGNGAlgorithm<T,S>::run()
  *  \param i iteration counter
  */
 template<typename T,typename S>
-void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
+std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 {
+	// vector used for active learning to select learning samples
+	std::vector<unsigned int> winners;
 	//initialization of first winner
 	unsigned int b;
 	//second winner
@@ -601,7 +603,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 		if (minimalMDL ())
 		{
 			markAsStableGraph ();
-			return;
+			return winners;
 		}
 		//find node with maximal value of insertion criterion when the graph is not improving more
 		if (minimalAvgErrors ())
@@ -625,7 +627,7 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 					if (minimalMDL ())
 					{
 						markAsStableGraph ();
-						return;
+						return winners;
 					}
 
 				}
@@ -647,9 +649,12 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 				int f = maxInsertionQualityNode (q_neighbors);
 				if (f != -1)
 				{
+					winners.push_back (q);
+					winners.push_back (f);
 					_graphptr->rmEdge (q, f);
 					_graphptr->addNode ();
 					int node_index = _graphptr->size()-1;
+					winners.push_back (node_index);
 					std::cout << "adding node " << node_index << "..." << std::endl;
 					_graphptr->calculateInheritedParams (node_index, q, f);
 					_graphptr->setLastEpochImprovement (node_index, epoch);
@@ -666,7 +671,6 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 						condition.wait (&mutex);
 						mutex.unlock();
 					}
-
 				}
 			}
 		}		
@@ -686,7 +690,13 @@ void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 	// 	calculateInitialRestrictingDistances ();
 
 	// checkOverflowedRestrictingDistances ();
-
+	if (b < _graphptr->size())
+	{
+		winners.push_back (b);
+		b_neighbors = _graphptr->getNeighbors(b);
+		winners.insert (winners.end(), b_neighbors.begin(), b_neighbors.end());
+	}
+	return winners;
 
 }
 
@@ -1032,7 +1042,7 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 	// _graphptr->setLowLimits (low_limits);
 	// _graphptr->setHighLimits (high_limits);
 	// _graphptr->setNodes (min_mdl_graphptr->getNodes());
-	_graphptr = min_mdl_graphptr;
+	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
 	findDislocatedNodesStableGraph ();
 	this->graphptr = _graphptr;
 	this->_graphModulptr = _graphptr;
