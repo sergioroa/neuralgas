@@ -92,6 +92,8 @@ public:
     inline void             addData(Vector<T>*);
     //adds an arbitrary number of data
     inline virtual void     addData(std::vector< Vector<T>* >*);
+    // returns the number of data items currently stored
+    inline unsigned int     size(void) const;
     // sets the number of inital reference vectors
     virtual void            setRefVectors(const unsigned int&)=0;
     //sets a user defined metric, used as distance of reference and data vector 
@@ -130,8 +132,6 @@ public:
     inline unsigned int     getDimension(void) const; 
     // ptr to the underlying graph
     Base_Graph<T,S>*        graphptr;          
-    // returns the number of data items currently stored
-    inline unsigned int     size(void) const;
     // returns a reference to the indexed element
     Vector<T>&              operator[](const unsigned int&);
     // returns a const reference to the indexed element
