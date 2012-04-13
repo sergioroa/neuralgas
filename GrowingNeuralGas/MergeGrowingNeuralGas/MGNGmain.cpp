@@ -60,9 +60,7 @@ int main(int argc, char *argv[])
     mgng.setFuncArray(funclambda,8);
 
     mgng.setData(v);
-    Vector<float> min_values = minValues(v); 
-    Vector<float> max_values = maxValues(v); 
-    mgng.setRefVectors(2,min_values,max_values);
+    mgng.setRefVectors(2);
     mgng.run();
     mgng.showGraph();
     for( int i=0; i < 1500; i++)

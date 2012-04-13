@@ -59,9 +59,7 @@ int main(int argc, char *argv[])
     gng.setFuncArray(funclambda,6);
 
     gng.setData(v);
-    Vector<float> max_values = maxValues(v); 
-    Vector<float> min_values = minValues(v); 
-    gng.setRefVectors(2,min_values,max_values);
+    gng.setRefVectors(2);
     gng.run();
     gng.showGraph();
     for( int i=0; i < 1500; i++)

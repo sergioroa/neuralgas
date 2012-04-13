@@ -111,20 +111,9 @@ int main(int argc, char *argv[])
 
 	gn->save("data.dat");
 	llrgng->setData(gn->getData());
-	Vector<double> mins = minValues(gn->getData());
-	Vector<double> maxs = maxValues(gn->getData());
-	// double min = llrgng->minValue();
-	// double max = llrgng->maxValue();
-	for (unsigned int i=0; i< mins.size(); i++)
-	{
-		cout << "min: " << mins[i] << endl;
-		cout << "max: " << maxs[i] << " for dim " << i << endl;
-	}
-	// cout << "min: " << min << endl;
-	// cout << "max: " << max << endl;
 	delete gn;
 	
-	llrgng->setRefVectors(2,mins,maxs);
+	llrgng->setRefVectors(2);
 
 	if (vm.count("visualize"))
 		vWindow->show ();

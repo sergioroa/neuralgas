@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	gn->save("data.dat");
 
 	// unsigned int subset_size = gn->getData()->size() / 10;
-	unsigned int subset_size = 50;
+	unsigned int subset_size = 130;
 
 	// for (unsigned int i=0; i<10; i++)
 	for (unsigned int i=0; i<gn->getData()->size() / subset_size; i++)
@@ -127,15 +127,8 @@ int main(int argc, char *argv[])
 		
 		if (i == 0)
 		{
-			Vector<double> mins = llrgng->minValues();
-			Vector<double> maxs = llrgng->maxValues();
-			for (unsigned int j=0; j< mins.size(); j++)
-			{
-				cout << "min: " << mins[i] << endl;
-				cout << "max: " << maxs[i] << " for dim " << i << endl;
-			}
-			llrgng->setRefVectors(2,mins,maxs);
-			// llrgng->setTimeWindows (20, 100, 100);
+			llrgng->setRefVectors(2);
+			// llrgng->setTimeWindows (50, 30, 100);
 			// llrgng->setTimeWindows (100, 60, size);
 			llrgng->setTimeWindows (20, 12, size);
 			llrgng->setLearningRates (0.8, 0.001);

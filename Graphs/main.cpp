@@ -51,7 +51,9 @@ int main(int argc, char *argv[])
     LLRGNGGraph<float,int> ugraph(9);
     Vector<float> low_limits (9, 0);
     Vector<float> high_limits (9, 2);
-    ugraph.initRandomGraph(2, low_limits, high_limits);
+    ugraph.setHighLimits (high_limits);
+    ugraph.setLowLimits (low_limits);
+    ugraph.initRandomGraph(2);
     for (unsigned int i=0; i<1000; i++)
 	    ugraph.addNode();
     

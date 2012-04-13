@@ -180,7 +180,7 @@ public:
 	//returning a const reference to the node indexed by the given index
 	Base_Node<T,S>&                     operator[](const unsigned int&) const;
 	//inits the graph with the given number of nodes with random valued weight vectors
-	void                                initRandomGraph(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	void                                initRandomGraph(const unsigned int&);
 	//adds a new uninitialized, edgeless node into the graph
 	void                                addNode(void);
 	// removes the node given by the index, removes its edges and updates the number of connections of its neighbors
@@ -219,6 +219,18 @@ public:
 
 	// get nodes vector
 	inline std::vector< Base_Node<T,S>* >* getNodes ();
+	/// sets the minimal limit values
+	inline void                         setLowLimits(Vector<T> low);
+	/// sets the maximal limit values
+	inline void                         setHighLimits(Vector<T> high);
+	/// returns the minimal limit values
+	Vector<T>                           getLowLimits() const{return low_limits;}
+	/// returns the maximal limit values
+	Vector<T>                           getHighLimits() const{return high_limits;}
+	/// returns minimal limit value
+	T                                   getLowLimit() const{return low_limit;}
+	/// returns maximal limit value
+	T                                   getHighLimit() const{return high_limit;}
 
 protected:
 	//returns a pointer to a node of a type that is currently used by the graph
@@ -233,7 +245,16 @@ protected:
 	// dimension of the edge's weight vectors
 	unsigned int                        _dimEdge;
 	//user specified metric
-	Metric _metric_to_use;
+	Metric                              _metric_to_use;
+	/// low limit min value for the random initializiation of the context vector
+	T                                   low_limit;
+	/// high_limit max value for the random initializiation of the context vector
+	T                                   high_limit;
+	/// low limit min value for the random initializiation of the context vector for each dimension
+	Vector<T>                           low_limits;
+	/// high_limit max value for the random initializiation of the context vector for each dimension
+	Vector<T>                           high_limits;
+	
 private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int);
@@ -397,7 +418,7 @@ template<typename T, typename S> void Base_Graph<T,S>::setNodes( std::vector < B
 * \param num_of_nodes is the number of nodes with random valued weight vectors the graph is going to be initialized with
 */
   
-template<typename T,typename S> void Base_Graph<T,S>::initRandomGraph(const unsigned int& num_of_nodes, const Vector<T>& low_limits, const Vector<T>& high_limits)
+template<typename T,typename S> void Base_Graph<T,S>::initRandomGraph(const unsigned int& num_of_nodes)
 {    
   unsigned int nsize  = size();
   for(unsigned int i = 0; i < nsize; i++)
@@ -694,6 +715,26 @@ template< typename T, typename S> T Base_Graph<T,S>::metric(const Vector<T>& x, 
 template < typename T, typename S > inline void Base_Graph<T,S>::setMetric(Metric metric_to_use=NULL )
 {
   _metric_to_use=metric_to_use;
+}
+
+template<typename T, typename S> inline void Base_Graph<T,S>::setHighLimits (Vector<T> high)
+{
+	high_limits = high;
+	high_limit = high_limits[0];
+	for (unsigned int i=1; i<high_limits.size(); i++)
+		if (high_limits[i] > high_limit)
+			high_limit = high_limits[i];
+	
+}
+
+template<typename T, typename S> inline void Base_Graph<T,S>::setLowLimits (Vector<T> low)
+{
+	low_limits = low;
+	low_limit = low_limits[0];
+	for (unsigned int i=1; i<low_limits.size(); i++)
+		if (low_limits[i] < low_limit)
+			low_limit = low_limits[i];
+	
 }
 
 template<typename T, typename S>

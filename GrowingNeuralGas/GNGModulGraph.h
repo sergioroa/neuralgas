@@ -70,35 +70,12 @@ public:
 	// removes an edge between the nodes given by their indeces if there exists one by calling corresponding upper class method of UGraph    
 	virtual void inline  rmEdge(const unsigned int& x,const unsigned int& y){if (x!=y) UGraph<T,S>::rmEdge(x,y);}
 
-	/// sets the minimal limit values
-	void setLowLimits(Vector<T> low);
-	/// sets the maximal limit values
-	void setHighLimits(Vector<T> high);
-	/// returns the minimal limit values
-	Vector<T> getLowLimits() const{return low_limits;}
-	/// returns the maximal limit values
-	Vector<T> getHighLimits() const{return high_limits;}
-	/// returns minimal limit value
-	T getLowLimit() const{return low_limit;}
-	/// returns maximal limit value
-	T getHighLimit() const{return high_limit;}
 	// // class dependent distance function that is used within the winner function
 	// //virtual T getDistance(const Vector<T>&,const unsigned int&)=0;
 	virtual T getDistance(const Vector<T>&,const unsigned int&) const;
 	// func determines for the current time step / data item the two most similar nodes
 	virtual T getWinner( unsigned int&, unsigned int&, const Vector<T>&) const;
    
-
-protected:
-
-	/// low limit min value for the random initializiation of the context vector
-	T low_limit;
-	/// high_limit max value for the random initializiation of the context vector
-	T high_limit;
-	/// low limit min value for the random initializiation of the context vector for each dimension
-	Vector<T> low_limits;
-	/// high_limit max value for the random initializiation of the context vector for each dimension
-	Vector<T> high_limits;
 private:
 	/// ErrorTesting is defined as friend in order to not having duplicate anything
 	friend class ErrorTesting<T,S>;
@@ -159,30 +136,6 @@ inline T GNGModulGraph<T,S>::getDistance(const Vector<T>& item, const unsigned i
 {
 	return metric( item, this->_nodes[node_index]->weight);
 }
-
-
-template<typename T, typename S>
-void GNGModulGraph<T,S>::setHighLimits (Vector<T> high)
-{
-	high_limits = high;
-	high_limit = high_limits[0];
-	for (unsigned int i=1; i<high_limits.size(); i++)
-		if (high_limits[i] > high_limit)
-			high_limit = high_limits[i];
-	
-}
-
-template<typename T, typename S>
-void GNGModulGraph<T,S>::setLowLimits (Vector<T> low)
-{
-	low_limits = low;
-	low_limit = low_limits[0];
-	for (unsigned int i=1; i<low_limits.size(); i++)
-		if (low_limits[i] < low_limit)
-			low_limit = low_limits[i];
-	
-}
-
 
 } // namespace neuralgas
 

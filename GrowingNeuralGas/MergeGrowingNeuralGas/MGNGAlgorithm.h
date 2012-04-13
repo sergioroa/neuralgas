@@ -118,7 +118,7 @@ public:
 	void    run();
            
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	virtual void    setRefVectors(const unsigned int&);
 	// sets the rule for updating the node counter
 	void    setFuncUpdateCounter(void (*)(Base_Node<T,S>* n,const float&));
 	void    showGraph(){_graphptr->showGraph();}
@@ -179,13 +179,14 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setFuncUpdateCounter(vo
 * \param num_of_ref_vec is the number of initial reference vectors
 * \param max_value is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
+template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec)
 {
   if (_graphptr!=NULL)
       delete _graphptr;
   if (this->graphptr!=NULL)
      delete this->graphptr;
-  
+  assert (this->size());
+
   _graphptr           = new MGNGGraph<T,S>(this->getDimension());
   // DANGER DownCast is performed via dynamic_cast
   //_graphptr       = dynamic_cast< MGNGGraph<T,S> * >(this->_graphModulptr);
@@ -194,11 +195,11 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::setRefVectors(const uns
   _graphptr->setAlgorithm (this);
 
   // sets the min values for the init of the context vector
-  _graphptr->setLowLimits(low_limits);
+  _graphptr->setLowLimits(this->minValues());
   // sets the max values for the init of the context vector
-  _graphptr->setHighLimits(high_limits);
+  _graphptr->setHighLimits(this->maxValues());
 
-  _graphptr->initRandomGraph(num_of_ref_vec,low_limits, high_limits); // creates a Graph object with given size of the 
+  _graphptr->initRandomGraph(num_of_ref_vec); // creates a Graph object with given size of the 
                                                 // vectors and number of ref vectors initilized with 
                                                 // random values
   for (unsigned int i=0;i < num_of_ref_vec; i++)

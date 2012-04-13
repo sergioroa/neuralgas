@@ -98,7 +98,7 @@ public:
 	void    run();
            
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	virtual void    setRefVectors(const unsigned int&);
         // get global error
         virtual T getGlobalError ();
         // set stopping value (minimum global error)
@@ -146,21 +146,22 @@ template<typename T,typename S> GNGAlgorithm<T,S>::~GNGAlgorithm()
 * \param num_of_ref_vec is the number of initial reference vectors
 * \param max_value is the max value that shall be used for the random init value generation
 */
-template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
+template<typename T,typename S> void GNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec)
 {
   if (_graphptr!=NULL)
       delete _graphptr;
   if (this->graphptr!=NULL)
      delete this->graphptr;
-  
+  assert (this->size());
+ 
   _graphptr           = new GNGGraph<T,S>(this->getDimension());
   this->graphptr      = _graphptr;
   this->_graphModulptr = _graphptr;
   // sets the min values for the init of the context vector
-  _graphptr->setLowLimits(low_limits);
+  _graphptr->setLowLimits(this->minValues());
   // sets the max values for the init of the context vector
-  _graphptr->setHighLimits(high_limits);
-  _graphptr->initRandomGraph(num_of_ref_vec,low_limits, high_limits); // creates a Graph object with given size of the 
+  _graphptr->setHighLimits(this->maxValues());
+  _graphptr->initRandomGraph(num_of_ref_vec);   // creates a Graph object with given size of the 
                                                 // vectors and number of ref vectors initilized with 
                                                 // random values
 }

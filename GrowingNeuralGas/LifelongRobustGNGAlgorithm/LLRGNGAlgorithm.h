@@ -111,7 +111,7 @@ public:
 	void run ();
 
 	//sets the number of initial reference vectors
-	virtual void setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	virtual void setRefVectors(const unsigned int&);
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
 	// set input adaptation threshold
@@ -286,18 +286,19 @@ LLRGNGAlgorithm<T,S>::~LLRGNGAlgorithm()
  * \param low_limit is the min value that shall be used for the random init value generat * \param high_limit is the max value that shall be used for the random init value generation
 */
 template<typename T,typename S>
-void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
+void LLRGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec)
 {
 	assert (num_of_ref_vec >= 2);
 	assert (_graphptr->size() == 0);
+	assert (this->size());
 	// sets the min value for the init of the context vector
-	_graphptr->setLowLimits(low_limits);
+	_graphptr->setLowLimits(this->minValues());
 	// sets the max value for the init of the context vector
-	_graphptr->setHighLimits(high_limits);
+	_graphptr->setHighLimits(this->maxValues());
 	// creates a Graph object with given size of the 
 	// vectors and number of ref vectors initilized with 
 	// random values
-	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
+	_graphptr->initRandomGraph(num_of_ref_vec);
 
 	if (mean_distance_mode == harmonic)
 		calculateInitialRestrictingDistances ();

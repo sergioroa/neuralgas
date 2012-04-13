@@ -134,12 +134,7 @@ int main(int argc, char *argv[])
     for (unsigned int i=0; i < data->size(); i++)
 	    std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
-    Vector<double> mins = minValues(data);
-    Vector<double> maxs = maxValues(data);
-    // double min = eb->minValue();
-    // double max = eb->maxValue();
-    // eb->setRefVectors(2,min,max);
-    eb->setRefVectors(2,mins,maxs);
+    eb->setRefVectors(2);
     eb->setErrorThreshold(0.01);
    
     eb->setSamplingMode(randomly);

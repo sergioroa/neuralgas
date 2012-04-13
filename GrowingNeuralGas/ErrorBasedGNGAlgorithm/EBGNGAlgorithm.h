@@ -51,7 +51,7 @@ public:
 	void    run();
         
 	// sets the number of inital reference vectors
-	virtual void    setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&);
+	virtual void    setRefVectors(const unsigned int&);
 	// check graph stability as a stopping criterion
 	bool isGraphStable ();
 	/// show graph for visualization
@@ -110,12 +110,13 @@ template<typename T,typename S> EBGNGAlgorithm<T,S>::~EBGNGAlgorithm()
  * \param low_limit is the min value that shall be used for the random init value generat * \param high_limit is the max value that shall be used for the random init value generation
 */
 template<typename T,typename S>
-void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const Vector<T>& low_limits, const Vector<T>& high_limits)
+void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec)
 {
 	if (_graphptr!=NULL)
 		delete _graphptr;
 	if (this->graphptr!=NULL)
 		delete this->graphptr;
+	assert (this->size());
      
 	average_error       = 0.0;
 	rate = 0.5;
@@ -124,13 +125,13 @@ void EBGNGAlgorithm<T,S>::setRefVectors(const unsigned int& num_of_ref_vec,const
 	this->graphptr      = _graphptr;
 	this->_graphModulptr = _graphptr;
 	// sets the min value for the init of the context vector
-	_graphptr->setLowLimits(low_limits);
+	_graphptr->setLowLimits(this->minValues());
 	// sets the max value for the init of the context vector
-	_graphptr->setHighLimits(high_limits);
+	_graphptr->setHighLimits(this->maxValues());
 	// creates a Graph object with given size of the 
 	// vectors and number of ref vectors initilized with 
 	// random values
-	_graphptr->initRandomGraph(num_of_ref_vec, low_limits, high_limits);
+	_graphptr->initRandomGraph(num_of_ref_vec);
 }
 
 /** \brief Defines the update rule for the neighbor given by the second index 

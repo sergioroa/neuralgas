@@ -137,12 +137,10 @@ template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(c
 
 template <typename T,typename S> void NeuralGasSuite<T,S>::setRefVectors(const int& number)
 {
-	 Vector<T> min_values = minValues(_dg->getData());
-	 Vector<T> max_values = maxValues(_dg->getData());
-        
          for (unsigned int i=0; i <_algos.size();i++)
          {
-		 _algos[i]->setRefVectors(number,min_values,max_values);
+		 assert (_algos[i]->size());
+		 _algos[i]->setRefVectors(number);
          }
 }
 

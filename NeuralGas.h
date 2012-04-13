@@ -93,7 +93,7 @@ public:
     //adds an arbitrary number of data
     inline virtual void     addData(std::vector< Vector<T>* >*);
     // sets the number of inital reference vectors
-    virtual void            setRefVectors(const unsigned int&,const Vector<T>&, const Vector<T>&)=0;
+    virtual void            setRefVectors(const unsigned int&)=0;
     //sets a user defined metric, used as distance of reference and data vector 
     //inline void             setMetric(T (*)(const Vector<T>& a,const Vector<T>& b));
     inline void             setMetric(Metric); 
