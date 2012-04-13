@@ -362,9 +362,9 @@ public:
 	// update learning rate for some winner-neighboring node
 	void updateNeighborLearningRate (const unsigned int);
 	// set input adaptation threshold
-	void setAdaptationThreshold (T&);
+	void setAdaptationThreshold (T);
 	// set initial learning rate constants
-	void setLearningRates (T&, T&);
+	void setLearningRates (T, T);
 	// set maximal edge age constant
 	void setMaximalEdgeAge (unsigned int&);
 	// get maximal edge age constant
@@ -715,7 +715,7 @@ void LLRGNGGraph<T,S>::calculateInsertionCriterion (const unsigned int index)
  *  \param neighbors initial winner-neighbors learning rate constant
  */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::setLearningRates (T& winner, T& neighbors)
+void LLRGNGGraph<T,S>::setLearningRates (T winner, T neighbors)
 {
 	winner_learning_rate = winner;
 	neighbors_learning_rate = neighbors;
@@ -744,7 +744,7 @@ void LLRGNGGraph<T,S>::updateNeighborLearningRate (const unsigned int index)
 /** \brief set adaptation threshold
     \param threshold given adaptation threshold */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::setAdaptationThreshold (T& threshold)
+void LLRGNGGraph<T,S>::setAdaptationThreshold (T threshold)
 {
 	adaptation_threshold = threshold;	
 }
