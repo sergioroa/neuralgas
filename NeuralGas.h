@@ -36,6 +36,7 @@
 #include <limits>
 #include <Graphs/Base_Graph.h>
 #include <tools/math_helpers.h>
+#include <stdio.h>
 
 /** \namespace neuralgas
     \brief Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
@@ -121,6 +122,8 @@ public:
     //an abstract run func
     virtual void            run()=0;
 
+    //output redirection
+    void                    redirectOutput (std::string file);
   protected:
     // pre-specified metric is the standard L2 euclidean metric
     virtual T               metric(const Vector<T>&, const Vector<T>&) const;
@@ -238,6 +241,7 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
     delete _data;
     
   }
+  fclose (stdout);
 }
 
 /** \brief Saves the nodes weight to a file
@@ -445,6 +449,14 @@ template <typename T, typename S > const Vector<T>& NeuralGas<T,S>::operator[](c
 template<typename T, typename S> void NeuralGas<T,S>::setNodes( std::vector < Base_Node<T, S>* >* nodes)
 {
   graphptr->setNodes (nodes);
+}
+
+/** \brief Redirects output to a file */
+template<typename T, typename S>
+void NeuralGas<T,S>::redirectOutput (std::string file)
+{
+  if (freopen (file.c_str(),"w",stdout) == 0)
+    std::cerr << "Could not redirect output to " << file << std::endl;
 }
 
 

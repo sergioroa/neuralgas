@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 	unsigned int max_epochs_error_reduction;
 	double model_efficiency;
 	double data_accuracy;
+	string file_out;
 
 	po::options_description desc("Allowed parameters:");
 	desc.add_options()
@@ -49,7 +50,8 @@ int main(int argc, char *argv[])
 		("whitenoise_prob,w", po::value (&whitenoise_prob), "white noise probability parameter")
 		("mdl,o", "save MDL history to a file mdl.txt")
 		("modelefficiency,c", po::value (&model_efficiency)->default_value (1), "model efficiency constant")
-		("dataaccuracy,y", po::value (&data_accuracy)->default_value (0.001), "data accuracy constant");
+		("dataaccuracy,y", po::value (&data_accuracy)->default_value (0.001), "data accuracy constant")
+		("redirectoutput,r", po::value (&file_out), "Redirect output to the given file");
 
 	// Declare an options description instance which will include
 	// all the options
@@ -112,6 +114,8 @@ int main(int argc, char *argv[])
 		std::cout <<data->operator[](i)->operator[](0)<<" "<<data->operator[](i)->operator[](1)<<std::endl;
 
 	gn->save("data.dat");
+	if (vm.count("redirectoutput"))
+		llrgng->redirectOutput (file_out);
 
 	// unsigned int subset_size = gn->getData()->size() / 10;
 	unsigned int subset_size = 130;
