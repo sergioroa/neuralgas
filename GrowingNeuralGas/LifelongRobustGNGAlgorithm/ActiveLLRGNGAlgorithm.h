@@ -35,8 +35,9 @@ namespace neuralgas {
  *  \brief A version of LLRGNGAlgorithm that actively selects samples for learning
 */
 template<typename T, typename S>
-class ActiveLLRGNGAlgorithm : virtual public LLRGNGAlgorithm<T,S>
+class ActiveLLRGNGAlgorithm : public LLRGNGAlgorithm<T,S>
 {
+	friend class boost::serialization::access;
 public:
 	// cto class initialization
 	ActiveLLRGNGAlgorithm (const unsigned int& dim, const unsigned int& window = 81) :
@@ -54,6 +55,9 @@ protected:
 	std::map<unsigned int, unsigned int> selected_indices;
 	// add new data indices from receptive fields of winner nodes */
 	inline void addNewDataIndices (std::vector<unsigned int>&);
+private:
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int);
 
 };
 
@@ -157,6 +161,15 @@ template<typename T, typename S> void ActiveLLRGNGAlgorithm<T,S>::initializeData
 	if (this->visualizing)
 		emit initializeData (this->_data, this->_graphptr->getNodes());
 }
+
+template<typename T, typename S>
+template<class Archive>
+void 
+ActiveLLRGNGAlgorithm<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
+{
+  ar & BOOST_SERIALIZATION_NVP(this->_graphptr);
+}
+
 
 } // namespace neuralgas
 
