@@ -159,6 +159,7 @@ protected:
     std::ostream* out;
     std::ofstream* logout;
     TeeDev* tdev;
+    TeeStream* tout;
 
     //dimension of the vectors
     unsigned int _dimension; 
@@ -236,6 +237,7 @@ template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int
 
   logout = 0;
   tdev = 0;
+  tout = 0;
 }
 
 /** \brief Dto frees memory by deleting the underlying graph data structure.
@@ -258,6 +260,8 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
     delete logout;
   if (tdev)
     delete tdev;
+  if (tout)
+    delete tout;
 }
 
 /** \brief Saves the nodes weight to a file
@@ -475,7 +479,8 @@ void NeuralGas<T,S>::redirectOutput (std::string logname)
   if(!logout->is_open())
     std::cerr << "can't open log file " << logname << std::endl;
   tdev = new TeeDev(std::cout, *logout);
-  out = new TeeStream(*tdev);
+  tout = new TeeStream(*tdev);
+  out = tout;
   std::cout << "writing to log file " << logname << std::endl;
   
   
