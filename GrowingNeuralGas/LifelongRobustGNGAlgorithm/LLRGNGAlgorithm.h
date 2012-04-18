@@ -213,7 +213,7 @@ protected:
 	unsigned int mean_distance_mode;
 	/// number of bits needed to encode a vector (calculated in \p calculateValueRange)
 	T bits_vector;
-	/// flag for saving MDL history
+	/// file for saving MDL history
 	std::ofstream* mdl_history;
 private:
 	template<class Archive>
@@ -507,7 +507,7 @@ void LLRGNGAlgorithm<T,S>::run()
 				epoch++;
 			}
 			while (true);
-			std::cout << "Finished!" << std::endl;
+			*(this->out) << "Finished!" << std::endl;
 		}
 	}
 	else if (this->sampling_mode == randomly)
@@ -536,7 +536,7 @@ void LLRGNGAlgorithm<T,S>::run()
 				
 			}
 			while (true);
-			std::cout << "Finished!" << std::endl;
+			*(this->out) << "Finished!" << std::endl;
 		}
 
 	}
@@ -595,7 +595,7 @@ std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, 
 			updateMinimalGraphMDL ();
 		else
 		{
-			std::cout << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
+			*(this->out) << "mdl: " << calculateMinimumDescriptionLength () << std::endl;
 			min_mdl = mdl;
 			min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
 			// min_mdl_graphptr = new UGraph<T,S>(dynamic_cast<UGraph<T,S>& >(*_graphptr));
@@ -656,7 +656,7 @@ std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, 
 					_graphptr->addNode ();
 					int node_index = _graphptr->size()-1;
 					winners.push_back (node_index);
-					std::cout << "adding node " << node_index << "..." << std::endl;
+					*(this->out) << "adding node " << node_index << "..." << std::endl;
 					_graphptr->calculateInheritedParams (node_index, q, f);
 					_graphptr->setLastEpochImprovement (node_index, epoch);
 					_graphptr->setAge(q,node_index,0.0);
@@ -868,9 +868,9 @@ T LLRGNGAlgorithm<T,S>::calculateMinimumDescriptionLength (bool calculate_model_
 	T L_inliers = this->size() * log2 (_graphptr->size());
 	
 	mdl += _graphptr->size() * bits_vector + L_inliers;
-	std::cout << "K: " << bits_vector << std::endl;
-	std::cout << "L_inliers: " << L_inliers << std::endl;
-	std::cout << "efficiency: " << mdl - (_graphptr->size() * bits_vector + L_inliers ) << std::endl;
+	*(this->out) << "K: " << bits_vector << std::endl;
+	*(this->out) << "L_inliers: " << L_inliers << std::endl;
+	*(this->out) << "efficiency: " << mdl - (_graphptr->size() * bits_vector + L_inliers ) << std::endl;
 	return mdl;
 
 }
@@ -889,7 +889,7 @@ void LLRGNGAlgorithm<T,S>::findDislocatedNodesStableGraph ()
 
 	T min_change = 0;
 	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
-	std::cout << "mod complex. change: " << model_complexity_change << std::endl;
+	*(this->out) << "mod complex. change: " << model_complexity_change << std::endl;
 	unsigned int dislocated_node = _graphptr->size();
 	dislocated_node_graphptr = NULL;
 
@@ -904,8 +904,8 @@ void LLRGNGAlgorithm<T,S>::findDislocatedNodesStableGraph ()
 		if (change < min_change)
 		{
 			
-			std::cout << "eff pruned: " << pruned_graph->model_efficiency << std::endl;
-			std::cout << "change: " << change << std::endl;
+			*(this->out) << "eff pruned: " << pruned_graph->model_efficiency << std::endl;
+			*(this->out) << "change: " << change << std::endl;
 			dislocated_node = i;
 			min_change = change;
 			if (dislocated_node_graphptr != NULL)
@@ -991,24 +991,24 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL (bool calculate_model_efficienc
 	for (unsigned int i=0; i < _graphptr->size(); i++)
 	{
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
-		// std::cout << "node " << i << " age: " << node->age << std::endl;
-		std::cout << "node " << i << " learning q.: " << node->learning_quality << std::endl;
-		std::cout << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
-		std::cout << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
-		// std::cout << "node " << i << " repulsion: " << node->repulsion << std::endl;
+		// *(this->out) << "node " << i << " age: " << node->age << std::endl;
+		*(this->out) << "node " << i << " learning q.: " << node->learning_quality << std::endl;
+		*(this->out) << "node " << i << " last avg e.: " << node->last_avgerror << std::endl;
+		*(this->out) << "node " << i << " prev avg e.: " << node->prev_avgerror << std::endl;
+		// *(this->out) << "node " << i << " repulsion: " << node->repulsion << std::endl;
 		if (mean_distance_mode == harmonic)
-			std::cout << "node " << i << " restricting d.: " << node->restricting_distance << std::endl;
-		// std::cout << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
-		std::cout << "node " << i << " learning rate: " << node->learning_rate << std::endl;
-		// std::cout << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
+			*(this->out) << "node " << i << " restricting d.: " << node->restricting_distance << std::endl;
+		// *(this->out) << "node " << i << " insertion c.: " << node->insertion_criterion << std::endl;
+		*(this->out) << "node " << i << " learning rate: " << node->learning_rate << std::endl;
+		// *(this->out) << "node " << i << " insertion q.: " << node->insertion_quality << std::endl;
 	}
-	std::cout << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
+	*(this->out) << "Nr. of nodes now: " <<  _graphptr->size() << std::endl;
 
-	std::cout << "mdl: " << calculateMinimumDescriptionLength (calculate_model_efficiency);
+	*(this->out) << "mdl: " << calculateMinimumDescriptionLength (calculate_model_efficiency);
 
 	if (min_mdl > mdl )
 	{
-		std::cout << "\t\t\t\t <-- is minimal!" << std::endl;
+		*(this->out) << "\t\t\t\t <-- is minimal!" << std::endl;
 		min_mdl = mdl;
 		delete min_mdl_graphptr;
 		min_mdl_graphptr = new LLRGNGGraph<T,S>(*_graphptr);
@@ -1016,7 +1016,7 @@ void LLRGNGAlgorithm<T,S>::updateMinimalGraphMDL (bool calculate_model_efficienc
 		last_epoch_mdl_reduction = epoch;
 	}
 	else
-		std::cout << std::endl;
+		*(this->out) << std::endl;
 	
 
 }
@@ -1071,7 +1071,7 @@ void LLRGNGAlgorithm<T,S>::calculateValueRange ()
 	avg_values /= T (this->size() * this->getDimension());
 	value_range = avg_values - this->minValue ();
 
-	std::cout << "value range: " << value_range << std::endl;
+	*(this->out) << "value range: " << value_range << std::endl;
 
 	bits_vector = ceil (log2(value_range / data_accuracy));
 

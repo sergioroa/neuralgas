@@ -36,7 +36,8 @@
 #include <limits>
 #include <Graphs/Base_Graph.h>
 #include <tools/math_helpers.h>
-#include <stdio.h>
+#include <boost/iostreams/tee.hpp>
+#include <boost/iostreams/stream.hpp>
 
 /** \namespace neuralgas
     \brief Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
@@ -64,10 +65,13 @@ enum _stopping_criterion {epochs, /**< nr of training epochs */
 			  stability /**< a network stability measure */
 };
 
+typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDev;
+typedef boost::iostreams::stream<TeeDev> TeeStream;
+
 /** \class NeuralGas
  * \brief This class defines the basic operations for the Neural Gas Algorithm and is intended as a super class for inheritance.
  *
- * The Neural Gas Algortihm as proposed by Martinetz and Schulten, "A Neural Gas Network Learns Topologies"
+ * The Neural Gas Algorithm as proposed by Martinetz and Schulten, "A Neural Gas Network Learns Topologies"
  * served to build a general algorithmic framework.
  * The underlying graph structure is the Base_Graph which is an abstract graph class
  * forcing the NeuralGas class to be an abstract class as well.
@@ -83,9 +87,9 @@ template < typename T, typename S > class NeuralGas
 public:
     typedef T (NeuralGas::*Metric)(const Vector<T>&,const Vector<T>&) const;
     //cto with size of dimension as input
-    NeuralGas(const unsigned int&);         
+    NeuralGas(const unsigned int&);
     //std dto
-    ~NeuralGas(void);               
+    ~NeuralGas(void);
     //sets the data to be processed
     inline void             setData(std::vector< Vector<T>* >*);
 	
@@ -124,7 +128,7 @@ public:
 
     //output redirection
     void                    redirectOutput (std::string file);
-  protected:
+protected:
     // pre-specified metric is the standard L2 euclidean metric
     virtual T               metric(const Vector<T>&, const Vector<T>&) const;
     // applies a given function to all neighbors
@@ -150,7 +154,12 @@ public:
     // stopping criterion
     unsigned int stopping_criterion;
  
-  protected:
+protected:
+    /// streams for output redirection
+    std::ostream* out;
+    std::ofstream* logout;
+    TeeDev* tdev;
+
     //dimension of the vectors
     unsigned int _dimension; 
     // ptr to the input data
@@ -211,6 +220,7 @@ template<typename T,typename S> Vector<T> NeuralGas<T,S>::maxValues() const
 * \param dimension is dimension of the input data and therefore the dimension of the graph weight vectors
 */
 template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int& dimension)
+  : out (&std::cout)
 {
   T x = T();
   _zero           = x - x;
@@ -223,6 +233,9 @@ template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int
       _funcArray[i] = NULL;
   sampling_mode = sequential;
   stopping_criterion = epochs;
+
+  logout = 0;
+  tdev = 0;
 }
 
 /** \brief Dto frees memory by deleting the underlying graph data structure.
@@ -241,7 +254,10 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
     delete _data;
     
   }
-  fclose (stdout);
+  if (logout)
+    delete logout;
+  if (tdev)
+    delete tdev;
 }
 
 /** \brief Saves the nodes weight to a file
@@ -453,10 +469,16 @@ template<typename T, typename S> void NeuralGas<T,S>::setNodes( std::vector < Ba
 
 /** \brief Redirects output to a file */
 template<typename T, typename S>
-void NeuralGas<T,S>::redirectOutput (std::string file)
+void NeuralGas<T,S>::redirectOutput (std::string logname)
 {
-  if (freopen (file.c_str(),"w",stdout) == 0)
-    std::cerr << "Could not redirect output to " << file << std::endl;
+  logout = new std::ofstream(logname.c_str());
+  if(!logout->is_open())
+    std::cerr << "can't open log file " << logname << std::endl;
+  tdev = new TeeDev(std::cout, *logout);
+  out = new TeeStream(*tdev);
+  std::cout << "writing to log file " << logname << std::endl;
+  
+  
 }
 
 
