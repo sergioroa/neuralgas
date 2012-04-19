@@ -345,6 +345,8 @@ public:
 	virtual void rmNode(const unsigned int&); 
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
+	// reset max errors size
+	void setMaxErrorsSize (unsigned int);
 	// calculate inherited variables for a node to be inserted between two nodes
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
@@ -453,7 +455,7 @@ LLRGNGGraph<T,S>::LLRGNGGraph () :
 	smoothing_window (0),
 	error_time_window (0),
 	age_time_window (0),
-	max_errors_size (0),
+	max_errors_size (81),
 	model_efficiency (0),
 	mean_distance_mode (harmonic)
 {
@@ -622,6 +624,16 @@ void LLRGNGGraph<T,S>::setTimeWindows (unsigned int smoothing, unsigned int erro
 	error_time_window = error;
 	age_time_window = age;
 }
+
+/** \brief reset max errors size
+    \param size
+ */
+template<typename T, typename S>
+void LLRGNGGraph<T,S>::setMaxErrorsSize (unsigned int size = 81)
+{
+	max_errors_size = size;
+}
+
 
 /** \brief calculate inherited variables for a node to be inserted between two nodes
  *  \param index node index

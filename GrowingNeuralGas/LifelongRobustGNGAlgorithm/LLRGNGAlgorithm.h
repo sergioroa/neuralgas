@@ -114,6 +114,8 @@ public:
 	virtual void setRefVectors(const unsigned int&);
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
+	// reset max errors size
+	void setMaxErrorsSize (unsigned int);
 	// set input adaptation threshold
 	void setAdaptationThreshold (T);
 	// set initial learning rate constants
@@ -319,6 +321,14 @@ void LLRGNGAlgorithm<T,S>::setTimeWindows (unsigned int smoothing, unsigned int 
 	_graphptr->setTimeWindows (smoothing, error, age);
 }
 
+/** \brief reset max errors size
+    \param size
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::setMaxErrorsSize (unsigned int size = 81)
+{
+	_graphptr->setMaxErrorsSize (size);
+}
 
 /** \brief set initial learning rate constants
  *  \param winner_learning_rate initial winner learning rate constant
