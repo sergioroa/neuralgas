@@ -38,6 +38,7 @@
 #include <tools/math_helpers.h>
 #include <boost/iostreams/tee.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <sstream>
 
 /** \namespace neuralgas
     \brief Classes that follow the idea of Hebbian Learning proposed by the original Neural Gas algorithm
@@ -65,7 +66,8 @@ enum _stopping_criterion {epochs, /**< nr of training epochs */
 			  stability /**< a network stability measure */
 };
 
-typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDev;
+// typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDev;
+typedef boost::iostreams::tee_device<std::stringstream, std::ofstream> TeeDev;
 typedef boost::iostreams::stream<TeeDev> TeeStream;
 
 /** \class NeuralGas
@@ -161,7 +163,8 @@ protected:
     std::ostream* out;
     std::ofstream* logout;
     TeeDev* tdev;
-    TeeStream* tout;
+    TeeStream* tout;  
+    std::stringstream tss;
 
     //dimension of the vectors
     unsigned int _dimension; 
@@ -170,6 +173,7 @@ protected:
     //user specified metric
     //T                       (*_metric_to_use)(const Vector<T>&,const Vector<T>&);
     Metric _metric_to_use;
+
 
 private:
     template<class Archive>
@@ -239,12 +243,22 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
     delete _data;
     
   }
-  if (logout)
+  /*if (logout)
+  {
     delete logout;
+    logout = 0;
+  }
   if (tdev)
+  {
     delete tdev;
+    tdev = 0;
+  }*/
   if (tout)
+  {
+    tout->close();
     delete tout;
+    tout = 0;
+  }
 }
 
 /** \brief Assigns int depending functions to the parameters 
@@ -502,7 +516,8 @@ void NeuralGas<T,S>::redirectOutput (std::string logname)
   logout = new std::ofstream(logname.c_str());
   if(!logout->is_open())
     std::cerr << "can't open log file " << logname << std::endl;
-  tdev = new TeeDev(std::cout, *logout);
+  // tdev = new TeeDev(std::cout, *logout);
+  tdev = new TeeDev(tss, *logout);
   tout = new TeeStream(*tdev);
   out = tout;
   std::cout << "writing to log file " << logname << std::endl;
