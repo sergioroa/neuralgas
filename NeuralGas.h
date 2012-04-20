@@ -66,7 +66,6 @@ enum _stopping_criterion {epochs, /**< nr of training epochs */
 			  stability /**< a network stability measure */
 };
 
-// typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDev;
 typedef boost::iostreams::tee_device<std::stringstream, std::ofstream> TeeDev;
 typedef boost::iostreams::stream<TeeDev> TeeStream;
 
@@ -243,16 +242,6 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
     delete _data;
     
   }
-  /*if (logout)
-  {
-    delete logout;
-    logout = 0;
-  }
-  if (tdev)
-  {
-    delete tdev;
-    tdev = 0;
-  }*/
   if (tout)
   {
     tout->close();
@@ -519,7 +508,6 @@ void NeuralGas<T,S>::redirectOutput (std::string logname)
   logout = new std::ofstream(logname.c_str());
   if(!logout->is_open())
     std::cerr << "can't open log file " << logname << std::endl;
-  // tdev = new TeeDev(std::cout, *logout);
   tdev = new TeeDev(tss, *logout);
   tout = new TeeStream(*tdev);
   out = tout;

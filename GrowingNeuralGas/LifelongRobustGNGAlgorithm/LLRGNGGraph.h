@@ -812,7 +812,7 @@ bool LLRGNGGraph<T,S>::deleteInactiveNodes (unsigned int& winner, unsigned int& 
 		{
 			if (this->size() > 2 && i != winner)
 			{
-				std::cout << "deleting node " << i << std::endl;
+				// std::cout << "deleting node " << i << std::endl;
 				rmNode (i);
 				node_deleted = true;
 				if (winner > i)
