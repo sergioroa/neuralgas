@@ -743,6 +743,8 @@ void
 Base_Graph<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
 {
   ar & BOOST_SERIALIZATION_NVP(_nodes);
+  ar & BOOST_SERIALIZATION_NVP(_dimNode);
+  ar & BOOST_SERIALIZATION_NVP(_dimEdge);
 }
 
 

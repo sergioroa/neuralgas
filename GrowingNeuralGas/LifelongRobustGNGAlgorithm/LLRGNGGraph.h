@@ -109,6 +109,7 @@ private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int) {
 		ar & boost::serialization::base_object<Base_Node<T, S> >(*this);
+		ar & BOOST_SERIALIZATION_NVP(mean_distance_mode);
 	}
 };
 
