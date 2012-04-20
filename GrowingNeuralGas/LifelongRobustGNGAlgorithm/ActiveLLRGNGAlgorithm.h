@@ -167,7 +167,7 @@ template<class Archive>
 void 
 ActiveLLRGNGAlgorithm<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
 {
-  ar & BOOST_SERIALIZATION_NVP(this->_graphptr);
+	ar & boost::serialization::base_object<LLRGNGAlgorithm<T, S> >(*this);
 }
 
 
