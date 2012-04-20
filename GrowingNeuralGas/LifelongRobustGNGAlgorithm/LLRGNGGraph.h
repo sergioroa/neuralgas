@@ -901,6 +901,17 @@ void
 LLRGNGGraph<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
 {
 	ar & boost::serialization::base_object<Base_Graph<T, S> >(*this);
+	ar & BOOST_SERIALIZATION_NVP(adaptation_threshold);
+	ar & BOOST_SERIALIZATION_NVP(winner_learning_rate);
+	ar & BOOST_SERIALIZATION_NVP(neighbors_learning_rate);
+	ar & BOOST_SERIALIZATION_NVP(maximal_edge_age);
+	ar & BOOST_SERIALIZATION_NVP(smoothing_window);
+	ar & BOOST_SERIALIZATION_NVP(error_time_window);
+	ar & BOOST_SERIALIZATION_NVP(age_time_window);
+	ar & BOOST_SERIALIZATION_NVP(max_errors_size);
+	ar & BOOST_SERIALIZATION_NVP(model_efficiency);
+	ar & BOOST_SERIALIZATION_NVP(mean_distance_mode);
+
 }
 
 

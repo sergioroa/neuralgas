@@ -77,17 +77,19 @@ typedef boost::iostreams::stream<TeeDev> TeeStream;
  * forcing the NeuralGas class to be an abstract class as well.
  * \param *graphptr a pointer to the underlying data structure representing the graph
  * \param _zero is the zero element of the unknown datatype T
- * \param _unit is the unit element
  * \param _dimension is dimension of the input data and therefore the dimension of the graph weight vectors
  * \param *_data is a pointer to the given input data; a pointer is used, since for large data a duplicate set could be to memory consuming
  * \param *_metric_to_use is a function pointer which is NULL if not a particular metric is given via setMetric
  */
 template < typename T, typename S > class NeuralGas
 {
+    friend class boost::serialization::access;
 public:
     typedef T (NeuralGas::*Metric)(const Vector<T>&,const Vector<T>&) const;
     //cto with size of dimension as input
     NeuralGas(const unsigned int&);
+    // default cto for deserialization
+    NeuralGas ();
     //std dto
     ~NeuralGas(void);
     //sets the data to be processed
@@ -168,9 +170,82 @@ protected:
     //user specified metric
     //T                       (*_metric_to_use)(const Vector<T>&,const Vector<T>&);
     Metric _metric_to_use;
-    
-      
+
+private:
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int);
+
+
 };  
+
+/** \brief Cto with the dimension of the vectors. 
+*
+* Cto has as input the to-be-used dimension for the vectors, leading to an equal
+* dimension for the weight vectors of the Node and the Edge struct. 
+* The dimension has to be the dimension of the input data.
+* The dimension cannot be changed after the creation of the object.
+* \param dimension is dimension of the input data and therefore the dimension of the graph weight vectors
+*/
+template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int& dimension)
+  : out (&std::cout)
+{
+  T x = T();
+  _zero           = x - x;
+  _dimension      = dimension;
+  // _data           = new std::vector< Vector<T>* >;
+  _data           = NULL;
+  graphptr        = NULL;
+  _metric_to_use  = NULL;   // no user defined metric is used, std metric is used
+  for (int i=0;i < NUM_PARAM; i++)
+      _funcArray[i] = NULL;
+  sampling_mode = sequential;
+  stopping_criterion = epochs;
+
+  logout = 0;
+  tdev = 0;
+  tout = 0;
+}
+
+/** \brief cto only used for deserialization
+ */
+template < typename T, typename S > NeuralGas<T,S>::NeuralGas () :
+  graphptr (0),
+  _zero (0),
+  sampling_mode (sequential),
+  stopping_criterion (epochs),
+  out (&std::cout),
+  logout (0),
+  tdev (0),
+  tout (0),
+  _dimension (0),
+  _data (0),
+  _metric_to_use (0)
+{
+}
+
+/** \brief Dto frees memory by deleting the underlying graph data structure.
+*/
+template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
+{
+ //if (graphptr!=NULL) 
+   // delete graphptr;
+  graphptr=NULL;
+  
+  if (_data!=NULL)
+  {
+    for(unsigned int i=0; i < _data->size(); i++)
+      delete (*_data)[i];
+    _data->clear();
+    delete _data;
+    
+  }
+  if (logout)
+    delete logout;
+  if (tdev)
+    delete tdev;
+  if (tout)
+    delete tout;
+}
 
 /** \brief Assigns int depending functions to the parameters 
 *
@@ -212,57 +287,6 @@ template<typename T,typename S> Vector<T> NeuralGas<T,S>::maxValues() const
     return neuralgas::maxValues (_data);
 }
 
-/** \brief Cto with the dimension of the vectors. 
-*
-* Cto has as input the to-be-used dimension for the vectors, leading to an equal
-* dimension for the weight vectors of the Node and the Edge struct. 
-* The dimension has to be the dimension of the input data.
-* The dimension cannot be changed after the creation of the object.
-* \param dimension is dimension of the input data and therefore the dimension of the graph weight vectors
-*/
-template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int& dimension)
-  : out (&std::cout)
-{
-  T x = T();
-  _zero           = x - x;
-  _dimension      = dimension;
-  // _data           = new std::vector< Vector<T>* >;
-  _data           = NULL;
-  graphptr        = NULL;
-  _metric_to_use  = NULL;   // no user defined metric is used, std metric is used
-  for (int i=0;i < NUM_PARAM; i++)
-      _funcArray[i] = NULL;
-  sampling_mode = sequential;
-  stopping_criterion = epochs;
-
-  logout = 0;
-  tdev = 0;
-  tout = 0;
-}
-
-/** \brief Dto frees memory by deleting the underlying graph data structure.
-*/
-template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
-{
- //if (graphptr!=NULL) 
-   // delete graphptr;
-  graphptr=NULL;
-  
-  if (_data!=NULL)
-  {
-    for(unsigned int i=0; i < _data->size(); i++)
-      delete (*_data)[i];
-    _data->clear();
-    delete _data;
-    
-  }
-  if (logout)
-    delete logout;
-  if (tdev)
-    delete tdev;
-  if (tout)
-    delete tout;
-}
 
 /** \brief Saves the nodes weight to a file
 *
@@ -484,6 +508,16 @@ void NeuralGas<T,S>::redirectOutput (std::string logname)
   std::cout << "writing to log file " << logname << std::endl;
   
   
+}
+
+template<typename T, typename S>
+template<class Archive>
+void 
+NeuralGas<T,S>::serialize(Archive & ar, const unsigned int /* file_version */)
+{
+  ar & BOOST_SERIALIZATION_NVP(sampling_mode);
+  ar & BOOST_SERIALIZATION_NVP(stopping_criterion);
+  ar & BOOST_SERIALIZATION_NVP(_dimension);
 }
 
 

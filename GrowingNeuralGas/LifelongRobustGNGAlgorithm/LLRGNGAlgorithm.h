@@ -1130,7 +1130,8 @@ template<class Archive>
 void 
 LLRGNGAlgorithm<T,S>::serialize(Archive & ar, const unsigned int /* file_version */) 
 {
-  ar & BOOST_SERIALIZATION_NVP(_graphptr);
+	ar & boost::serialization::base_object<NeuralGas<T, S> >(*this);
+	ar & BOOST_SERIALIZATION_NVP(_graphptr);
 }
 
 } // namespace neuralgas
