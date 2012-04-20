@@ -24,8 +24,8 @@ SET(NEURALGAS_ROOT ${PROJECT_ROOT} CACHE INTERNAL "Path prefix for NeuralGas pac
 GET_FILENAME_COMPONENT(CMAKE_SOURCE_DIR . ABSOLUTE CACHE INTERNAL "")
 
 SET(Boost_MAJOR_VERSION 1)
-SET(Boost_MINOR_VERSION 39)
-FIND_PACKAGE( Boost 1.39 COMPONENTS program_options serialization )
+SET(Boost_MINOR_VERSION 42)
+FIND_PACKAGE( Boost 1.42 COMPONENTS program_options serialization )
 
 # Single output directory for building all NeuralGas libraries
 SET(LIBRARY_OUTPUT_PATH ${NEURALGAS_ROOT}/lib/linux CACHE PATH "Single output directory for building all NeuralGas libraries")
