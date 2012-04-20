@@ -257,7 +257,10 @@ template < typename T, typename S > NeuralGas<T,S>::~NeuralGas(void)
   {
     tout->close();
     delete tout;
-    tout = 0;
+    if (tdev)
+	    delete tdev;
+    if (logout)
+	    delete logout;
   }
 }
 

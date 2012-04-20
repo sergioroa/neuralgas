@@ -278,26 +278,6 @@ LLRGNGAlgorithm<T,S>::~LLRGNGAlgorithm()
 	if (this->stopping_criterion == stability && min_mdl_graphptr != NULL)
 		delete min_mdl_graphptr;
 
-	// mutex.lock ();
-	// if (this->logout)
-	// {
-	// 	delete this->logout;
-	// 	this->logout = 0;
-	// }
-	// if (this->tdev)
-	// {
-	// 	delete this->tdev;
-	// 	this->tdev = 0;
-	// }
-	// if (this->tout)
-	// {
-	// 	this->tout->flush();
-	// 	this->tout->close();
-	// 	delete this->tout;
-	// 	this->tout = 0;
-	// }
-	// mutex.unlock();
-
 }
 
 /** \brief Sets the number of initial reference vectors. This is the first function
