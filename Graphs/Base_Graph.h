@@ -91,6 +91,7 @@ private:
 	void serialize(Archive & ar, const unsigned int) {
 		ar & BOOST_SERIALIZATION_NVP(weight);
 		ar & BOOST_SERIALIZATION_NVP(edges);
+		ar & BOOST_SERIALIZATION_NVP(num_connections);
 	}
 };  
 
