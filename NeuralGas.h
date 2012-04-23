@@ -89,6 +89,8 @@ public:
     typedef T (NeuralGas::*Metric)(const Vector<T>&,const Vector<T>&) const;
     //cto with size of dimension as input
     NeuralGas(const unsigned int&);
+    // copy cto
+    NeuralGas(const NeuralGas&);
     // default cto for deserialization
     NeuralGas ();
     //std dto
@@ -156,15 +158,12 @@ protected:
     unsigned int sampling_mode;
     // stopping criterion
     unsigned int stopping_criterion;
- 
-protected:
     /// streams for output redirection
     std::ostream* out;
     std::ofstream* logout;
     TeeDev* tdev;
     TeeStream* tout;  
     std::stringstream tss;
-
     //dimension of the vectors
     unsigned int _dimension; 
     // ptr to the input data
@@ -207,6 +206,22 @@ template < typename T, typename S > NeuralGas<T,S>::NeuralGas(const unsigned int
   logout = 0;
   tdev = 0;
   tout = 0;
+}
+
+/** \brief Copy constructor
+ */
+template < typename T, typename S > NeuralGas<T,S>::NeuralGas (const NeuralGas& n) :
+  _zero (n._zero),
+  sampling_mode (n.sampling_mode),
+  stopping_criterion (n.stopping_criterion),
+  out (&std::cout),
+  logout (0),
+  tdev (0),
+  tout (0),
+  _dimension (n._dimension),
+  _data (0),
+  _metric_to_use (n._metric_to_use)
+{
 }
 
 /** \brief cto only used for deserialization

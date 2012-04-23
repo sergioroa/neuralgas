@@ -103,7 +103,9 @@ public:
 	// default cto.
 	LLRGNGAlgorithm ();
 	// cto class initialization
-	LLRGNGAlgorithm (const unsigned int& dim, const unsigned int&);
+	LLRGNGAlgorithm (const unsigned int&, const unsigned int&);
+	// copy cto
+	LLRGNGAlgorithm (const LLRGNGAlgorithm&);
 	// std dto
 	~LLRGNGAlgorithm ();
 
@@ -268,6 +270,27 @@ LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm():
 {
 }
 
+/** \brief Copy constructor
+ */
+template<typename T,typename S>
+LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const LLRGNGAlgorithm& l) :
+	GNGModul<T,S>(l),
+	max_nodes (l.max_nodes),
+	data_accuracy (l.data_accuracy),
+	mdl (l.mdl),
+	min_mdl (l.min_mdl),
+	min_mdl_graphptr (0),
+	max_epochs_error_reduction (l.max_epochs_error_reduction),
+	max_epochs_mdl_reduction (l.max_epochs_mdl_reduction),
+	last_epoch_mdl_reduction (l.last_epoch_mdl_reduction),
+	model_efficiency_const (l.model_efficiency_const),
+	mean_distance_mode (l.mean_distance_mode),
+	mdl_history (0)
+{
+	_graphptr = new LLRGNGGraph<T,S>(*l._graphptr);
+	this->graphptr = _graphptr;
+	this->_graphModulptr = _graphptr;
+}
 
 /** \brief std dto
 */

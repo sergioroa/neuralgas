@@ -55,6 +55,8 @@ template<typename T,typename S> class GNGModul : public NeuralGas<T,S>
 public:
         //cto with size of dimension as input 
         GNGModul(const unsigned int& dim);
+	//copy cto.
+	GNGModul(const GNGModul&);
         //std dto
         ~GNGModul();
         virtual void    showGraph()=0;
@@ -83,6 +85,14 @@ protected:
 template<typename T,typename S> GNGModul<T,S>::GNGModul(const unsigned int& dim) : NeuralGas<T,S>(dim)
 {
   max_epochs = 1;
+}
+
+/** \brief Copy constructor
+ */
+template<typename T,typename S> GNGModul<T,S>::GNGModul(const GNGModul& g) :
+	NeuralGas<T,S>(g),
+	max_epochs (g.max_epochs)
+{
 }
 
 /** \brief std dto
