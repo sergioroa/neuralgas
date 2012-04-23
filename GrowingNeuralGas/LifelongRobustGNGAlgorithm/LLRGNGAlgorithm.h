@@ -1156,6 +1156,13 @@ LLRGNGAlgorithm<T,S>::serialize(Archive & ar, const unsigned int /* file_version
 {
 	ar & boost::serialization::base_object<NeuralGas<T, S> >(*this);
 	ar & BOOST_SERIALIZATION_NVP(_graphptr);
+	ar & BOOST_SERIALIZATION_NVP(data_accuracy);
+	ar & BOOST_SERIALIZATION_NVP(mdl);
+	ar & BOOST_SERIALIZATION_NVP(min_mdl);
+	ar & BOOST_SERIALIZATION_NVP(max_epochs_error_reduction);
+	ar & BOOST_SERIALIZATION_NVP(max_epochs_mdl_reduction);
+	ar & BOOST_SERIALIZATION_NVP(model_efficiency_const);
+	ar & BOOST_SERIALIZATION_NVP(mean_distance_mode);
 }
 
 } // namespace neuralgas
