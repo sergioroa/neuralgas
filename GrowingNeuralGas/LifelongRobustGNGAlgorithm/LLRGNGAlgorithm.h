@@ -152,6 +152,8 @@ public:
 	void saveMDLHistory (const char*);
 	// resets some learning related variables when restarting a experiment
 	void resetLearning ();
+	// recursively find nodes that are not properly located according to MDL principle
+	void findDislocatedNodesStableGraph ();
 protected:
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
@@ -159,8 +161,6 @@ protected:
 	void updateMinimalGraphMDL (bool calculate_model_efficiency = true);
 	// check if minimal MDL has not changed for more than \p max_epochs_mdl_reduction
 	bool minimalMDL ();
-	// recursively find nodes that are not properly located according to MDL principle
-	void findDislocatedNodesStableGraph ();
 	// calculate model efficiency (error) of a graph
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph);
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsigned int&);
