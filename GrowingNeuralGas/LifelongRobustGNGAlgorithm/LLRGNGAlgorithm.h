@@ -112,7 +112,7 @@ public:
 	// run the algorithm
 	void run ();
 
-	//sets the number of initial reference vectors
+	// sets the number of initial reference vectors
 	virtual void setRefVectors(const unsigned int&);
 	// set time window constants
 	void setTimeWindows (unsigned int, unsigned int, unsigned int);
@@ -150,6 +150,8 @@ public:
 	void setMeanDistanceMode (unsigned int);
 	// save MDL history in text files
 	void saveMDLHistory (const char*);
+	// resets some learning related variables when restarting a experiment
+	void resetLearning ();
 protected:
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
@@ -440,6 +442,25 @@ void LLRGNGAlgorithm<T,S>::closeMDLHistory ()
 	mdl_history->close();
 	delete mdl_history;
 	mdl_history = NULL;
+}
+
+/** \brief reset some learning related variables when restarting a experiment
+ */
+template<typename T, typename S>
+void LLRGNGAlgorithm<T,S>::resetLearning ()
+{
+	this->epoch = 0;
+	this->stable_graph = false;
+	this->min_mdl_graphptr = NULL;
+	this->last_epoch_mdl_reduction = 0;
+	for (unsigned int i=0; i<this->_graphptr->size(); i++)
+	{
+		this->_graphptr->setLastEpochImprovement (i, 0);
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*this->_graphptr)[i]);
+		node->last_avgerror = node->prev_avgerror = 0;
+		node->errors.clear();
+		node->dim_errors.clear();
+	}
 }
 
 /** \brief Defines the update rule for a node given by the second index 
