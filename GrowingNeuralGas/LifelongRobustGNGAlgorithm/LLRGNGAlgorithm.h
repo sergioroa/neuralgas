@@ -154,6 +154,8 @@ public:
 	void resetLearning ();
 	// recursively find nodes that are not properly located according to MDL principle
 	void findDislocatedNodesStableGraph ();
+	/// get average error among all graph nodes
+	T getAvgError ();
 protected:
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
@@ -1151,6 +1153,22 @@ void LLRGNGAlgorithm<T,S>::calculateInitialRestrictingDistances ()
 		node->prev_restricting_distance = node->restricting_distance;
 	}
 	
+}
+
+
+/** \brief Get average error among all graph nodes
+ */
+template<typename T, typename S>
+T LLRGNGAlgorithm<T,S>::getAvgError ()
+{
+	T avgerror = 0;
+	for (unsigned int i=0; i < _graphptr->size(); i++)
+	{
+		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*_graphptr)[i]);
+		avgerror += node->last_avgerror;
+	}
+	avgerror /= _graphptr->size ();
+	return avgerror;
 }
 
 /** \brief check if restricting distances are overflowed and if so recalculate them
