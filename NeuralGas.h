@@ -393,7 +393,10 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(Vector<T
 template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vector< Vector<T>* >* to_add)
 {
   for(unsigned int i=0;i < to_add->size(); i++)
-    _data->push_back( (*to_add)[i]);
+  {
+    Vector<T> *new_item = new Vector<T>(*to_add->at(i));
+    _data->push_back(new_item);
+  }
 }
 
 
