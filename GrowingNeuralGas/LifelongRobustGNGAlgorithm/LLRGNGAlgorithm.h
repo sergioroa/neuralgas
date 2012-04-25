@@ -156,6 +156,8 @@ public:
 	void findDislocatedNodesStableGraph ();
 	/// get average error among all graph nodes
 	T getAvgError ();
+	// calculate value range of data
+	void calculateValueRange ();
 protected:
 	//check if minimal error for all nodes has not changed for more than \p max_epochs_improvement
 	bool minimalAvgErrors ();
@@ -168,8 +170,6 @@ protected:
 	T calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsigned int&);
 	// mark the current graph as stable in order to stop the algorithm
 	void markAsStableGraph ();
-	// calculate value range of data
-	void calculateValueRange ();
 	// calculate initial restricting distances for every node
 	void calculateInitialRestrictingDistances ();
 	// check if restricting distances are overflowed
