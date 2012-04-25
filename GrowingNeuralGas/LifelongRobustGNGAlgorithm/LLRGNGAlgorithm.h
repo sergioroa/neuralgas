@@ -149,7 +149,7 @@ public:
 	// set mean distance calculation mode
 	void setMeanDistanceMode (unsigned int);
 	// save MDL history in text files
-	void saveMDLHistory (std::string);
+	void saveMDLHistory (std::string, bool append = false);
 	// resets some learning related variables when restarting a experiment
 	void resetLearning ();
 	// recursively find nodes that are not properly located according to MDL principle
@@ -415,9 +415,12 @@ void LLRGNGAlgorithm<T,S>::setModelEfficiencyConst (T constant)
  *  \param filename file name for saving the MDL history
  */
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::saveMDLHistory (std::string filename)
+void LLRGNGAlgorithm<T,S>::saveMDLHistory (std::string filename, bool append)
 {
-	mdl_history = new std::ofstream (filename.c_str());
+	if (append)
+		mdl_history = new std::ofstream (filename.c_str(), std::ios::out | std::ios::app );
+	else
+		mdl_history = new std::ofstream (filename.c_str());
 
 	if (!mdl_history->is_open())
 	{
