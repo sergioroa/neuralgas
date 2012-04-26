@@ -981,6 +981,8 @@ void LLRGNGAlgorithm<T,S>::findDislocatedNodesStableGraph ()
 		calculateMinimumDescriptionLength (false);
 		findDislocatedNodesStableGraph ();
 	}
+	this->graphptr = _graphptr;
+	this->_graphModulptr = _graphptr;
 
 	return;
 }
@@ -1105,8 +1107,6 @@ void LLRGNGAlgorithm<T,S>::markAsStableGraph ()
 	// _graphptr->setNodes (min_mdl_graphptr->getNodes());
 	_graphptr = new LLRGNGGraph<T,S>(*min_mdl_graphptr);
 	findDislocatedNodesStableGraph ();
-	this->graphptr = _graphptr;
-	this->_graphModulptr = _graphptr;
 	stable_graph = true;
 
 	if (visualizing)
