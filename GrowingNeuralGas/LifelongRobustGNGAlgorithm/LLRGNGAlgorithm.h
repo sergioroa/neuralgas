@@ -456,7 +456,9 @@ void LLRGNGAlgorithm<T,S>::resetLearning ()
 {
 	this->epoch = 0;
 	this->stable_graph = false;
-	this->min_mdl_graphptr = NULL;
+	if (min_mdl_graphptr != NULL)
+		delete min_mdl_graphptr;
+	min_mdl_graphptr = NULL;
 	this->last_epoch_mdl_reduction = 0;
 	for (unsigned int i=0; i<this->_graphptr->size(); i++)
 	{
