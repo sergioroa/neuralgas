@@ -467,7 +467,11 @@ void LLRGNGAlgorithm<T,S>::resetLearning ()
 		node->last_avgerror = node->prev_avgerror = 0;
 		node->errors.clear();
 		node->dim_errors.clear();
+		for (unsigned int j=0; j<this->_graphptr->at(i)->edges.size(); j++)
+			if ( this->_graphptr->at(i)->edges[j] != NULL )
+				_graphptr->seAge (i, j, 0.0);
 	}
+
 }
 
 /** \brief Defines the update rule for a node given by the second index 
