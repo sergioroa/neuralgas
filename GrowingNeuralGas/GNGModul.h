@@ -114,28 +114,29 @@ template<typename T,typename S> void GNGModul<T,S>::setMaxEpochs (unsigned int v
 
 template<typename T,typename S> void GNGModul<T,S>::rmOldEdges(const unsigned int& max_age)
 {
+  if (_graphModulptr->size() > 2)
+  {
     for (unsigned int j = 0; j < _graphModulptr->size(); j++)
     {
-     for (unsigned int k = 0; k < j; k++)
-        if ( _graphModulptr->getAge(k,j) > max_age ) // age is greater than max_age
-           _graphModulptr->rmEdge(k,j);              // and has to be removedd
-    }  
+      for (unsigned int k = 0; k < j; k++)
+	if ( _graphModulptr->getAge(k,j) > max_age ) // age is greater than max_age
+	  _graphModulptr->rmEdge(k,j);              // and has to be removedd
+    }
+  }
 }
 /** \brief Removes all nodes from the graph that are not connected
 *
 */
 template<typename T,typename S> bool GNGModul<T,S>::rmNotConnectedNodes()
 {
-    assert (_graphModulptr->size() > 0);
-    unsigned int original_graph_size = _graphModulptr->size();
-    for (unsigned int j = 0; j < _graphModulptr->size(); j++)
-       if (!(_graphModulptr->isConnected(j)) && _graphModulptr->size() > 2 )
-       {
-           _graphModulptr->rmNode(j);
-	   j--;
-       }
-
-    return original_graph_size > _graphModulptr->size();
+  unsigned int original_graph_size = _graphModulptr->size();
+  for (unsigned int j = 0; j < _graphModulptr->size(); j++)
+    if (!(_graphModulptr->isConnected(j)) && _graphModulptr->size() > 2 )
+    {
+      _graphModulptr->rmNode(j);
+      j--;
+    }
+  return original_graph_size > _graphModulptr->size();
 }
 
 } // namespace neuralgas
