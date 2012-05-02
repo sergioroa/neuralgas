@@ -951,7 +951,11 @@ void LLRGNGAlgorithm<T,S>::findDislocatedNodesStableGraph ()
 {
 	// test dislocated nodes creating pruned graphs
 	if (_graphptr->size() <= 2)
+	{
+		this->graphptr = _graphptr;
+		this->_graphModulptr = _graphptr;
 		return;
+	}
 
 	T min_change = 0;
 	T model_complexity_change = -bits_vector + this->size() * (log2 (_graphptr->size() - 1) - log2 (_graphptr->size()));
