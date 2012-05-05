@@ -454,6 +454,14 @@ void LLRGNGAlgorithm<T,S>::closeMDLHistory ()
 template<typename T, typename S>
 void LLRGNGAlgorithm<T,S>::resetLearning ()
 {
+	// data have to be added before
+	// sets the min value for the init of the context vector
+	_graphptr->setLowLimits(this->minValues());
+	// sets the max value for the init of the context vector
+	_graphptr->setHighLimits(this->maxValues());
+	if (mean_distance_mode == harmonic)
+		calculateInitialRestrictingDistances ();
+
 	this->epoch = 0;
 	this->stable_graph = false;
 	if (min_mdl_graphptr != NULL)
