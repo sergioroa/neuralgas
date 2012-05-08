@@ -97,7 +97,8 @@ public:
     ~NeuralGas(void);
     //sets the data to be processed
     inline void             setData(std::vector< Vector<T>* >*);
-	
+    /// gets current data set
+    inline std::vector< Vector<T>* >* getData() { return _data; }
     //adds a single datum
     inline void             addData(Vector<T>*);
     //adds an arbitrary number of data
