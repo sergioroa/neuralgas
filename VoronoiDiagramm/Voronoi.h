@@ -27,6 +27,7 @@
 #ifndef VORONOI_H
 #define VORONOI_H
 
+#include "VoronoiDiagramGenerator.h"
 #include <Qt/qimage.h>
 #include <Qt/qpainter.h>
 #include <vector>
@@ -34,7 +35,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include "VoronoiDiagramGenerator.h"
 #include <Graphs/Base_Graph.h>
 
 namespace neuralgas {

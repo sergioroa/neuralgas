@@ -33,18 +33,13 @@
 
 namespace neuralgas {
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
-
 #ifndef NULL
 #define NULL 0
 #endif
-#define DELETED -2
+// #define DELETED -2
 
-#define le 0
-#define re 1
+// #define le 0
+// #define re 1
 
 
 
@@ -183,7 +178,7 @@ private:
 	bool PQinitialize();
 	int PQbucket(struct Halfedge *he);
 	void clip_line(struct Edge *e);
-	char *myalloc(unsigned n);
+	char* _myalloc(unsigned n);
 	int right_of(struct Halfedge *el,struct Point *p);
 
 	struct Site *rightreg(struct Halfedge *he);

@@ -30,6 +30,10 @@
 
 #include "VoronoiDiagramGenerator.h"
 
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+
 namespace neuralgas {
 
 VoronoiDiagramGenerator::VoronoiDiagramGenerator()
@@ -76,7 +80,7 @@ bool VoronoiDiagramGenerator::generateVoronoi(double *xValues, double *yValues, 
 
 	if (sites != 0)
 		delete sites;
-	sites = (struct Site *) myalloc(nsites*sizeof( *sites));
+	sites = (struct Site *) _myalloc(nsites*sizeof( *sites));
 
 	if(sites == 0)
 		return false;
@@ -141,7 +145,7 @@ bool VoronoiDiagramGenerator::ELinitialize()
 	ELhashsize = 2 * sqrt_nsites;
 	if (ELhash != 0)
 		free (ELhash);
-	ELhash = (struct Halfedge **) myalloc ( sizeof *ELhash * ELhashsize);
+	ELhash = (struct Halfedge **) _myalloc ( sizeof *ELhash * ELhashsize);
 
 	if(ELhash == 0)
 		return false;
@@ -189,7 +193,7 @@ struct Halfedge * VoronoiDiagramGenerator::ELgethash(int b)
 	if(b<0 || b>=ELhashsize) 
 		return((struct Halfedge *) NULL);
 	he = ELhash[b]; 
-	if (he == (struct Halfedge *) NULL || he->ELedge != (struct Edge *) DELETED ) 
+	if (he == (struct Halfedge *) NULL || he->ELedge != (struct Edge *) -2 ) 
 		return (he);
 	
 	/* Hash table points to deleted half edge.  Patch as necessary. */
@@ -258,7 +262,7 @@ void VoronoiDiagramGenerator::ELdelete(struct Halfedge *he)
 {
 	(he -> ELleft) -> ELright = he -> ELright;
 	(he -> ELright) -> ELleft = he -> ELleft;
-	he -> ELedge = (struct Edge *)DELETED;
+	he -> ELedge = (struct Edge *)-2;
 }
 
 
@@ -277,8 +281,8 @@ struct Site * VoronoiDiagramGenerator::leftreg(struct Halfedge *he)
 {
 	if(he -> ELedge == (struct Edge *)NULL) 
 		return(bottomsite);
-	return( he -> ELpm == le ? 
-		he -> ELedge -> reg[le] : he -> ELedge -> reg[re]);
+	return( he -> ELpm == 0 ? 
+		he -> ELedge -> reg[0] : he -> ELedge -> reg[1]);
 }
 
 struct Site * VoronoiDiagramGenerator::rightreg(struct Halfedge *he)
@@ -287,7 +291,7 @@ struct Site * VoronoiDiagramGenerator::rightreg(struct Halfedge *he)
 		return(bottomsite);
 
 	//if the ELpm field is zero, return the site 0 that this edge bisects, otherwise return site number 1
-	return( he -> ELpm == le ? he -> ELedge -> reg[re] : he -> ELedge -> reg[le]);
+	return( he -> ELpm == 0 ? he -> ELedge -> reg[1] : he -> ELedge -> reg[0]);
 }
 
 void VoronoiDiagramGenerator::geominit()
@@ -380,7 +384,7 @@ struct Site * VoronoiDiagramGenerator::intersect(struct Halfedge *el1, struct Ha
 	};
 	
 	right_of_site = xint >= e -> reg[1] -> coord.x;
-	if ((right_of_site && el -> ELpm == le) || (!right_of_site && el -> ELpm == re)) 
+	if ((right_of_site && el -> ELpm == 0) || (!right_of_site && el -> ELpm == 1)) 
 		return ((struct Site *) NULL);
 	
 	//create a new site at the point of intersection - this is a new vector event waiting to happen
@@ -402,8 +406,8 @@ int VoronoiDiagramGenerator::right_of(struct Halfedge *el,struct Point *p)
 	e = el -> ELedge;
 	topsite = e -> reg[1];
 	right_of_site = p -> x > topsite -> coord.x;
-	if(right_of_site && el -> ELpm == le) return(1);
-	if(!right_of_site && el -> ELpm == re) return (0);
+	if(right_of_site && el -> ELpm == 0) return(1);
+	if(!right_of_site && el -> ELpm == 1) return (0);
 	
 	if (e->a == 1.0)
 	{	dyp = p->y - topsite->coord.y;
@@ -432,7 +436,7 @@ int VoronoiDiagramGenerator::right_of(struct Halfedge *el,struct Point *p)
 	t3 = yl - topsite->coord.y;
 	above = t1*t1 > t2*t2 + t3*t3;
 	};
-	return (el->ELpm==le ? above : !above);
+	return (el->ELpm==0 ? above : !above);
 }
 
 
@@ -440,13 +444,13 @@ void VoronoiDiagramGenerator::endpoint(struct Edge *e,int lr,struct Site * s)
 {
 	e -> ep[lr] = s;
 	ref(s);
-	if(e -> ep[re-lr]== (struct Site *) NULL) 
+	if(e -> ep[1-lr]== (struct Site *) NULL) 
 		return;
 
 	clip_line(e);
 
-	deref(e->reg[le]);
-	deref(e->reg[re]);
+	deref(e->reg[0]);
+	deref(e->reg[1]);
 	makefree((Freenode*)e, &efl);
 }
 
@@ -567,7 +571,7 @@ bool VoronoiDiagramGenerator::PQinitialize()
 	PQhashsize = 4 * sqrt_nsites;
 	if (PQhash != 0)
 		free(PQhash);
-	PQhash = (struct Halfedge *) myalloc(PQhashsize * sizeof *PQhash);
+	PQhash = (struct Halfedge *) _myalloc(PQhashsize * sizeof *PQhash);
 
 	if(PQhash == 0)
 		return false;
@@ -591,7 +595,7 @@ char * VoronoiDiagramGenerator::getfree(struct Freelist *fl)
 
 	if(fl->head == (struct Freenode *) NULL)
 	{	
-		t =  (struct Freenode *) myalloc(sqrt_nsites * fl->nodesize);
+		t =  (struct Freenode *) _myalloc(sqrt_nsites * fl->nodesize);
 
 		if(t == 0)
 			return 0;
@@ -678,7 +682,7 @@ void VoronoiDiagramGenerator::pushGraphEdge(double x1, double y1, double x2, dou
 }
 
 
-char * VoronoiDiagramGenerator::myalloc(unsigned n)
+char * VoronoiDiagramGenerator::_myalloc(unsigned n)
 {
 	char *t=0;	
 	t=(char*)malloc(n);
@@ -904,7 +908,7 @@ bool VoronoiDiagramGenerator::voronoi(int triangulate)
 			rbnd = ELright(lbnd);						//get the first HalfEdge to the RIGHT of the new site
 			bot = rightreg(lbnd);						//if this halfedge has no edge, , bot = bottom site (whatever that is)
 			e = bisect(bot, newsite);					//create a new edge that bisects 
-			bisector = HEcreate(e, le);					//create a new HalfEdge, setting its ELpm field to 0			
+			bisector = HEcreate(e, 0);					//create a new HalfEdge, setting its ELpm field to 0			
 			ELinsert(lbnd, bisector);					//insert this new bisector edge between the left and right vectors in a linked list	
 
 			if ((p = intersect(lbnd, bisector)) != (struct Site *) NULL) 	//if the new bisector intersects with the left edge, remove the left edge's vertex, and put in the new one
@@ -913,7 +917,7 @@ bool VoronoiDiagramGenerator::voronoi(int triangulate)
 				PQinsert(lbnd, p, dist(p,newsite));
 			};
 			lbnd = bisector;						
-			bisector = HEcreate(e, re);					//create a new HalfEdge, setting its ELpm field to 1
+			bisector = HEcreate(e, 1);					//create a new HalfEdge, setting its ELpm field to 1
 			ELinsert(lbnd, bisector);					//insert the new HE to the right of the original bisector earlier in the IF stmt
 
 			if ((p = intersect(bisector, rbnd)) != (struct Site *) NULL)	//if this new bisector intersects with the
@@ -940,20 +944,20 @@ bool VoronoiDiagramGenerator::voronoi(int triangulate)
 			ELdelete(lbnd);							//mark the lowest HE for deletion - can't delete yet because there might be pointers to it in Hash Map	
 			PQdelete(rbnd);							//remove all vertex events to do with the  right HE
 			ELdelete(rbnd);							//mark the right HE for deletion - can't delete yet because there might be pointers to it in Hash Map	
-			pm = le;								//set the pm variable to zero
+			pm = 0;								//set the pm variable to zero
 			
 			if (bot->coord.y > top->coord.y)		//if the site to the left of the event is higher than the Site
 			{										//to the right of it, then swap them and set the 'pm' variable to 1
 				temp = bot; 
 				bot = top; 
 				top = temp; 
-				pm = re;
+				pm = 1;
 			}
 			e = bisect(bot, top);					//create an Edge (or line) that is between the two Sites. This creates
 													//the formula of the line, and assigns a line number to it
 			bisector = HEcreate(e, pm);				//create a HE from the Edge 'e', and make it point to that edge with its ELedge field
 			ELinsert(llbnd, bisector);				//insert the new bisector to the right of the left HE
-			endpoint(e, re-pm, v);					//set one endpoint to the new edge to be the vector point 'v'.
+			endpoint(e, 1-pm, v);					//set one endpoint to the new edge to be the vector point 'v'.
 													//If the site to the left of this bisector is higher than the right
 													//Site, then this endpoint is put in position 0; otherwise in pos 1
 			deref(v);								//delete the vector 'v'
