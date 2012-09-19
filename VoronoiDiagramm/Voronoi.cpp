@@ -57,7 +57,7 @@ bool Voronoi::readData (const char* filename, bool text)
 bool Voronoi::readNodes (const char* filename, bool text)
 {
     resetNodes ();
-    _neurons = new std::vector < Base_Node<double, int>* >;
+    _neurons = new std::vector < Base_Node<double, int>*, _NGPoolAllocdoubleint_ >;
     if (text)
 	return neuralgas::readNodesText (filename, _neurons);
     else

@@ -27,7 +27,7 @@ using namespace neuralgas;
 int main(int argc, char *argv[])
 {
 
-    std::vector < Base_Node<double, int>* > nodes;
+	std::vector < Base_Node<double, int>*, _NGPoolAllocdoubleint_ > nodes;
     if (!readNodes ("nodes.dat", &nodes))
     {
 	std::cerr << "unable to read file nodes.dat" << std::endl;

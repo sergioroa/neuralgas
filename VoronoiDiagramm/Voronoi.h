@@ -40,7 +40,7 @@
 namespace neuralgas {
 
 typedef std::vector < Vector<double>* > SeqData;
-typedef std::vector < Base_Node<double, int>* > SeqNeurons;
+typedef std::vector < Base_Node<double, int>*, _NGPoolAllocdoubleint_ > SeqNeurons;
 
 //! \class Voronoi
 /*! \brief Encapsulates techniques for generating Voronoi Diagramms  

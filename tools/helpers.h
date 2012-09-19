@@ -31,10 +31,14 @@
 #include <fstream>
 #include <iostream>
 #include <boost/serialization/serialization.hpp>
+#include <boost/pool/pool_alloc.hpp>
 
 namespace neuralgas {
 
 template < typename T , typename S > struct Base_Node;
+
+#define _NGPoolAlloc_ boost::pool_allocator<Base_Node<T,S>*, boost::default_user_allocator_new_delete, boost::details::pool::default_mutex, 32>
+#define _NGPoolAllocdoubleint_ boost::pool_allocator<Base_Node<double,int>*, boost::default_user_allocator_new_delete, boost::details::pool::default_mutex, 32>
 
 template<typename T>
 bool readDataText(const char* filename, std::vector < Vector<T>* >* _data)
@@ -155,7 +159,7 @@ void showData(std::vector < Vector<T>* >* _data)
 }
 
 template<typename T, typename S>
-void showNodes (std::vector < Base_Node<T, S>* >* _nodes)
+void showNodes (std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* _nodes)
 {
     for(unsigned int i=0; i < _nodes->size(); i++)
     {
@@ -167,7 +171,7 @@ void showNodes (std::vector < Base_Node<T, S>* >* _nodes)
 
 
 template<typename T, typename S>
-bool readNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
+bool readNodesText(const char* filename, std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* _nodes)
 {
     assert ( _nodes != NULL );
     std::ifstream myfile (filename);
@@ -200,7 +204,7 @@ bool readNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _node
 
 
 template<typename T, typename S>
-bool readNodes(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
+bool readNodes(const char* filename, std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* _nodes)
 {
     assert ( _nodes != NULL );
     std::ifstream myfile (filename, std::ios::in | std::ios::binary );
@@ -226,7 +230,7 @@ bool readNodes(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
 }
 
 template<typename T, typename S>
-bool saveNodes(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
+bool saveNodes(const char* filename, std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* _nodes)
 {
     std::ofstream myfile (filename, std::ios::out | std::ios::binary);
     assert (_nodes->size());
@@ -250,7 +254,7 @@ bool saveNodes(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
 
 
 template<typename T, typename S>
-bool saveNodesText(const char* filename, std::vector < Base_Node<T, S>* >* _nodes)
+bool saveNodesText(const char* filename, std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* _nodes)
 {
     std::ofstream myfile (filename);
     assert (_nodes->size());

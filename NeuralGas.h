@@ -123,7 +123,7 @@ public:
     // saves the nodes weight in a file
     void                    save(const char*, bool t = false);
     // loads nodes
-    void                    setNodes( std::vector < Base_Node<T, S>* >* nodes);
+    void                    setNodes( std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* nodes);
     // sets the sampling mode for learning instances
     virtual void            setSamplingMode (unsigned int);
     //sets a user defined stopping criterion
@@ -518,7 +518,7 @@ template <typename T, typename S > const Vector<T>& NeuralGas<T,S>::operator[](c
     \param filename
     \param text if text file then true
  */
-template<typename T, typename S> void NeuralGas<T,S>::setNodes( std::vector < Base_Node<T, S>* >* nodes)
+template<typename T, typename S> void NeuralGas<T,S>::setNodes( std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* nodes)
 {
   graphptr->setNodes (nodes);
 }

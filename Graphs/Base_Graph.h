@@ -193,7 +193,7 @@ public:
 	// saves the nodes weight in a file
 	bool                                save(const char*, bool t = false);
 	// loads nodes 
-	void                                setNodes( std::vector < Base_Node<T, S>* >* nodes);
+	void                                setNodes( std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* nodes);
 	//returns a vector of ints representing the indices of the neighboring nodes
 	std::vector<unsigned int>           getNeighbors(const unsigned int&) const;
 	// Returns neighbors set cardinality for some node
@@ -219,7 +219,7 @@ public:
 	void                                showGraph();
 
 	// get nodes vector
-	inline std::vector< Base_Node<T,S>* >* getNodes ();
+	inline std::vector< Base_Node<T,S>*, _NGPoolAlloc_ >* getNodes ();
 	/// sets the minimal limit values
 	inline void                         setLowLimits(Vector<T> low);
 	/// sets the maximal limit values
@@ -239,7 +239,7 @@ protected:
 	//returns a pointer to an edge of a type that is currently used by the graph
 	virtual Base_Edge<S,T>*             newEdge();
 	// array of pointer to the nodes of the graph
-	std::vector< Base_Node<T,S>* >      _nodes;            
+	std::vector< Base_Node<T,S>*, _NGPoolAlloc_ >      _nodes;
             
 	// dimension of the node's weight vectors
 	unsigned int                        _dimNode;
@@ -391,7 +391,7 @@ template<typename T,typename S> bool Base_Graph<T,S>::save( const char* filename
 /** \brief Loads nodes
     \param nodes
  */
-template<typename T, typename S> void Base_Graph<T,S>::setNodes( std::vector < Base_Node<T, S>* >* nodes)
+template<typename T, typename S> void Base_Graph<T,S>::setNodes( std::vector < Base_Node<T, S>*, _NGPoolAlloc_ >* nodes)
 {
   for(unsigned int i = 0; i < size(); i++)
     delete  _nodes[i];                                // delete ptrs to the nodes
@@ -490,8 +490,8 @@ template <typename T,typename S> void Base_Graph<T,S>::addNode(void)
   // function does as follows
   // creates a new node of (sub)class specific type and adds it to the _node array
   // a new slot for a possible edge is added to each node
-  unsigned int nsize=size();  
-  
+  unsigned int nsize=size();
+
   Base_Node<T,S>*    n   =   newNode();  // gets the actual used node type 
   n->weight.resize(_dimNode);
   for(unsigned int i=0; i < nsize; i++)
@@ -681,7 +681,7 @@ template<typename T, typename S > inline unsigned int Base_Graph<T,S>::size(void
 /*! 
   \return the vector of nodes
 */
-template< typename T, typename S> inline std::vector< Base_Node<T,S>* >* Base_Graph<T,S>::getNodes ()
+template< typename T, typename S> inline std::vector< Base_Node<T,S>*, _NGPoolAlloc_ >* Base_Graph<T,S>::getNodes ()
 {
 	return &_nodes;
 }
