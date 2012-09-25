@@ -37,8 +37,8 @@ namespace neuralgas {
 
 template < typename T , typename S > struct Base_Node;
 
-#define _NGPoolAlloc_ boost::pool_allocator<Base_Node<T,S>*, boost::default_user_allocator_new_delete, boost::details::pool::default_mutex, 32>
-#define _NGPoolAllocdoubleint_ boost::pool_allocator<Base_Node<double,int>*, boost::default_user_allocator_new_delete, boost::details::pool::default_mutex, 32>
+#define _NGPoolAlloc_ boost::pool_allocator<Base_Node<T,S>* >
+#define _NGPoolAllocdoubleint_ boost::pool_allocator<Base_Node<double,int>* >
 
 template<typename T>
 bool readDataText(const char* filename, std::vector < Vector<T>* >* _data)

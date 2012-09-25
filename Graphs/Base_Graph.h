@@ -340,7 +340,7 @@ template<typename T,typename S> Base_Graph<T,S>::~Base_Graph()
     //_nodes.pop_back();
   }
   _nodes.clear();
-  
+  boost::singleton_pool<boost::pool_allocator_tag, sizeof(typename _NGPoolAlloc_)>::release_memory();
 }
 
 /** \brief returning a reference to the node indexed by the given index
