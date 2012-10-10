@@ -58,6 +58,8 @@ template< typename T, typename S > class NeuralGas;
 template < typename T , typename S > struct Base_Node
 {
 	friend class boost::serialization::access;
+	typedef boost::pool_allocator<Base_Edge<T, S>* > EdgePoolAlloc;
+	// typedef boost::pool_allocator<T> WeightAlloc;
 	Base_Node()
 	{
 		num_connections=0;
@@ -85,7 +87,7 @@ template < typename T , typename S > struct Base_Node
 	// weight vectors as data vector
 	Vector<T> weight;
 	// edge vector containing the edges of the node  
-	std::vector< Base_Edge<S,T>* > edges;
+	std::vector< Base_Edge<S,T>*, EdgePoolAlloc > edges;
 private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int) {
@@ -176,6 +178,12 @@ public:
              
 	//std dto
 	virtual ~Base_Graph();            
+	/// new operator overloading
+	static inline void* operator new( std::size_t sz )
+	{ return pool.allocate() ; }
+	/// delete operator overloading
+	static inline void operator delete( void* p )
+	{ pool.deallocate( static_cast<Base_Graph<T,S>* >(p) ) ; }
 	//returning a reference to the node indexed by the given index
 	Base_Node<T,S>&                     operator[](const unsigned int&);
 	//returning a const reference to the node indexed by the given index
@@ -240,7 +248,8 @@ protected:
 	virtual Base_Edge<S,T>*             newEdge();
 	// array of pointer to the nodes of the graph
 	std::vector< Base_Node<T,S>*, _NGPoolAlloc_ >      _nodes;
-            
+	// memory pool for graph objects
+        static boost::fast_pool_allocator<Base_Graph<T,S> > pool;
 	// dimension of the node's weight vectors
 	unsigned int                        _dimNode;
 	// dimension of the edge's weight vectors
@@ -492,7 +501,8 @@ template <typename T,typename S> void Base_Graph<T,S>::addNode(void)
   // a new slot for a possible edge is added to each node
   unsigned int nsize=size();
 
-  Base_Node<T,S>*    n   =   newNode();  // gets the actual used node type 
+  Base_Node<T,S>*    n   =   newNode();  // gets the actual used node type
+  n->weight.reserve(_dimNode);
   n->weight.resize(_dimNode);
   for(unsigned int i=0; i < nsize; i++)
   {

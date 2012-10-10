@@ -156,6 +156,8 @@ public:
 	void findDislocatedNodesStableGraph ();
 	/// get average error among all graph nodes
 	T getAvgError ();
+	// get model efficiency (error) of current graph
+	T getModelEfficiency ();
 	// calculate value range of data
 	void calculateValueRange ();
 protected:
@@ -185,7 +187,7 @@ protected:
 	/// Base_Graph casted pointer to thereof derived class GNGGraph
 	LLRGNGGraph<T,S>* _graphptr;
 	//a learning cycle for instance
-	std::vector<unsigned int> learning_loop ( unsigned int, unsigned int );
+	void learning_loop ( unsigned int, unsigned int );
 	// update params like age, avg errors, etc.
 	void updateParams (unsigned int&, unsigned int&, unsigned int&);
 	/// insertion rate constant
@@ -472,7 +474,8 @@ void LLRGNGAlgorithm<T,S>::resetLearning ()
 	{
 		this->_graphptr->setLastEpochImprovement (i, 0);
 		LLRGNGNode<T,S>* node = static_cast<LLRGNGNode<T,S>* > (&(*this->_graphptr)[i]);
-		node->last_avgerror = node->prev_avgerror = 0;
+		node->min_last_avgerror = metric (_graphptr->getHighLimits (), _graphptr->getLowLimits());
+		node->last_avgerror = node->prev_avgerror = -1;
 		node->errors.clear();
 		node->dim_errors.clear();
 		for (unsigned int j=0; j<node->edges.size(); j++)
@@ -623,10 +626,8 @@ void LLRGNGAlgorithm<T,S>::run()
  *  \param i iteration counter
  */
 template<typename T,typename S>
-std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
+void LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, unsigned int i )
 {
-	// vector used for active learning to select learning samples
-	std::vector<unsigned int> winners;
 	//initialization of first winner
 	unsigned int b;
 	//second winner
@@ -678,7 +679,7 @@ std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, 
 		if (minimalMDL ())
 		{
 			markAsStableGraph ();
-			return winners;
+			return;
 		}
 		//find node with maximal value of insertion criterion when the graph is not improving more
 		if (minimalAvgErrors ())
@@ -702,7 +703,7 @@ std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, 
 					if (minimalMDL ())
 					{
 						markAsStableGraph ();
-						return winners;
+						return;
 					}
 
 				}
@@ -724,12 +725,9 @@ std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, 
 				int f = maxInsertionQualityNode (q_neighbors);
 				if (f != -1)
 				{
-					winners.push_back (q);
-					winners.push_back (f);
 					_graphptr->rmEdge (q, f);
 					_graphptr->addNode ();
 					int node_index = _graphptr->size()-1;
-					winners.push_back (node_index);
 					*(this->out) << "adding node " << node_index << "..." << std::endl;
 					_graphptr->calculateInheritedParams (node_index, q, f);
 					_graphptr->setLastEpochImprovement (node_index, epoch);
@@ -765,13 +763,6 @@ std::vector<unsigned int> LLRGNGAlgorithm<T,S>::learning_loop ( unsigned int t, 
 	// 	calculateInitialRestrictingDistances ();
 
 	// checkOverflowedRestrictingDistances ();
-	if (b < _graphptr->size())
-	{
-		winners.push_back (b);
-		b_neighbors = _graphptr->getNeighbors(b);
-		winners.insert (winners.end(), b_neighbors.begin(), b_neighbors.end());
-	}
-	return winners;
 
 }
 
@@ -926,6 +917,13 @@ T LLRGNGAlgorithm<T,S>::calculateModelEfficiency (LLRGNGGraph<T,S>* graph, unsig
 	for (unsigned int i=0; i < graph->size(); i++)
 		graph->model_efficiency += static_cast<LLRGNGNode<T,S>& > ((*graph)[i]).efficiency;
 	return graph->model_efficiency;
+}
+
+//! \brief Get model efficiency of the current \p _graphptr
+template<typename T, typename S>
+T LLRGNGAlgorithm<T,S>::getModelEfficiency ()
+{
+	return _graphptr->model_efficiency;
 }
 
 //! \brief Calculate MDL for the current \p _graphptr

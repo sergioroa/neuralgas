@@ -32,8 +32,11 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/serialization/serialization.hpp>
+#include <boost/pool/pool_alloc.hpp>
 
 namespace neuralgas {
+
+// #define _VPoolAlloc_ boost::pool_allocator<T, boost::default_user_allocator_new_delete, boost::details::pool::null_mutex>
 
 //! \class Vector
 /*! \brief Implements operations for n-dimensional vectors. Caution! Default constructor
@@ -146,20 +149,20 @@ template<typename T> template<typename S> inline Vector<T>& Vector<T>::operator/
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add) const
 {
  unsigned int tsize = this->size();  
- boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
-
+ Vector<T> result (tsize);
+ 
  if ( tsize == to_add.size() )
  {
    if (tsize > 1 )
      for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
      {
-       (*result)[j]   =  to_add[j] + (*this)[j];
-       (*result)[j+1]   =  to_add[j+1] + (*this)[j+1];
+       result[j]   =  to_add[j] + (*this)[j];
+       result[j+1]   =  to_add[j+1] + (*this)[j+1];
      }
    if (tsize%2==1)
-     (*result)[tsize-1] = (*this)[tsize-1]+to_add[tsize-1];       
+     result[tsize-1] = (*this)[tsize-1]+to_add[tsize-1];
  }  
- return (*result);
+ return result;
 } 
 
 /** \brief operator+ adding two vectors and returning a new result vector
@@ -171,20 +174,20 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_add)
 {
   unsigned int tsize = this->size();  
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
+  Vector<T> result (tsize);
 
   if ( tsize == to_add.size() )
   {
     if (tsize > 1 )
       for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
       {
-	(*result)[j]   =  to_add[j] + (*this)[j];
-	(*result)[j+1]   =  to_add[j+1] + (*this)[j+1];
+	result[j]   =  to_add[j] + (*this)[j];
+	result[j+1]   =  to_add[j+1] + (*this)[j+1];
       }
     if (tsize%2==1)
-      (*result)[tsize-1] = (*this)[tsize-1]+to_add[tsize-1];       
+      result[tsize-1] = (*this)[tsize-1]+to_add[tsize-1];       
   }  
-  return (*result);
+  return result;
 }
 
 /** \brief const operator- subtracting two const vectors and returning a new result vector
@@ -196,20 +199,20 @@ template<typename T> inline Vector<T> Vector<T>::operator+(const Vector<T>& to_a
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract) const
 { 
   unsigned int tsize = this->size();  
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
+  Vector<T> result (tsize);
 
   if ( tsize == to_subtract.size() )
   {
     if (tsize > 1 )
       for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
       {
-	(*result)[j]     =  (*this)[j] - to_subtract[j];
-	(*result)[j+1]   =   (*this)[j+1] - to_subtract[j+1];
+	result[j]     =  (*this)[j] - to_subtract[j];
+	result[j+1]   =   (*this)[j+1] - to_subtract[j+1];
       }
     if (tsize%2==1)
-      (*result)[tsize-1] = (*this)[tsize-1]-to_subtract[tsize-1];       
+      result[tsize-1] = (*this)[tsize-1]-to_subtract[tsize-1];
   }  
-  return (*result);
+  return result;
 }  
 
 /** \brief operator- subtracting two vectors and returning a new result vector
@@ -221,20 +224,20 @@ template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_s
 template<typename T> inline Vector<T> Vector<T>::operator-(const Vector<T>& to_subtract)
 { 
   unsigned int tsize = this->size();  
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
+  Vector<T> result (tsize);
 
   if ( tsize == to_subtract.size() )
   {
     if (tsize > 1 )
       for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
       {
-	(*result)[j]     =  (*this)[j] - to_subtract[j];
-	(*result)[j+1]   =   (*this)[j+1] - to_subtract[j+1];
+	result[j]     =  (*this)[j] - to_subtract[j];
+	result[j+1]   =   (*this)[j+1] - to_subtract[j+1];
       }
     if (tsize%2==1)
-      (*result)[tsize-1] = (*this)[tsize-1]-to_subtract[tsize-1];       
+      result[tsize-1] = (*this)[tsize-1]-to_subtract[tsize-1];       
   }  
-  return (*result);
+  return result;
 }  
 
 /** \brief operator* multiplies a vector by an arbitrary scalar from the right 
@@ -250,17 +253,17 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 {   
   unsigned int tsize = this->size();  
   const T    scalar   =   (T)factor;
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
-
+  Vector<T> result (tsize);
+  
   if (tsize > 1 )
     for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
     {
-      (*result)[j]     =  (*this)[j] * scalar;
-      (*result)[j+1]   =   (*this)[j+1] * scalar;
+      result[j]     =  (*this)[j] * scalar;
+      result[j+1]   =   (*this)[j+1] * scalar;
     }
   if (tsize%2==1)
-    (*result)[tsize-1] = (*this)[tsize-1] * scalar;       
-  return (*result);
+    result[tsize-1] = (*this)[tsize-1] * scalar;
+  return result;
 
 }
 
@@ -277,19 +280,18 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator*(
 {   
   unsigned int tsize = this->size();  
   const T    scalar   =   (T)factor;
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
-
+  Vector<T> result(tsize);
  
   if (tsize > 1 )
     for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
     {
-      (*result)[j]     =  (*this)[j] * scalar;
-      (*result)[j+1]   =   (*this)[j+1] * scalar;
+      result[j]     =  (*this)[j] * scalar;
+      result[j+1]   =   (*this)[j+1] * scalar;
     }
   if (tsize%2==1)
-    (*result)[tsize-1] = (*this)[tsize-1] * scalar;       
+    result[tsize-1] = (*this)[tsize-1] * scalar;       
    
-  return (*result);
+  return result;
 
 }
 
@@ -307,18 +309,18 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 
   unsigned int tsize = this->size();  
   const T    scalar   =   (T)factor;
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
+  Vector<T> result(tsize);
 
   if (tsize > 1 )
     for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
     {
-      (*result)[j]     =  (*this)[j] / scalar;
-      (*result)[j+1]   =   (*this)[j+1] / scalar;
+      result[j]     =  (*this)[j] / scalar;
+      result[j+1]   =   (*this)[j+1] / scalar;
     }
   if (tsize%2==1)
-    (*result)[tsize-1] = (*this)[tsize-1] / scalar;       
+    result[tsize-1] = (*this)[tsize-1] / scalar;       
 
-  return (*result);
+  return result;
 
 }
 
@@ -336,18 +338,18 @@ template<typename T> template<typename S> inline Vector<T> Vector<T>::operator/(
 {   
   unsigned int tsize = this->size();  
   const T    scalar   =   (T)factor;
-  boost::shared_ptr<Vector<T> > result (new Vector<T>(tsize));
-
+  Vector<T> result(tsize);
+  
   if (tsize > 1 )
     for (unsigned int i=0, j=0; i < (tsize / 2) ; i++,j+=2)
     {
-      (*result)[j]     =  (*this)[j] / scalar;
-      (*result)[j+1]   =   (*this)[j+1] / scalar;
+      result[j]     =  (*this)[j] / scalar;
+      result[j+1]   =   (*this)[j+1] / scalar;
     }
   if (tsize%2==1)
-    (*result)[tsize-1] = (*this)[tsize-1] / scalar;       
+    result[tsize-1] = (*this)[tsize-1] / scalar;       
 
-  return (*result);
+  return result;
 
 }
 

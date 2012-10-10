@@ -52,6 +52,12 @@ struct LLRGNGNode : Base_Node<T,S>
 	LLRGNGNode ();
 	// default \p LLRGNGNode dto
 	virtual ~LLRGNGNode ();
+	/// new operator overloading
+	static inline void* operator new( std::size_t sz )
+	{ return pool.allocate() ; }
+	/// delete operator overloading
+	static inline void operator delete( void* p )
+	{ pool.deallocate( static_cast<LLRGNGNode<T,S>* >(p) ) ; }
 	/// errors vector for calculating different parameters. Its size is
 	/// set by the maximum allowable error window
 	std::vector<T> errors;
@@ -104,7 +110,9 @@ struct LLRGNGNode : Base_Node<T,S>
 	/// mode for calculating mean distances
 	unsigned int mean_distance_mode;
 	/// data set indices that the node covers (used for calculating mdl values and for active learning)
-	std::vector< unsigned int > data;
+        std::vector< unsigned int, boost::pool_allocator<unsigned int> > data;
+	// memory pool for node objects
+        static boost::fast_pool_allocator<LLRGNGNode<T,S> > pool;
 private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int) {
@@ -342,6 +350,12 @@ public:
 	LLRGNGGraph (const LLRGNGGraph&);
 	/// std dto
 	virtual ~LLRGNGGraph();
+	/// new operator overloading
+	static inline void* operator new( std::size_t sz )
+	{ return llrgngpool.allocate() ; }
+	/// delete operator overloading
+	static inline void operator delete( void* p )
+	{ llrgngpool.deallocate( static_cast<LLRGNGGraph<T,S>* >(p) ) ; }
 	// removes the node given by the index, removes its edges and updates the number of connections of its neighbors
 	virtual void rmNode(const unsigned int&); 
 	// set time window constants
@@ -413,6 +427,8 @@ protected:
 	T model_efficiency;
 	/// mode for calculating mean distances
 	unsigned int mean_distance_mode;
+	// memory pool for graph objects
+        static boost::fast_pool_allocator<LLRGNGGraph<T,S> > llrgngpool;
 private:
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int);
@@ -556,8 +572,10 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	// n->repulsion = 0.001;
 	n->errors.push_back (n->last_avgerror);
 	n->min_last_avgerror = n->last_avgerror;
+	n->dim_last_avgerror.reserve (this->_dimNode);
 	n->dim_last_avgerror.resize (this->_dimNode);
 	n->dim_errors.resize (1);
+	n->dim_errors[0].reserve (this->_dimNode);
 	n->dim_errors[0].resize (this->_dimNode);
 	n->mean_distance_mode = mean_distance_mode;
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
