@@ -76,7 +76,7 @@ struct LLRGNGNode : Base_Node<T,S>
 	/// insertion criterion
 	T insertion_criterion;
 	// calculate \p prev_avgerror and \p last_avgerror
-	void updateAvgError (T, Vector<T>&, const unsigned int&, const unsigned int&, const unsigned int&);
+	void updateAvgError (T&, Vector<T>&, const unsigned int&, const unsigned int&, const unsigned int&);
 	// update \p restricting_distance
 	void updateRestrictingDistance (T);
 	/// previous mean error counter
@@ -207,18 +207,17 @@ void LLRGNGNode<T,S>::updateLearningRate (T& adaptation_threshold, T& default_ra
  *  \param timewindow error time window constant
  */
 template<typename T, typename S>
-void LLRGNGNode<T,S>::updateAvgError (T last_error, Vector<T>& dim_last_error, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
+void LLRGNGNode<T,S>::updateAvgError (T& last_error, Vector<T>& dim_last_error, const unsigned int& smoothing, const unsigned int& timewindow, const unsigned int& max_errors_size)
 {
-	errors.push_back (last_error);
-	dim_errors.push_back (dim_last_error);
-	
-	if (errors.size() > max_errors_size)
+	if (errors.size() == max_errors_size)
 	{
 		errors.erase (errors.begin());
 		dim_errors.erase (dim_errors.begin());
 	}
 
-
+	errors.push_back (last_error);
+	dim_errors.push_back (dim_last_error);
+	
 	unsigned int errors_size = errors.size();
 	
 	T timewindow_ratio = timewindow / T(smoothing + timewindow);
@@ -365,7 +364,7 @@ public:
 	// calculate inherited variables for a node to be inserted between two nodes
 	void calculateInheritedParams (const unsigned int, const unsigned int, const unsigned int);
 	// calculate long term and short term error for some node
-	void updateAvgError (const unsigned int, T, Vector<T>&);
+	void updateAvgError (const unsigned int, T&, Vector<T>&);
 	// update restricting distance value for some node
 	void updateRestrictingDistance (const unsigned int, T);
 	// calculate learning quality for some node
@@ -574,6 +573,7 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 	n->min_last_avgerror = n->last_avgerror;
 	n->dim_last_avgerror.reserve (this->_dimNode);
 	n->dim_last_avgerror.resize (this->_dimNode);
+	n->dim_errors.reserve (max_errors_size);
 	n->dim_errors.resize (1);
 	n->dim_errors[0].reserve (this->_dimNode);
 	n->dim_errors[0].resize (this->_dimNode);
@@ -694,7 +694,7 @@ void LLRGNGGraph<T,S>::calculateInheritedParams (const unsigned int index, const
 /** \brief calculate last and previous mean error for a given node
     \param index node index */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T last_error, Vector<T>& dim_last_error)
+void LLRGNGGraph<T,S>::updateAvgError (const unsigned int index, T& last_error, Vector<T>& dim_last_error)
 {
 	static_cast<LLRGNGNode<T,S>* > (this->_nodes[index])->updateAvgError(last_error, dim_last_error, smoothing_window, error_time_window, max_errors_size);
 
