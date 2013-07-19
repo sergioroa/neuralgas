@@ -48,6 +48,7 @@ public:
 	bool readCustomizedDataset (const char*);
 	void setWhiteNoiseProb(const double&);
 	void setLimits (double, double, double, double);
+	std::vector<Vector<double> > getCentersParams ();
 private:
 	virtual  Vector<double>* generate();
 	virtual  Vector<double>* next(){return generate();}
@@ -210,6 +211,11 @@ Vector<double>* GaussianNoise::generate()
 				    centers_params[center][1],
 				    centers_params[center][2],
 				    centers_params[center][3]);
+}
+
+std::vector<Vector<double> > GaussianNoise::getCentersParams ()
+{
+	return centers_params;
 }
 
 } // namespace neuralgas
