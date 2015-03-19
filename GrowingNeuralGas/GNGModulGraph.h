@@ -134,7 +134,7 @@ T GNGModulGraph<T,S>::getWinner(unsigned int& first_winner, unsigned int& second
 template<typename T,typename S>
 inline T GNGModulGraph<T,S>::getDistance(const Vector<T>& item, const unsigned int& node_index) const
 {
-	return metric( item, this->_nodes[node_index]->weight);
+	return this->metric( item, this->_nodes[node_index]->weight);
 }
 
 } // namespace neuralgas

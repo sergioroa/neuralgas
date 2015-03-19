@@ -239,8 +239,8 @@ template<typename T,typename S> T MGNGGraph<T,S>::getDistance(const Vector<T>& i
 {
     // dist  = (1-a)*metric(x_t,w_j)^2+a*metric(C,c_j)^2
     T distance = (1 - algorithm->params[0]);
-    distance*=pow(metric( item, this->_nodes[node_index]->weight),2);
-    distance+=algorithm->params[0]*pow(metric(algorithm->globalContextV,context(node_index)) ,2);
+    distance*=pow(this->metric( item, this->_nodes[node_index]->weight),2);
+    distance+=algorithm->params[0]*pow(this->metric(algorithm->globalContextV,context(node_index)) ,2);
 
     return distance;
 }

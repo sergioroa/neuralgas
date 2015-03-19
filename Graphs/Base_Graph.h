@@ -109,7 +109,7 @@ template < typename T , typename S> struct Base_Edge
 	friend class boost::serialization::access;
   
 	Base_Edge(){in = NULL; out=NULL;}
-	~Base_Edge(){//in = NULL; out=NULL;
+	virtual ~Base_Edge(){//in = NULL; out=NULL;
 	}
 
 	/** \brief Calls the user defined function and applies it on this edge

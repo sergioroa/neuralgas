@@ -369,7 +369,7 @@ template<typename T,typename S> void MGNGAlgorithm<T,S>::run()
        _graphptr->context(max_counter_index_n) = (1- this->params[3]) * _graphptr->context(max_counter_index_n);
    }
    // line 16
-     applyFunc2AllNodes(_funcUpdateCounter,this->params[7]);
+     this->applyFunc2AllNodes(_funcUpdateCounter,this->params[7]);
   }
  }
 }

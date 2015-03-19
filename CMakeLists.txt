@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 if(COMMAND cmake_policy)
-	cmake_policy(SET CMP0003 NEW)
+	cmake_policy(SET CMP0022 NEW)
 endif(COMMAND cmake_policy)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -24,8 +24,8 @@ SET(NEURALGAS_ROOT ${PROJECT_ROOT} CACHE INTERNAL "Path prefix for NeuralGas pac
 GET_FILENAME_COMPONENT(CMAKE_SOURCE_DIR . ABSOLUTE CACHE INTERNAL "")
 
 SET(Boost_MAJOR_VERSION 1)
-SET(Boost_MINOR_VERSION 42)
-FIND_PACKAGE( Boost 1.42 COMPONENTS program_options serialization )
+SET(Boost_MINOR_VERSION 54)
+FIND_PACKAGE( Boost 1.54 COMPONENTS program_options serialization system )
 
 # Single output directory for building all NeuralGas libraries
 SET(LIBRARY_OUTPUT_PATH ${NEURALGAS_ROOT}/lib/linux CACHE PATH "Single output directory for building all NeuralGas libraries")
@@ -50,7 +50,7 @@ INCLUDE( ${QT_USE_FILE} )
 # ADD_DEFINITIONS(-DLINUX -fpermissive)
 ADD_DEFINITIONS(-Wall -DLINUX)
 
-LINK_LIBRARIES(NeuralGas ${QT_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY}
+LINK_LIBRARIES(NeuralGas ${QT_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   # pthread rt GL glut GLU qwt-qt4 Ice IceUtil
 )
 

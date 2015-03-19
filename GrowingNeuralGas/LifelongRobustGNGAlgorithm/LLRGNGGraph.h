@@ -565,7 +565,7 @@ LLRGNGNode<T,S>* LLRGNGGraph<T,S>::newNode(void)
 {
 	LLRGNGNode<T,S>* n = new LLRGNGNode<T,S>;
 	if (this->high_limits.size() != 0 && this->low_limits.size() != 0)
-		n->last_avgerror = metric (this->high_limits, this->low_limits);
+		n->last_avgerror = this->metric (this->high_limits, this->low_limits);
 	//default inherited errors (used when initializing reference vectors)
 	n->prev_avgerror = n->last_avgerror;
 	// n->repulsion = 0.001;

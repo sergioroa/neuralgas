@@ -58,7 +58,7 @@ public:
 	//copy cto.
 	GNGModul(const GNGModul&);
         //std dto
-        ~GNGModul();
+        virtual ~GNGModul();
         virtual void    showGraph()=0;
         //set stopping value (maximal number of epochs)
         void setMaxEpochs (unsigned int);

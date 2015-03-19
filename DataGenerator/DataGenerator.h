@@ -52,7 +52,7 @@ template<typename T> class DataGenerator
         // std cto with dimension of the data
                                                 DataGenerator(const int&);
         // std dto
-                                                ~DataGenerator();
+        virtual                                 ~DataGenerator();
          // erases the data
         void                                    reset();
         // returns the next item

@@ -92,14 +92,16 @@ int main(int argc, char *argv[])
     eb->setFuncArray(functheta,7);
 
     int size;
-    double sigma, transProb;
-    if (argc == 4) {
+    // double sigma, transProb;
+    // if (argc == 4) {
+    if (argc == 2) {
 	    size = atoi(argv[1]);
-	    sigma = atof(argv[2]);
-	    transProb = atof(argv[3]);
+	    // sigma = atof(argv[2]);
+	    // transProb = atof(argv[3]);
     }
     else {
-	    cerr << "Usage: " << argv[0] << " size sigma transition_prob" << endl;
+	    // cerr << "Usage: " << argv[0] << " size sigma transition_prob" << endl;
+	    cerr << "Usage: " << argv[0] << " size" << endl;
 	    return 1;
     }
     
