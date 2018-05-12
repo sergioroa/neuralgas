@@ -156,7 +156,7 @@ template < typename T, typename S > void ErrorTesting<T,S>::chooseRandomly(const
 * \param steps number of data items that shall be taken to compute the error
 * \param random determines whether the data is taken randomly or whether the last number of data items is used
 */
-template < typename T, typename S > std::vector<T> ErrorTesting<T,S>::getErrors(const unsigned int& steps,const bool& random=false) 
+template < typename T, typename S > std::vector<T> ErrorTesting<T,S>::getErrors(const unsigned int& steps,const bool& random) 
 {
  chooseRandomly(random);
  setPastTimeSteps(steps);
@@ -178,7 +178,7 @@ template < typename T, typename S > std::vector<T> ErrorTesting<T,S>::getErrors(
 * metric is going to be used.
 * \param *errormetric_to_use is function ptr to an user defined metric
 */
-template < typename T, typename S > inline void ErrorTesting<T,S>::setErrorMetric(T (*error_metric_to_use)(const Vector<T>& a,const Vector<T>& b)=NULL )
+template < typename T, typename S > inline void ErrorTesting<T,S>::setErrorMetric(T (*error_metric_to_use)(const Vector<T>& a,const Vector<T>& b) )
 {_error_metric_to_use=error_metric_to_use;}  
 
 // returns the distance of the node and the item vector

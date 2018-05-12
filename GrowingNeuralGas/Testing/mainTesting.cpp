@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     assert (data.size());
     assert (data.at(0)->size() == dim);
     
-    LLRGNGAlgorithm<double, int> gng (dim);
+    LLRGNGAlgorithm<double, int> gng (dim, 81);
     gng.setNodes ( &nodes );
     gng.setData ( &data );
     
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
     ErrorTesting<double,int> et(&gng);
 
-    std::vector<double> errors = et.getErrors(data.size());
+    std::vector<double> errors = et.getErrors(data.size(), false);
     double total_error=0.0;
     for(unsigned int j=0; j < errors.size(); j++)
 	total_error+=errors[j];

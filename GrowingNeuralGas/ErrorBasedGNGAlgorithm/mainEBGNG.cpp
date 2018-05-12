@@ -147,7 +147,8 @@ int main(int argc, char *argv[])
     eb->run(); 
     // eb->save("nodes.txt");
     double total_error=0.0;
-    std::vector<double> errors = et.getErrors(50);
+    bool random_data = false;
+    std::vector<double> errors = et.getErrors(50, random_data);
     for (unsigned int i =0; i < errors.size(); i++)
         total_error += errors[i];
     

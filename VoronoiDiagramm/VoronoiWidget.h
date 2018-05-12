@@ -33,8 +33,8 @@
 #include <QEvent>
 #include <QScrollArea>
 #include <QVBoxLayout>
-#include <QtGui/QMainWindow>
-#include <QtGui/QApplication>
+#include <QMainWindow>
+#include <QApplication>
 #include <VoronoiDiagramm/Voronoi.h>
 #include <QMutex>
 #include <QWaitCondition>

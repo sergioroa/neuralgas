@@ -15,7 +15,7 @@
  *   along with NeuralGas.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "VoronoiWidget.h"
 
 using namespace neuralgas;

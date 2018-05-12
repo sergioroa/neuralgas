@@ -422,7 +422,7 @@ template < typename T, typename S > inline void NeuralGas<T,S>::addData(std::vec
 //template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(T (*metric_to_use)(const Vector<T>& a,const Vector<T>& b)=NULL )
 //{_metric_to_use=metric_to_use;}  
 
-template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(Metric metric_to_use=NULL )
+template < typename T, typename S > inline void NeuralGas<T,S>::setMetric(Metric metric_to_use )
 {
   _metric_to_use=metric_to_use;
   graphptr->setMetric (metric_to_use);

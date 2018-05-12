@@ -438,7 +438,7 @@ private:
     \param dim dimensionality
  */
 template<typename T, typename S>
-LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_error_window = 81) :
+LLRGNGGraph<T,S>::LLRGNGGraph (const unsigned int &dim, const unsigned int& max_error_window) :
 	Base_Graph<T,S>(dim),
 	UGraph<T,S>(dim),
 	TGraph<T,S>(dim),
@@ -648,7 +648,7 @@ void LLRGNGGraph<T,S>::setTimeWindows (unsigned int smoothing, unsigned int erro
     \param size
  */
 template<typename T, typename S>
-void LLRGNGGraph<T,S>::setMaxErrorsSize (unsigned int size = 81)
+void LLRGNGGraph<T,S>::setMaxErrorsSize (unsigned int size)
 {
 	max_errors_size = size;
 }

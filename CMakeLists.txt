@@ -36,12 +36,14 @@ SET(EXECUTABLE_OUTPUT_PATH ${NEURALGAS_ROOT}/bin/linux CACHE PATH "Single output
 # Set the install directory.
 SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Path prefix for NeuralGas installation")
 
-FIND_PACKAGE( Qt4 REQUIRED )
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
 
 # SET(QWT_INCLUDE /usr/include/qwt-qt4 CACHE PATH "Path prefix for qwt include")
 # SET(QWT_LIBRARY /usr/lib/ CACHE PATH "Path prefix for qwt library")
 
-INCLUDE( ${QT_USE_FILE} )
+# INCLUDE( ${QT_USE_FILE} )
 
 # SET(ICE_INCLUDE /usr/include CACHE PATH "Path prefix for ZeroC Ice include")
 # SET(ICE_LIBRARY /usr/lib CACHE PATH "Path prefix for ZeroC Ice library")
@@ -50,24 +52,24 @@ INCLUDE( ${QT_USE_FILE} )
 # ADD_DEFINITIONS(-DLINUX -fpermissive)
 ADD_DEFINITIONS(-Wall -DLINUX)
 
-LINK_LIBRARIES(NeuralGas ${QT_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+# LINK_LIBRARIES(NeuralGas ${QT_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY}
   # pthread rt GL glut GLU qwt-qt4 Ice IceUtil
-)
-
+# )
+set(LINK_LIBRARIES NeuralGas Qt5::Widgets ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 
 INCLUDE_DIRECTORIES(
         ${NEURALGAS_ROOT}
-	${QT_INCLUDE_DIR}
+#	${QT_INCLUDE_DIR}
 	${Boost_INCLUDE_DIRS}
 #	${QWT_INCLUDE}
 #	${ICE_INCLUDE}
 )
 
-LINK_DIRECTORIES(
-	${Boost_LIBRARY_DIRS}
+# LINK_DIRECTORIES(
+# 	${Boost_LIBRARY_DIRS}
 #	${QWT_LIBRARY}
 #	${ICE_LIBRARY}
-)
+# )
 
 
 SET(GNG_HEADERS
@@ -92,10 +94,10 @@ INSTALL(FILES ${LLRGNG_HEADERS} DESTINATION include/NeuralGas/GrowingNeuralGas/L
 SET(LLRGNG_MOC_HEADERS
  	${NEURALGAS_ROOT}/GrowingNeuralGas/LifelongRobustGNGAlgorithm/LLRGNGAlgorithm.h
 )
-QT4_WRAP_CPP(LLRGNG_GEN_MOC ${LLRGNG_MOC_HEADERS} )
+# QT4_WRAP_CPP(LLRGNG_GEN_MOC ${LLRGNG_MOC_HEADERS} )
 
 SET(LLRGNG_SOURCES
-        ${LLRGNG_GEN_MOC}
+        ${LLRGNG_MOC_HEADERS}
 )
 
 SET(MGNG_HEADERS
@@ -143,13 +145,13 @@ INSTALL(FILES ${TOOLS_HEADERS} DESTINATION include/NeuralGas/tools/)
 SET(VORONOIDIAGRAMM_MOC_HEADERS
 	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiWidget.h
 )
-QT4_WRAP_CPP(VORONOIDIAGRAMM_GEN_MOC ${VORONOIDIAGRAMM_MOC_HEADERS} )
+# QT4_WRAP_CPP(VORONOIDIAGRAMM_GEN_MOC ${VORONOIDIAGRAMM_MOC_HEADERS} )
 
 SET(VORONOIDIAGRAMM_SOURCES
 	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiDiagramGenerator.cpp
 	${NEURALGAS_ROOT}/VoronoiDiagramm/Voronoi.cpp
 	${NEURALGAS_ROOT}/VoronoiDiagramm/VoronoiWidget.cpp
-	${VORONOIDIAGRAMM_GEN_MOC}
+	# ${VORONOIDIAGRAMM_GEN_MOC}
 )
 
 SET(HEADERS
@@ -212,6 +214,7 @@ ${LLRGNG_SOURCES}
 )
 # SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 INSTALL(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 
 ADD_EXECUTABLE(NGSuite ${NGSUITE})
 ADD_EXECUTABLE(MackeyGlass ${MACKEYGLASS})
@@ -230,6 +233,22 @@ ADD_EXECUTABLE(CDN ${CDN})
 ADD_EXECUTABLE(GNGTesting ${GNGTESTING})
 ADD_EXECUTABLE(graphs ${GRAPHS})
 
+target_link_libraries(NGSuite NeuralGas)
+target_link_libraries(MackeyGlass NeuralGas) 
+target_link_libraries(BinaryAutomata NeuralGas) 
+target_link_libraries(ProbMackeyGlass NeuralGas) 
+target_link_libraries(NoisyAutomata NeuralGas)
+target_link_libraries(GaussianNoise NeuralGas)
+target_link_libraries(CalcMSE NeuralGas)
+target_link_libraries(GNG NeuralGas)
+target_link_libraries(LLRGNG NeuralGas)
+target_link_libraries(EBGNG NeuralGas)
+target_link_libraries(MGNG NeuralGas)
+target_link_libraries(CDN NeuralGas)
+target_link_libraries(GNGTesting NeuralGas)
+target_link_libraries(graphs NeuralGas)
+target_link_libraries(VoronoiDiagramm NeuralGas)
+target_link_libraries(VoronoiWidget NeuralGas)
 
 # INSTALL(TARGETS GNG RUNTIME DESTINATION bin/NeuralGas)
 INSTALL(TARGETS NGSuite RUNTIME DESTINATION bin/NeuralGas)

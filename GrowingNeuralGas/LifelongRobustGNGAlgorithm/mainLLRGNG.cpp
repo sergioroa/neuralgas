@@ -58,7 +58,8 @@ int main (int argc, char* argv[])
 
 	QApplication *a = NULL;
 	VoronoiMainWindow *vWindow = NULL;
-	LLRGNGAlgorithm<double, int> llrgng (2);
+	const unsigned int error_window_size = 81;
+	LLRGNGAlgorithm<double, int> llrgng (2, error_window_size);
 	if (vm.count("visualize"))
 	{
 		a = new QApplication (argc, argv);
@@ -126,7 +127,8 @@ int main (int argc, char* argv[])
 
 	ErrorTesting<double,int> et(&llrgng);
 	double total_error=0.0;
-	std::vector<double> errors = et.getErrors(size-1);
+	bool random_data=false;
+	std::vector<double> errors = et.getErrors(size-1, random_data);
 	for (unsigned int i =0; i < errors.size(); i++)
 		total_error += errors[i];
 	

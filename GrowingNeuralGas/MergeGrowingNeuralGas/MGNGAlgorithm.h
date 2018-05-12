@@ -164,7 +164,7 @@ template<typename T,typename S> MGNGAlgorithm<T,S>::~MGNGAlgorithm()
 *   \param *funcUpdateCounter) a function ptr pointing to the func defining the update rule for the counter
 */
 
-template<typename T,typename S> void MGNGAlgorithm<T,S>::setFuncUpdateCounter(void (*funcUpdateCounter)(Base_Node<T,S>* n,const float&)=NULL)
+template<typename T,typename S> void MGNGAlgorithm<T,S>::setFuncUpdateCounter(void (*funcUpdateCounter)(Base_Node<T,S>* n,const float&))
 {
  if (funcUpdateCounter == NULL)
     _funcUpdateCounter = updateCounter;

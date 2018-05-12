@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     ugraph.rmEdge(0,2);
     ugraph.showGraph();
 */
-    LLRGNGGraph<float,int> ugraph(9);
+    LLRGNGGraph<float,int> ugraph(9, 81);
     Vector<float> low_limits (9, 0);
     Vector<float> high_limits (9, 2);
     ugraph.setHighLimits (high_limits);

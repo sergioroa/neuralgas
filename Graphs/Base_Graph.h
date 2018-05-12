@@ -723,7 +723,7 @@ template< typename T, typename S> T Base_Graph<T,S>::metric(const Vector<T>& x, 
 * metric is going to be used.
 * \param *metric_to_use is function ptr to an user defined metric
 */
-template < typename T, typename S > inline void Base_Graph<T,S>::setMetric(Metric metric_to_use=NULL )
+template < typename T, typename S > inline void Base_Graph<T,S>::setMetric(Metric metric_to_use )
 {
   _metric_to_use=metric_to_use;
 }

@@ -236,7 +236,7 @@ private:
 * \param dim is the dimension of the node weights
 */
 template<typename T,typename S>
-LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned int& window = 81):
+LLRGNGAlgorithm<T,S>::LLRGNGAlgorithm(const unsigned int& dim, const unsigned int& window):
 	GNGModul<T,S>(dim),
 	max_nodes (0),
 	data_accuracy (0.001),
@@ -355,7 +355,7 @@ void LLRGNGAlgorithm<T,S>::setTimeWindows (unsigned int smoothing, unsigned int 
     \param size
  */
 template<typename T, typename S>
-void LLRGNGAlgorithm<T,S>::setMaxErrorsSize (unsigned int size = 81)
+void LLRGNGAlgorithm<T,S>::setMaxErrorsSize (unsigned int size)
 {
 	_graphptr->setMaxErrorsSize (size);
 }

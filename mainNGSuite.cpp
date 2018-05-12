@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     if (argc < 4)
 	    display_error_msg (argv);
 
-    unsigned int dataset;
+    unsigned int dataset = _na;
     if (string(argv[2]) == "mg")
 	    dataset = _mg;
     else if (string(argv[2]) == "na")
@@ -136,7 +136,8 @@ int main(int argc, char *argv[])
     }
     else if (string(argv[1]) == "llrgng")
     {
-	    gng = new LLRGNGAlgorithm<double,int>(dataset + 1);
+            const unsigned int error_window_size = 81;
+	    gng = new LLRGNGAlgorithm<double,int>(dataset + 1, error_window_size);
 	    algorithm = _llbgng;
     }
     else
@@ -296,7 +297,8 @@ int main(int argc, char *argv[])
     {
         std::cout << "Algorithm " << i << std::endl;
         //errors = ng.getErrors(i,500);
-        errors = ng.getErrors(i,sizeofdata);
+        bool random_data = false;
+        errors = ng.getErrors(i,sizeofdata,random_data);
         double total_error=0.0;
         ng[i]->showGraph();
 	ng[i]->save ("nodes.dat");

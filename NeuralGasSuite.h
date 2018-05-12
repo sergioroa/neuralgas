@@ -117,7 +117,7 @@ template <typename T,typename S> void NeuralGasSuite<T,S>::run()
          }
 }
 
-template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(GNGModul<T,S>* algo,const int& pastTimeSteps, const bool& random=false )
+template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(GNGModul<T,S>* algo,const int& pastTimeSteps, const bool& random )
 {
          
          for (int i=0; i <_algos.size();i++)
@@ -129,7 +129,7 @@ template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(G
          return _et->getErrors(pastTimeSteps,random);      
 }
 
-template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(const int& num_of_algo,const int& pastTimeSteps, const bool& random=false )
+template <typename T,typename S> std::vector<T> NeuralGasSuite<T,S>::getErrors(const int& num_of_algo,const int& pastTimeSteps, const bool& random )
 {
          _et->setGNGObject(_algos[num_of_algo]);   
          return _et->getErrors(pastTimeSteps,random);      
