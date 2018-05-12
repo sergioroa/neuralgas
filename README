@@ -3,12 +3,10 @@ Probably this code works also in MacOS (however it has not been tested).
 Please let us know if you want a version for Windows or feel free to
 provide the appropriate compilation scripts.
 
-Install following packages (Ubuntu 14.04 and higher):
-qt4-qmake
-libqt4-dev
+Install following packages (Ubuntu 16.04 and higher):
+qt5-default
 
-Install the boost dev package. In Ubuntu 14.04 you can install libboost-dev,
-libboost-program-options-dev, libboost-serialization-dev and libboost-system-dev.
+Install the boost dev package. In Ubuntu 16.04 you can install libboost-all-dev
 
 Procedures to install NeuralGas:
 
